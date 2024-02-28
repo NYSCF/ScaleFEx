@@ -2,7 +2,8 @@
 __pycache__/
 *.py[cod]
 *$py.class
-
+batch_compute_embeddings.py
+try_*
 # C extensions
 *.so
 
