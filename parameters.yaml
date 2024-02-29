@@ -1,6 +1,6 @@
 location_parameters:
   exp_folder: '/mnt/2e6952d2-a327-41fa-9451-7ce13129d27c/HTS0033/'
-  experiment_name: 'HTN0001'
+  experiment_name: 'HTS0033'
   saving_folder: '/home/biancamigliori/Documents/GBA/'
   Plates: ['101','102']
   plate_type: '_CV384W_'
@@ -13,6 +13,9 @@ type_specific:
   neural_tracing: 'ch2'
 
 QC: True
+FFC: True
+FFC_location: 'Saving Folder'
+
 use_cpu_segmentation: False
 img_size: 2160
 csv_coordinates: '' 
@@ -27,3 +30,4 @@ AWS:
 
 local:
   query_function: 'data_query.query_functions_local'
+  parallel: True
