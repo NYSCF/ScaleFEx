@@ -1,5 +1,5 @@
 import data_query
-import yaml
+import yaml,os
 
 
 
@@ -16,12 +16,14 @@ class compute_embeddings:
         if self.parameters['AWS']['use_AWS'] in['no','N','NO','n','Nope']:
             print('Local computation')
             computation='local'
-            self.data_retrieve=import_module(self.parameters['local']['query_function'])
+            
         
         elif self.parameters['AWS']['use_AWS'] in ['yes','Y','YES','yes','y']:
             computation='AWS'
             print(' AWS computation')
-            
+
+        self.data_retrieve=import_module(self.parameters['local']['query_function'])   
+        self.data_retrieve=import_module(self.parameters['local']['query_function'])   
 
         else:
             print(self.parameters['AWS']['use_AWS'], ' is not an accepted character. Please specify Yes or No')
@@ -30,6 +32,12 @@ class compute_embeddings:
 
         print("retrieving files from ", (self.parameters['location_parameters']['exp_folder']))
         files=self.data_retrieve.query_data(self.parameters['location_parameters']['exp_folder'])
+
+        if self.parameters.FFC:
+            if not os.path.exists(self.parameters['location_parameters']['saving_folder']+self.parameters['location_parameters']['experiment_name']+'_FFC.p'):
+                print('Flat Field correction image not found in ' + self.parameters['location_parameters']['saving_folder'],
+                      ' Generating FFC now')
+                self.flat_field_correction=data_query.
 
         for plate in self.parameters['location_parameters']['Plates']:
             print(plate)
@@ -64,3 +72,6 @@ def import_module(module_name):
     except ImportError:
         print(f"Module '{module_name}' not found.")
         return None
+    
+
+
