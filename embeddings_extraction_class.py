@@ -34,7 +34,7 @@ class Screen_Compute: #come up with a better name
     
         print("retrieving files from ", (self.parameters['location_parameters']['exp_folder']))
         files=self.data_retrieve.query_data(self.parameters['location_parameters']['exp_folder'])
-### FFC
+        ### FFC
         if self.parameters['FFC'] is True:
             if not os.path.exists(self.parameters['location_parameters']['saving_folder']+self.parameters['location_parameters']['experiment_name']+'_FFC.p'):
                 print('Flat Field correction image not found in ' + self.parameters['location_parameters']['saving_folder'],
@@ -95,7 +95,7 @@ class Screen_Compute: #come up with a better name
                                     self.parameters['downsampling'],return_original=self.parameters['QC'])
                 try:
                     print(original_images.shape)
-                except:
+                except NameError:
                     print('Images corrupted')
 
                 if np_images is not None:
@@ -106,16 +106,18 @@ class Screen_Compute: #come up with a better name
                         locations['plate']=locations['plate'].astype(str)
                         locations=locations.loc[(locations.well==well)&(locations.site==site)&(locations.plate==plate)]
                         center_of_mass=np.asarray(locations[['coordX','coordY']])
-                        
 
-                    print(center_of_mass)
-
-                    if self.parameters['QC']==True:
-                        indQC=0
                         if self.parameters['type_specific']['compute_live_cells'] is False:
                             live_cells=len(center_of_mass)
                         else:
                             print('to be implemented')
+                        
+                    print(center_of_mass)
+
+                    if self.parameters['QC']==True:
+                        indQC=0
+                      
+
                         QC_vector,indQC = Quality_control_HCI.compute_global_values.calculateQC(len(center_of_mass),live_cells,
                                             self.parameters['location_parameters']['experiment_name'],original_images,well,plate,site,self.parameters['type_specific']['channel'],
                                             indQC,self.parameters['type_specific']['neurite_tracing'])
