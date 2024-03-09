@@ -10,3 +10,6 @@
 [submodule "Quality_control_HCI"]
 	path = Quality_control_HCI
 	url = https://github.com/NYSCF/Quality_control_HCI.git
+[submodule "Embeddings_extraction_from_image"]
+	path = Embeddings_extraction_from_image
+	url = https://github.com/NYSCF/Embeddings_extraction_from_image.git

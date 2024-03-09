@@ -3,9 +3,11 @@ import yaml,os,pickle
 import parallelize_computation
 import pandas as pd
 import numpy as np
+import scipy as sp
 from datetime import datetime
 import Load_preprocess_images.image_preprocessing_functions
 import Quality_control_HCI.compute_global_values
+import Embeddings_extraction_from_image.batch_compute_embeddings
 import cv2
 
 
@@ -13,7 +15,7 @@ class Screen_Compute: #come up with a better name
 
     def __init__(self,yaml_path='parameters.yaml'):
  
-        with open(yaml_path) as f:
+        with open(yaml_path,'rb') as f:
             self.parameters=yaml.load(f.read(),Loader=yaml.CLoader)
         f.close()
 
@@ -69,7 +71,7 @@ class Screen_Compute: #come up with a better name
         if not os.path.exists(self.parameters['location_parameters']['saving_folder']+self.parameters['vector_type']):
             os.makedirs(self.parameters['location_parameters']['saving_folder']+self.parameters['vector_type'])
 
-        csv_file = self.parameters['location_parameters']['saving_folder']+self.parameters['vector_type']+self.parameters['location_parameters']['experiment_name']+'_'+str(plate)+'Embeddings.csv'
+        csv_file = self.parameters['location_parameters']['saving_folder']+self.parameters['vector_type']+'/'+self.parameters['location_parameters']['experiment_name']+'_'+self.parameters['vector_type']+'.csv'
         if self.parameters['QC']==True:
             csv_fileQC = self.parameters['location_parameters']['saving_folder']+'QC_analysis/'+self.parameters['location_parameters']['experiment_name']+'_'+str(plate)+'QC.csv'
             if not os.path.exists(self.parameters['location_parameters']['saving_folder']+'QC_analysis'):
@@ -83,7 +85,7 @@ class Screen_Compute: #come up with a better name
             
         def compute_vector(well):
             ''' Function that imports the images and extracts the location of cells'''
-                #TB fixed 
+
             
             print(well, plate, datetime.now())
             for site in task_fields:
@@ -101,22 +103,23 @@ class Screen_Compute: #come up with a better name
                 if np_images is not None:
                     if self.parameters['segmentation']['csv_coordinates']=='':
                         center_of_mass=self.segment_crop_images(original_images[0])
+                        if self.parameters['type_specific']['compute_live_cells'] is False:
+                            live_cells=len(center_of_mass)
+                        else:
+                            print('to be implemented')
                     else:
                         locations=pd.read_csv(self.parameters['segmentation']['csv_coordinates'],index_col=0)
                         locations['plate']=locations['plate'].astype(str)
                         locations=locations.loc[(locations.well==well)&(locations.site==site)&(locations.plate==plate)]
                         center_of_mass=np.asarray(locations[['coordX','coordY']])
-
                         if self.parameters['type_specific']['compute_live_cells'] is False:
                             live_cells=len(center_of_mass)
-                        else:
-                            print('to be implemented')
+                        
                         
                     print(center_of_mass)
 
                     if self.parameters['QC']==True:
                         indQC=0
-                      
 
                         QC_vector,indQC = Quality_control_HCI.compute_global_values.calculateQC(len(center_of_mass),live_cells,
                                             self.parameters['location_parameters']['experiment_name'],original_images,well,plate,site,self.parameters['type_specific']['channel'],
@@ -125,6 +128,55 @@ class Screen_Compute: #come up with a better name
                             QC_vector.to_csv(csv_fileQC,header=True)
                         else:
                             QC_vector.to_csv(csv_fileQC,mode='a',header=False)
+
+                    if self.parameters['tile_computation'] is True:
+                        ind=0
+                        vector=pd.DataFrame(np.asarray([plate,well,site]).reshape(1,3),columns=['plate','well','site'],index=[ind])
+                        vector=pd.concat([vector,Embeddings_extraction_from_image.batch_compute_embeddings.Compute_embeddings(np_images,ind,self.parameters['type_specific']['channel'],
+                                                                                            self.parameters["device"],weights=self.parameters['weights_location']).embeddings],axis=1)
+                        if not os.path.exists(csv_file[:-4]+'Tile.csv'):
+                            vector.to_csv(csv_file[:-4]+'Tile.csv',header=True)
+                        else:
+                            vector.to_csv(csv_file[:-4]+'Tile.csv',mode='a',header=False)
+                    n=0
+                    for x,y in center_of_mass:
+                        if ((x-self.parameters['type_specific']['ROI']<0) or (x-self.parameters['type_specific']['ROI']>self.parameters['location_parameters']['image_size'][0]) or
+                            (y-self.parameters['type_specific']['ROI']<0) or (y-self.parameters['type_specific']['ROI']>self.parameters['location_parameters']['image_size'][1])):
+
+                            print("cell on the border")
+                            continue
+                        else:
+                            ind=0
+                            vector=pd.DataFrame(np.asarray([plate,well,site,x,y,n]).reshape(1,6),columns=['plate','well','site','coordX','coordY','cell_id'],index=[ind])
+
+                            n+=1
+                            if self.parameters['location_parameters']['coordinates_csv']=='':
+                             
+                                ccDistance=[]
+                                for cord in center_of_mass:  
+                                    ccDistance.append(sp.spatial.distance.pdist([[x,y], cord]))   
+                                    ccDistance.sort()     
+                                vector['distance']=ccDistance[1]   
+
+                            crop=np_images[:,int(x-self.parameters['type_specific']['ROI']):int(x+self.parameters['type_specific']['ROI']),
+                                           int(y-self.parameters['type_specific']['ROI']):int(y+self.parameters['type_specific']['ROI']),:]
+
+                            if 'mbed' in self.parameters['vector_type']:
+
+                                vector=pd.concat([vector,Embeddings_extraction_from_image.batch_compute_embeddings.Compute_embeddings(crop,0,self.parameters['type_specific']['channel'],
+                                                                                                self.parameters["device"],weights=self.parameters['weights_location']).embeddings],axis=1)
+                                
+                                if not os.path.exists(csv_file):
+                                    vector.to_csv(csv_file,header=True)
+                                else:
+                                    vector.to_csv(csv_file,mode='a',header=False)
+                            
+                            elif ('cale' in self.parameters['vector_type']) or ('FEx' in self.parameters['vector_type']) or ('fex' in self.parameters['vector_type']):
+                                indQC=0
+                            
+                            else:
+                                print(' Not a valid vector type entry')
+
 
         if self.computation=='local':
             if self.parameters['local']['parallel'] is True:
