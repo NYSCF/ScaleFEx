@@ -22,11 +22,11 @@ type_specific:
   neurite_tracing: ''
 
 downsampling: 1
-
 QC: True
 FFC: True
 FFC_location: 'Saving Folder'
 FFC_n_images: 30
+tile_computation: True
 
 segmentation:
   csv_coordinates: '' 
@@ -38,7 +38,11 @@ segmentation:
   max_cell_size: 10000
   
 
+## embeddings_settings
 device: "0"
+weights_location: "/home/biancamigliori/Documents/GitHubRepos/NYSCF_Embeddings_pipeline"
+#
+
 gpu_mrcnn: 0
 
 
