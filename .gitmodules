@@ -13,3 +13,6 @@
 [submodule "Embeddings_extraction_from_image"]
 	path = Embeddings_extraction_from_image
 	url = https://github.com/NYSCF/Embeddings_extraction_from_image.git
+[submodule "ScaleFEx_from_crop"]
+	path = ScaleFEx_from_crop
+	url = https://github.com/NYSCF/ScaleFEx_from_crop.git

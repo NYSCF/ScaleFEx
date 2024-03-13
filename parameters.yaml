@@ -1,4 +1,4 @@
-vector_type: 'embeddings' #'scalefex'
+vector_type: 'scalefex' #'scalefex'
 
 
 location_parameters:
@@ -16,6 +16,8 @@ type_specific:
   stack: False
   ROI: 299
   neural_tracing: 'ch2'
+  RNA_channel: 'ch5' #set only if you want to compute ScaleFex
+  Mito_channel: 'ch2' #set only if you want to compute ScaleFex
   zstack: False
   img_size: [2160,2160]
   compute_live_cells: False 
@@ -26,7 +28,7 @@ QC: True
 FFC: True
 FFC_location: 'Saving Folder'
 FFC_n_images: 30
-tile_computation: True
+tile_computation: False
 
 segmentation:
   csv_coordinates: '' 
