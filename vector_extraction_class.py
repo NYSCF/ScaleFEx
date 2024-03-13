@@ -8,57 +8,79 @@ from datetime import datetime
 import Load_preprocess_images.image_preprocessing_functions
 import Quality_control_HCI.compute_global_values
 import Embeddings_extraction_from_image.batch_compute_embeddings
+import ScaleFEx_from_crop.compute_ScaleFEx
 import cv2
 
 
 class Screen_Compute: #come up with a better name
+    """
+    Class representing the computation of screen data.
 
-    def __init__(self,yaml_path='parameters.yaml'):
- 
-        with open(yaml_path,'rb') as f:
-            self.parameters=yaml.load(f.read(),Loader=yaml.CLoader)
+    Methods:
+        __init__(yaml_path='parameters.yaml'): 
+            Initializes the Screen_Compute object with parameters from a YAML file.
+    """
+    def __init__(self, yaml_path='parameters.yaml'):
+        """
+        Initializes the Screen_Compute object with parameters from a YAML file.
+
+        Args:
+            yaml_path (str): Path to the YAML file containing parameters. Default is 'parameters.yaml'.
+        """
+
+        # Read the yaml file
+        with open(yaml_path, 'rb') as f:
+            self.parameters = yaml.load(f.read(), Loader=yaml.CLoader)
         f.close()
 
-
+        # Determine the type of computation to be used
         if self.parameters['AWS']['use_AWS'] in['no','N','NO','n','Nope']:
             print('Local computation')
             self.computation='local'
-                       
-        
+
         elif self.parameters['AWS']['use_AWS'] in ['yes','Y','YES','yes','y']:
-            self.computation='AWS'
             print(' AWS computation')   
+            self.computation='AWS'
 
         else:
             print(self.parameters['AWS']['use_AWS'], ' is not an accepted character. Please specify Yes or No')
 
-        self.data_retrieve=import_module(self.parameters[self.computation]['query_function'])
-    
+        # Import the data retrieval function
+        self.data_retrieve = import_module(self.parameters[self.computation]['query_function'])
+
+        # Print the experiment folder
         print("retrieving files from ", (self.parameters['location_parameters']['exp_folder']))
-        files=self.data_retrieve.query_data(self.parameters['location_parameters']['exp_folder'])
-        ### FFC
+
+        # Get the files
+        files = self.data_retrieve.query_data(self.parameters['location_parameters']['exp_folder'])
+
+        # Perform Flat Field Correction (FFC)
         if self.parameters['FFC'] is True:
             if not os.path.exists(self.parameters['location_parameters']['saving_folder']+self.parameters['location_parameters']['experiment_name']+'_FFC.p'):
                 print('Flat Field correction image not found in ' + self.parameters['location_parameters']['saving_folder'],
-                      ' Generating FFC now')
+                    ' Generating FFC now')
                 self.flat_field_correction={}
-                
-                    
-                self.flat_field_correction=self.data_retrieve.flat_field_correction_on_data(files,self.parameters['type_specific']['channel'],n_images=20)
 
-                pickle.dump(self.flat_field_correction, open(self.parameters['location_parameters']['saving_folder'] +
-                        self.parameters['location_parameters']['experiment_name']+'_FFC.p', "wb"))
+                self.flat_field_correction = self.data_retrieve.flat_field_correction_on_data(files,
+                                                                                                self.parameters['type_specific']['channel'],
+                                                                                                n_images=20)
+
+                pickle.dump(self.flat_field_correction,
+                            open(self.parameters['location_parameters']['saving_folder'] +
+                                self.parameters['location_parameters']['experiment_name']+'_FFC.p', "wb"))
+
             else:
                 print('Flat Field correction image found in ' + self.parameters['location_parameters']['saving_folder'],
-                      ' Loding FFC')
+                    ' Loding FFC')
                 self.flat_field_correction = pickle.load(open(self.parameters['location_parameters']['saving_folder'] +
-                        self.parameters['location_parameters']['experiment_name']+'_FFC.p', "rb"))
+                            self.parameters['location_parameters']['experiment_name']+'_FFC.p', "rb"))
         else:
-            for channel in self.parameters['type_specific']['channel']: 
+            for channel in self.parameters['type_specific']['channel']:
                 self.flat_field_correction[channel]=1
 
+        # Loop over plates and start computation
         for plate in self.parameters['location_parameters']['plates']:
-            self.start_computation(plate,files)
+            self.start_computation(plate, files)
 
 ### Start computation
             
@@ -140,10 +162,12 @@ class Screen_Compute: #come up with a better name
                             vector.to_csv(csv_file[:-4]+'Tile.csv',mode='a',header=False)
                     n=0
                     for x,y in center_of_mass:
-                        if ((x-self.parameters['type_specific']['ROI']<0) or (x-self.parameters['type_specific']['ROI']>self.parameters['location_parameters']['image_size'][0]) or
-                            (y-self.parameters['type_specific']['ROI']<0) or (y-self.parameters['type_specific']['ROI']>self.parameters['location_parameters']['image_size'][1])):
-
-                            print("cell on the border")
+                        crop=np_images[:,int(x-self.parameters['type_specific']['ROI']):int(x+self.parameters['type_specific']['ROI']),
+                                           int(y-self.parameters['type_specific']['ROI']):int(y+self.parameters['type_specific']['ROI']),:]
+                        # if ((x-self.parameters['type_specific']['ROI']<0) or (x-self.parameters['type_specific']['ROI']>self.parameters['location_parameters']['image_size'][0]) or
+                        #     (y-self.parameters['type_specific']['ROI']<0) or (y-self.parameters['type_specific']['ROI']>self.parameters['location_parameters']['image_size'][1])):
+                        if crop.shape != (len(self.parameters['type_specific']['channel']),self.parameters['type_specific']['ROI']*2,self.parameters['type_specific']['ROI']*2,1):
+                            print(crop.shape, "cell on the border")
                             continue
                         else:
                             ind=0
@@ -158,8 +182,8 @@ class Screen_Compute: #come up with a better name
                                     ccDistance.sort()     
                                 vector['distance']=ccDistance[1]   
 
-                            crop=np_images[:,int(x-self.parameters['type_specific']['ROI']):int(x+self.parameters['type_specific']['ROI']),
-                                           int(y-self.parameters['type_specific']['ROI']):int(y+self.parameters['type_specific']['ROI']),:]
+                            
+                            print(crop.shape)
 
                             if 'mbed' in self.parameters['vector_type']:
 
@@ -172,7 +196,16 @@ class Screen_Compute: #come up with a better name
                                     vector.to_csv(csv_file,mode='a',header=False)
                             
                             elif ('cale' in self.parameters['vector_type']) or ('FEx' in self.parameters['vector_type']) or ('fex' in self.parameters['vector_type']):
-                                indQC=0
+                                
+                                vector=pd.concat([vector,ScaleFEx_from_crop.compute_ScaleFEx.ScaleFEx(crop, channel=self.parameters['type_specific']['channel'],
+                                                    mito_ch=self.parameters['type_specific']['Mito_channel'], rna_ch=self.parameters['type_specific']['RNA_channel'],
+                                                    neuritis_ch=self.parameters['type_specific']['neurite_tracing'],downsampling=self.parameters['downsampling'], 
+                                                    visualization=False, roi=int(self.parameters['type_specific']['ROI'])).single_cell_vector.loc[1,0]],axis=1)
+                                print(vector)
+                                if not os.path.exists(csv_file):
+                                    vector.to_csv(csv_file,header=True)
+                                else:
+                                    vector.to_csv(csv_file,mode='a',header=False)
                             
                             else:
                                 print(' Not a valid vector type entry')
