@@ -116,7 +116,7 @@ class Screen_Compute: #come up with a better name
                             live_cells=len(center_of_mass)
                         
                         
-                    print(center_of_mass)
+                    #print(center_of_mass)
 
                     if self.parameters['QC']==True:
                         indQC=0
