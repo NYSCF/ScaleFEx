@@ -44,7 +44,7 @@ class Screen_Compute: #come up with a better name
         print("retrieving files from ", (self.parameters['location_parameters']['exp_folder']))
 
         # Get the files
-        files = self.data_retrieve.query_data(self.parameters['location_parameters']['exp_folder'])
+        files = self.data_retrieve.query_data(self.parameters['location_parameters']['exp_folder'],plate_type= self.parameters['location_parameters']['plate_type'])
 
         # Perform Flat Field Correction (FFC)
         self.flat_field_correction = {}
@@ -87,7 +87,7 @@ class Screen_Compute: #come up with a better name
         if not os.path.exists(self.parameters['location_parameters']['saving_folder']+self.parameters['vector_type']):
             os.makedirs(self.parameters['location_parameters']['saving_folder']+self.parameters['vector_type'])
 
-        csv_file = self.parameters['location_parameters']['saving_folder']+self.parameters['vector_type']+'/'+self.parameters['location_parameters']['experiment_name']+'_'+self.parameters['vector_type']+'.csv'
+        csv_file = self.parameters['location_parameters']['saving_folder']+self.parameters['vector_type']+'/'+self.parameters['location_parameters']['experiment_name']+'_'+plate+'_'+self.parameters['vector_type']+'.csv'
         if self.parameters['QC']==True:
             csv_fileQC = self.parameters['location_parameters']['saving_folder']+'QC_analysis/'+self.parameters['location_parameters']['experiment_name']+'_'+str(plate)+'QC.csv'
             if not os.path.exists(self.parameters['location_parameters']['saving_folder']+'QC_analysis'):
@@ -111,7 +111,7 @@ class Screen_Compute: #come up with a better name
                 np_images, original_images = Load_preprocess_images.image_preprocessing_functions.load_and_preprocess(task_files,
                                     self.parameters['type_specific']['channel'],well,site,self.parameters['type_specific']['zstack'],self.data_retrieve,
                                     self.parameters['type_specific']['img_size'],self.flat_field_correction,
-                                    self.parameters['downsampling'],return_original=self.parameters['QC'])
+                                    self.parameters['downsampling'])#,return_original=self.parameters['QC'])
                 try:
                     original_images.shape
                 except NameError:
@@ -137,7 +137,7 @@ class Screen_Compute: #come up with a better name
                     print('coordinates time ',time.perf_counter()-stime)    
                         
                     #print(center_of_mass)
-                    stime = time.perf_counter()
+                    # stime = time.perf_counter()
                     if self.parameters['QC']==True:
                         indQC=0
 
@@ -148,7 +148,7 @@ class Screen_Compute: #come up with a better name
                             QC_vector.to_csv(csv_fileQC,header=True)
                         else:
                             QC_vector.to_csv(csv_fileQC,mode='a',header=False)
-                    print('QC time ',time.perf_counter()-stime)
+                    # print('QC time ',time.perf_counter()-stime)
 
                     if self.parameters['tile_computation'] is True:
                         ind=0
@@ -161,7 +161,7 @@ class Screen_Compute: #come up with a better name
                             vector.to_csv(csv_file[:-4]+'Tile.csv',mode='a',header=False)
                     n=0
                     for x,y in center_of_mass:
-                        stime = time.perf_counter()
+                        # stime = time.perf_counter()
                         crop=np_images[:,int(x-self.parameters['type_specific']['ROI']):int(x+self.parameters['type_specific']['ROI']),
                                            int(y-self.parameters['type_specific']['ROI']):int(y+self.parameters['type_specific']['ROI']),:]
                         # if ((x-self.parameters['type_specific']['ROI']<0) or (x-self.parameters['type_specific']['ROI']>self.parameters['location_parameters']['image_size'][0]) or
@@ -179,11 +179,11 @@ class Screen_Compute: #come up with a better name
                                 tree = KDTree(center_of_mass)
 
                                 # Query the nearest distance and the index of the nearest point
-                                distance, _ = tree.query([x,y])    
-                                vector['distance']=distance  
+                                distance, _ = tree.query([x,y], k=2)    
+                                vector['distance']=distance[1] 
 
                             
-                            print(crop.shape)
+                            # print(crop.shape)
 
                             if 'mbed' in self.parameters['vector_type']:
 
@@ -209,7 +209,7 @@ class Screen_Compute: #come up with a better name
                                 else:
                                     vector.to_csv(csv_file,mode='a',header=False)
 
-                                print('vector_computatiomn time ',time.perf_counter()-stime)
+                                # print('vector_computatiomn time ',time.perf_counter()-stime)
 
                             else:
                                 print(' Not a valid vector type entry')

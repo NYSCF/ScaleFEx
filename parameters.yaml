@@ -2,42 +2,42 @@ vector_type: 'scalefex' #'scalefex', 'embeddings'
 
 
 location_parameters:
-  exp_folder: '/home/biancamigliori/Desktop/temp_try_output/'
-  experiment_name: 'images'
-  saving_folder: '/home/biancamigliori/Desktop/temp_try_output/'
-  plates: ['ian']
-  plate_type: '_CV384W_'
+  exp_folder: '/mnt/10b1e8d4-f3a8-46e5-9a1a-c197b4f39011/HTN0001/'
+  experiment_name: 'HTN0001'
+  saving_folder: '/home/biancamigliori/Documents/HCI_Projects/Neurons/'
+  plates: ['401','402','403','404'] 
+  plate_type: '_CCU384_'
   coordinates_csv: ''
   image_size: [2160,2160]
 
 type_specific:
-  channel: ['ch4','ch1','ch2','ch3','ch5']          
+  channel: ['ch1','ch2', 'ch3',  'ch4']        
   MaskCNN: True
   stack: False
-  ROI: 150
-  neural_tracing: 'ch2'
-  RNA_channel: 'ch5' #set only if you want to compute ScaleFex
-  Mito_channel: 'ch2' #set only if you want to compute ScaleFex
-  zstack: False
+  ROI: 90
+  neurite_tracing: ''
+  RNA_channel: '' #set only if you want to compute ScaleFex
+  Mito_channel: '' #set only if you want to compute ScaleFex
+  zstack: True
   img_size: [2160,2160]
   compute_live_cells: False 
-  neurite_tracing: ''
+
 
 downsampling: 1
-QC: True
+QC: False
 FFC: False
 FFC_location: 'Saving Folder'
 FFC_n_images: 500
 tile_computation: False
 
 segmentation:
-  csv_coordinates: '' 
+  csv_coordinates: '/home/biancamigliori/Documents/HCI_Projects/Runs/HTN0001/HTN0001_coordnates.csv' 
   segmenting_function: 'Nuclei_segmentation.nuclei_location_extraction'
   MaskRCNN_cell_segmentation: False
   Threshold_segmentation: True
   use_cpu_segmentation: False
-  min_cell_size: 1000 #area
-  max_cell_size: 50000
+  min_cell_size: 100 #area
+  max_cell_size: 5000
   visualization: False
   
 
@@ -57,5 +57,5 @@ AWS:
 
 local:
   query_function: 'data_query.query_functions_local'
-  parallel: False
+  parallel: True
   n_of_workers: 150
