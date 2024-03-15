@@ -119,9 +119,10 @@ class Screen_Compute: #come up with a better name
                 print('images load and process time ',time.perf_counter()-stime)
 
                 if np_images is not None:
-                    stime = time.perf_counter()
+                    # stime = time.perf_counter()
                     if self.parameters['segmentation']['csv_coordinates']=='':
                         center_of_mass=self.segment_crop_images(original_images[0])
+                        center_of_mass=[row + [n] for n,row in enumerate(center_of_mass)]
                         if self.parameters['type_specific']['compute_live_cells'] is False:
                             live_cells=len(center_of_mass)
                         else:
@@ -130,11 +131,12 @@ class Screen_Compute: #come up with a better name
                         locations=pd.read_csv(self.parameters['segmentation']['csv_coordinates'],index_col=0)
                         locations['plate']=locations['plate'].astype(str)
                         locations=locations.loc[(locations.well==well)&(locations.site==site)&(locations.plate==plate)]
-                        center_of_mass=np.asarray(locations[['coordX','coordY']])
+                        center_of_mass=np.asarray(locations[['coordX','coordY','cell_id']])
+
                         if self.parameters['type_specific']['compute_live_cells'] is False:
                             live_cells=len(center_of_mass)
                             
-                    print('coordinates time ',time.perf_counter()-stime)    
+                    # print('coordinates time ',time.perf_counter()-stime)    
                         
                     #print(center_of_mass)
                     # stime = time.perf_counter()
@@ -159,11 +161,12 @@ class Screen_Compute: #come up with a better name
                             vector.to_csv(csv_file[:-4]+'Tile.csv',header=True)
                         else:
                             vector.to_csv(csv_file[:-4]+'Tile.csv',mode='a',header=False)
-                    n=0
-                    for x,y in center_of_mass:
+              
+                    for x,y,n in center_of_mass:
+                       
                         # stime = time.perf_counter()
-                        crop=np_images[:,int(x-self.parameters['type_specific']['ROI']):int(x+self.parameters['type_specific']['ROI']),
-                                           int(y-self.parameters['type_specific']['ROI']):int(y+self.parameters['type_specific']['ROI']),:]
+                        crop=np_images[:,int(float(x)-self.parameters['type_specific']['ROI']):int(float(x)+self.parameters['type_specific']['ROI']),
+                                           int(float(y)-self.parameters['type_specific']['ROI']):int(float(y)+self.parameters['type_specific']['ROI']),:]
                         # if ((x-self.parameters['type_specific']['ROI']<0) or (x-self.parameters['type_specific']['ROI']>self.parameters['location_parameters']['image_size'][0]) or
                         #     (y-self.parameters['type_specific']['ROI']<0) or (y-self.parameters['type_specific']['ROI']>self.parameters['location_parameters']['image_size'][1])):
                         if crop.shape != (len(self.parameters['type_specific']['channel']),self.parameters['type_specific']['ROI']*2,self.parameters['type_specific']['ROI']*2,1):
@@ -173,10 +176,10 @@ class Screen_Compute: #come up with a better name
                             ind=0
                             vector=pd.DataFrame(np.asarray([plate,well,site,x,y,n]).reshape(1,6),columns=['plate','well','site','coordX','coordY','cell_id'],index=[ind])
 
-                            n+=1
+                        
                             if self.parameters['location_parameters']['coordinates_csv']=='':
                              
-                                tree = KDTree(center_of_mass)
+                                tree = KDTree([row[:2] for row in center_of_mass])
 
                                 # Query the nearest distance and the index of the nearest point
                                 distance, _ = tree.query([x,y], k=2)    
