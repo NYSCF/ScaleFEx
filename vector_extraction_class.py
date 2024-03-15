@@ -2,13 +2,14 @@ import yaml,os,pickle
 import parallelize_computation
 import pandas as pd
 import numpy as np
-import scipy as sp
 from datetime import datetime
 import Load_preprocess_images.image_preprocessing_functions
 import Quality_control_HCI.compute_global_values
 import Embeddings_extraction_from_image.batch_compute_embeddings
 import ScaleFEx_from_crop.compute_ScaleFEx
 import time
+from scipy.spatial import KDTree
+
 
 
 class Screen_Compute: #come up with a better name
@@ -30,7 +31,7 @@ class Screen_Compute: #come up with a better name
         # Read the yaml file
         with open(yaml_path, 'rb') as f:
             self.parameters = yaml.load(f.read(), Loader=yaml.CLoader)
-        f.close()
+       
         self.visualization = self.parameters['segmentation']['visualization']
         # Determine the type of computation to be used
         self.computation = 'local' if self.parameters['AWS']['use_AWS'] in [
@@ -175,11 +176,11 @@ class Screen_Compute: #come up with a better name
                             n+=1
                             if self.parameters['location_parameters']['coordinates_csv']=='':
                              
-                                ccDistance=[]
-                                for cord in center_of_mass:  
-                                    ccDistance.append(sp.spatial.distance.pdist([[x,y], cord]))   
-                                    ccDistance.sort()     
-                                vector['distance']=ccDistance[1]   
+                                tree = KDTree(center_of_mass)
+
+                                # Query the nearest distance and the index of the nearest point
+                                distance, _ = tree.query([x,y])    
+                                vector['distance']=distance  
 
                             
                             print(crop.shape)
@@ -200,7 +201,8 @@ class Screen_Compute: #come up with a better name
                                 vector=pd.concat([vector,ScaleFEx_from_crop.compute_ScaleFEx.ScaleFEx(crop, channel=self.parameters['type_specific']['channel'],
                                                     mito_ch=self.parameters['type_specific']['Mito_channel'], rna_ch=self.parameters['type_specific']['RNA_channel'],
                                                     neuritis_ch=self.parameters['type_specific']['neurite_tracing'],downsampling=self.parameters['downsampling'], 
-                                                    visualization=False, roi=int(self.parameters['type_specific']['ROI'])).single_cell_vector.loc[1,0]],axis=1)
+                                                    visualization=self.parameters['visualize_masks'], roi=int(self.parameters['type_specific']['ROI'])
+                                                    ).single_cell_vector.loc[1,0]],axis=1)
                                 #print(vector)
                                 if not os.path.exists(csv_file):
                                     vector.to_csv(csv_file,header=True)
@@ -265,11 +267,28 @@ def import_module(module_name):
         print(f"Module '{module_name}' not found.")
         return None
     
-total_time=time.perf_counter()
+# total_time=time.perf_counter()
+
+# if __name__ == "__main__":
+    
+# 	Screen_Compute()
+
+# print('total time: ',time.perf_counter()-total_time)
+
+import cProfile
+import pstats
+
+def main():
+    Screen_Compute()
 
 if __name__ == "__main__":
-    
-	Screen_Compute()
+    pr = cProfile.Profile()
+    pr.enable()
 
-print('total time: ',time.perf_counter()-total_time)
+    main()  # Your main execution block
 
+    pr.disable()
+    with open("profile_results.txt", "w") as f:  # Choose a file path/name
+        ps = pstats.Stats(pr, stream=f)
+        ps.sort_stats("cumulative")  # Sorting by cumulative time
+        ps.print_stats()
