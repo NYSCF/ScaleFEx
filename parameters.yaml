@@ -14,7 +14,7 @@ type_specific:
   channel: ['ch4','ch1','ch2','ch3','ch5']          
   MaskCNN: True
   stack: False
-  ROI: 299
+  ROI: 150
   neural_tracing: 'ch2'
   RNA_channel: 'ch5' #set only if you want to compute ScaleFex
   Mito_channel: 'ch2' #set only if you want to compute ScaleFex
@@ -27,7 +27,7 @@ downsampling: 1
 QC: True
 FFC: False
 FFC_location: 'Saving Folder'
-FFC_n_images: 30
+FFC_n_images: 500
 tile_computation: False
 
 segmentation:
@@ -36,15 +36,17 @@ segmentation:
   MaskRCNN_cell_segmentation: False
   Threshold_segmentation: True
   use_cpu_segmentation: False
-  min_cell_size: 100 #area
-  max_cell_size: 100000
+  min_cell_size: 1000 #area
+  max_cell_size: 50000
   visualization: False
   
 
 ## embeddings_settings
 device: "0"
 weights_location: "/home/biancamigliori/Documents/GitHubRepos/NYSCF_Embeddings_pipeline"
-#
+
+## Scalefex settings
+visualize_masks: False
 
 gpu_mrcnn: 0
 
