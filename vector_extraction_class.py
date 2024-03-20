@@ -107,7 +107,7 @@ class Screen_Compute: #come up with a better name
             for site in task_fields:
     
                 print(site, well, plate, datetime.now())
-                stime=time.perf_counter()
+                #stime=time.perf_counter()
                 np_images, original_images = Load_preprocess_images.image_preprocessing_functions.load_and_preprocess(task_files,
                                     self.parameters['type_specific']['channel'],well,site,self.parameters['type_specific']['zstack'],self.data_retrieve,
                                     self.parameters['type_specific']['img_size'],self.flat_field_correction,
@@ -116,7 +116,7 @@ class Screen_Compute: #come up with a better name
                     original_images.shape
                 except NameError:
                     print('Images corrupted')
-                print('images load and process time ',time.perf_counter()-stime)
+                #print('images load and process time ',time.perf_counter()-stime)
 
                 if np_images is not None:
                     # stime = time.perf_counter()
@@ -200,19 +200,20 @@ class Screen_Compute: #come up with a better name
                                 print('embedding_computatiomn time ',time.perf_counter()-stime)
                             
                             elif ('cale' in self.parameters['vector_type']) or ('FEx' in self.parameters['vector_type']) or ('fex' in self.parameters['vector_type']):
-                                
-                                vector=pd.concat([vector,ScaleFEx_from_crop.compute_ScaleFEx.ScaleFEx(crop, channel=self.parameters['type_specific']['channel'],
+                                scalefex=ScaleFEx_from_crop.compute_ScaleFEx.ScaleFEx(crop, channel=self.parameters['type_specific']['channel'],
                                                     mito_ch=self.parameters['type_specific']['Mito_channel'], rna_ch=self.parameters['type_specific']['RNA_channel'],
-                                                    neuritis_ch=self.parameters['type_specific']['neurite_tracing'],downsampling=self.parameters['downsampling'], 
+                                                    neuritis_ch=self.parameters['type_specific']['neurite_tracing'],downsampling=self.parameters['downsampling'],
                                                     visualization=self.parameters['visualize_masks'], roi=int(self.parameters['type_specific']['ROI'])
-                                                    ).single_cell_vector.loc[1,0]],axis=1)
-                                #print(vector)
-                                if not os.path.exists(csv_file):
-                                    vector.to_csv(csv_file,header=True)
-                                else:
-                                    vector.to_csv(csv_file,mode='a',header=False)
+                                                    ).single_cell_vector.loc[1,0]
+                                if isinstance(scalefex, pd.DataFrame):
+                                    vector=pd.concat([vector,scalefex],axis=1)
+                                    #print(vector)
+                                    if not os.path.exists(csv_file):
+                                        vector.to_csv(csv_file,header=True)
+                                    else:
+                                        vector.to_csv(csv_file,mode='a',header=False)
 
-                                # print('vector_computatiomn time ',time.perf_counter()-stime)
+                                    # print('vector_computatiomn time ',time.perf_counter()-stime)
 
                             else:
                                 print(' Not a valid vector type entry')
