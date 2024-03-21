@@ -47,7 +47,7 @@ class Screen_Compute: #come up with a better name
         print("retrieving files from ", (self.parameters['location_parameters']['exp_folder']))
 
         if self.parameters['segmentation']['MaskRCNN_cell_segmentation'] is True:
-            print(self.parameters['segmentation']['segmenting_function'])
+            print(self.parameters['segmentation']['segmenting_function'],)
             nls=import_module(self.parameters['segmentation']['segmenting_function'])
             print(nls)
             maskrcnn_weights = os.path.join("/".join(__file__.split('/')),
