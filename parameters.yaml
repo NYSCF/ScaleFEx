@@ -33,8 +33,8 @@ tile_computation: False
 
 segmentation:
   csv_coordinates: '' # set to '' if no pre-existing coordinates file
-  segmenting_function: 'Nuclei_segmentation.nuclei_location_extraction'
-  MaskRCNN_cell_segmentation: False
+  segmenting_function: 'MaskRCNN_Deployment.segmentation_mrcnn'
+  MaskRCNN_cell_segmentation: True
   Threshold_segmentation: True
   use_cpu_segmentation: False
   min_cell_size: 100 #area
@@ -49,7 +49,7 @@ weights_location: "/home/biancamigliori/Documents/GitHubRepos/NYSCF_Embeddings_p
 ## Scalefex settings
 visualize_masks: False
 
-gpu_mrcnn: 0
+gpu_mrcnn: 1
 
 
 AWS: 

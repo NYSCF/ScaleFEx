@@ -8,6 +8,7 @@ import Quality_control_HCI.compute_global_values
 import Embeddings_extraction_from_image.batch_compute_embeddings
 import ScaleFEx_from_crop.compute_ScaleFEx
 import data_query.load_and_preprocess as Load_preprocess_images
+# import MaskRCNN_Deployment.segmentation
 import time
 from scipy.spatial import KDTree
 
@@ -28,6 +29,7 @@ class Screen_Compute: #come up with a better name
         Args:
             yaml_path (str): Path to the YAML file containing parameters. Default is 'parameters.yaml'.
         """
+        
 
         # Read the yaml file
         with open(yaml_path, 'rb') as f:
@@ -44,6 +46,16 @@ class Screen_Compute: #come up with a better name
         # Print the experiment folder
         print("retrieving files from ", (self.parameters['location_parameters']['exp_folder']))
 
+        if self.parameters['segmentation']['MaskRCNN_cell_segmentation'] is True:
+            print(self.parameters['segmentation']['segmenting_function'])
+            nls=import_module(self.parameters['segmentation']['segmenting_function'])
+            print(nls)
+            maskrcnn_weights = os.path.join("/".join(__file__.split('/')),
+                                            'MaskRCNN_Deployment/weights/maskrcnn_weights.pt')
+            self.mrcnn = nls.MaskRCNN(weights=maskrcnn_weights,
+                                 use_cpu=self.parameters['segmentation']['use_cpu_segmentation'],
+                                 gpu_id=self.parameters['segmentation']['gpu_mrcnn'])
+            self.mrcnn = None
         # Get the files
         # files = self.data_retrieve.query_data(self.parameters['location_parameters']['exp_folder'],plate_type= self.parameters['location_parameters']['plate_type'])
         files = self.data_retrieve.query_data_updated(self.parameters['location_parameters']['exp_folder'],plate_type= self.parameters['location_parameters']['plate_type'],
@@ -242,12 +254,14 @@ class Screen_Compute: #come up with a better name
         # extraction of the location of the cells
     
         nls=import_module(self.parameters['segmentation']['segmenting_function'])
-        
-            
-        img_mask=nls.compute_DNA_mask(img_nuc)
-        center_of_mass = nls.retrieve_coordinates(img_mask,
-                    cell_size_min=self.parameters['segmentation']['min_cell_size']*self.parameters['downsampling'],
-                    cell_size_max=self.parameters['segmentation']['max_cell_size']/self.parameters['downsampling'])
+        if self.parameters['segmentation']['MaskRCNN_cell_segmentation'] is not True:
+            img_mask=nls.compute_DNA_mask(img_nuc)
+            center_of_mass = nls.retrieve_coordinates(img_mask,
+                        cell_size_min=self.parameters['segmentation']['min_cell_size']*self.parameters['downsampling'],
+                        cell_size_max=self.parameters['segmentation']['max_cell_size']/self.parameters['downsampling'])
+        else:
+            img_mask,center_of_mass = self.mrcnn.generate_masks(img_nuc,try_quadrants=True,
+                                                           area_thresh=self.parameters['segmentation']['min_cell_size'])
         if self.visualization is True:
             self.show_image(img_nuc,img_mask)
 
