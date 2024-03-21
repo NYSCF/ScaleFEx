@@ -3,10 +3,11 @@ import parallelize_computation
 import pandas as pd
 import numpy as np
 from datetime import datetime
-import Load_preprocess_images.image_preprocessing_functions
+# import Load_preprocess_images.image_preprocessing_functions
 import Quality_control_HCI.compute_global_values
 import Embeddings_extraction_from_image.batch_compute_embeddings
 import ScaleFEx_from_crop.compute_ScaleFEx
+import data_query.load_and_preprocess as Load_preprocess_images
 import time
 from scipy.spatial import KDTree
 
@@ -44,7 +45,9 @@ class Screen_Compute: #come up with a better name
         print("retrieving files from ", (self.parameters['location_parameters']['exp_folder']))
 
         # Get the files
-        files = self.data_retrieve.query_data(self.parameters['location_parameters']['exp_folder'],plate_type= self.parameters['location_parameters']['plate_type'])
+        # files = self.data_retrieve.query_data(self.parameters['location_parameters']['exp_folder'],plate_type= self.parameters['location_parameters']['plate_type'])
+        files = self.data_retrieve.query_data_updated(self.parameters['location_parameters']['exp_folder'],plate_type= self.parameters['location_parameters']['plate_type'],
+                                                      pattern=self.parameters['location_parameters']['fname_pattern'])
 
         # Perform Flat Field Correction (FFC)
         self.flat_field_correction = {}
@@ -63,7 +66,7 @@ class Screen_Compute: #come up with a better name
             else:
                 print('Flat Field correction image found in ' +
                       self.parameters['location_parameters']['saving_folder'],
-                      ' Loding FFC')
+                      ' Loading FFC')
                 self.flat_field_correction = pickle.load(
                     open(self.parameters['location_parameters']['saving_folder'] +
                          self.parameters['location_parameters']['experiment_name'] + '_FFC.p', "rb"))
@@ -80,7 +83,7 @@ class Screen_Compute: #come up with a better name
     def start_computation(self,plate,files):
         
         # self.plate=plate
-        
+        print(files.plate.unique())
         task_files=files.loc[files.plate==plate]
         wells, task_fields = self.data_retrieve.make_well_and_field_list(task_files)
 
@@ -108,21 +111,24 @@ class Screen_Compute: #come up with a better name
     
                 print(site, well, plate, datetime.now())
                 #stime=time.perf_counter()
-                np_images, original_images = Load_preprocess_images.image_preprocessing_functions.load_and_preprocess(task_files,
+                np_images, original_images = Load_preprocess_images.load_and_preprocess(task_files,
                                     self.parameters['type_specific']['channel'],well,site,self.parameters['type_specific']['zstack'],self.data_retrieve,
                                     self.parameters['type_specific']['img_size'],self.flat_field_correction,
-                                    self.parameters['downsampling'])#,return_original=self.parameters['QC'])
+                                    self.parameters['downsampling'],return_original=self.parameters['QC'])
                 try:
                     original_images.shape
                 except NameError:
                     print('Images corrupted')
+                print(original_images.shape)
                 #print('images load and process time ',time.perf_counter()-stime)
-
+                print(np_images.shape)
                 if np_images is not None:
                     # stime = time.perf_counter()
                     if self.parameters['segmentation']['csv_coordinates']=='':
+                        
                         center_of_mass=self.segment_crop_images(original_images[0])
-                        center_of_mass=[row + [n] for n,row in enumerate(center_of_mass)]
+                        center_of_mass=[list(row) + [n] for n,row in enumerate(center_of_mass)]
+                        print(center_of_mass)
                         if self.parameters['type_specific']['compute_live_cells'] is False:
                             live_cells=len(center_of_mass)
                         else:
