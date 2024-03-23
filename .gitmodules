@@ -13,3 +13,6 @@
 [submodule "Embeddings_extraction_from_image"]
 	path = Embeddings_extraction_from_image
 	url = https://github.com/NYSCF/Embeddings_extraction_from_image.git
+[submodule "MaskRCNN_Deployment"]
+	path = MaskRCNN_Deployment
+	url = https://github.com/NYSCF/MaskRCNN_Deployment.git
