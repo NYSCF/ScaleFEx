@@ -9,6 +9,7 @@ import Embeddings_extraction_from_image.batch_compute_embeddings
 import ScaleFEx_from_crop.compute_ScaleFEx
 import time
 from scipy.spatial import KDTree
+import matplotlib.pyplot as plt
 
 
 
@@ -70,6 +71,10 @@ class Screen_Compute: #come up with a better name
         else:
             for channel in self.parameters['type_specific']['channel']:
                 self.flat_field_correction[channel] = 1
+        if self.parameters['segmentation']['MaskRCNN_cell_segmentation'] is True:
+            from MaskRCNN_Deployment.segmentation_mrcnn import MaskRCNN
+            self.mrcnn = MaskRCNN(weights='/home/biancamigliori/Documents/GitHubRepos/NYSCF_Embeddings_pipeline/maskrcnn_weights.pt',use_cpu=False)
+            self.mrcnn.load_model(gpu_id=self.parameters['gpu_mrcnn'])
 
         # Loop over plates and start computation
         for plate in self.parameters['location_parameters']['plates']:
@@ -111,7 +116,7 @@ class Screen_Compute: #come up with a better name
                 np_images, original_images = Load_preprocess_images.image_preprocessing_functions.load_and_preprocess(task_files,
                                     self.parameters['type_specific']['channel'],well,site,self.parameters['type_specific']['zstack'],self.data_retrieve,
                                     self.parameters['type_specific']['img_size'],self.flat_field_correction,
-                                    self.parameters['downsampling'])#,return_original=self.parameters['QC'])
+                                    self.parameters['downsampling'],return_original=self.parameters['QC'])
                 try:
                     original_images.shape
                 except NameError:
@@ -122,7 +127,7 @@ class Screen_Compute: #come up with a better name
                     # stime = time.perf_counter()
                     if self.parameters['segmentation']['csv_coordinates']=='':
                         center_of_mass=self.segment_crop_images(original_images[0])
-                        center_of_mass=[row + [n] for n,row in enumerate(center_of_mass)]
+                        center_of_mass=[list(row) + [n] for n,row in enumerate(center_of_mass)]
                         if self.parameters['type_specific']['compute_live_cells'] is False:
                             live_cells=len(center_of_mass)
                         else:
@@ -173,6 +178,10 @@ class Screen_Compute: #come up with a better name
                             print(crop.shape, "cell on the border")
                             continue
                         else:
+                            if self.parameters['visualize_crops']==True:
+                                plt.imshow(crop[0])
+                                plt.show()
+
                             ind=0
                             vector=pd.DataFrame(np.asarray([plate,well,site,x,y,n]).reshape(1,6),columns=['plate','well','site','coordX','coordY','cell_id'],index=[ind])
 
@@ -237,11 +246,14 @@ class Screen_Compute: #come up with a better name
     
         nls=import_module(self.parameters['segmentation']['segmenting_function'])
         
-            
-        img_mask=nls.compute_DNA_mask(img_nuc)
-        center_of_mass = nls.retrieve_coordinates(img_mask,
-                    cell_size_min=self.parameters['segmentation']['min_cell_size']*self.parameters['downsampling'],
-                    cell_size_max=self.parameters['segmentation']['max_cell_size']/self.parameters['downsampling'])
+        if self.parameters['segmentation']['MaskRCNN_cell_segmentation'] is False:    
+            img_mask=nls.compute_DNA_mask(img_nuc)
+            center_of_mass = nls.retrieve_coordinates(img_mask,
+                        cell_size_min=self.parameters['segmentation']['min_cell_size']*self.parameters['downsampling'],
+                        cell_size_max=self.parameters['segmentation']['max_cell_size']/self.parameters['downsampling'])
+        else:
+            img_mask,center_of_mass = self.mrcnn.extract_centroids(img_nuc,ds_size=(540,540),score_thresh=0.8,
+                                    area_thresh=500,ROI=50,remove_edges=False)
         if self.visualization is True:
             self.show_image(img_nuc,img_mask)
 
