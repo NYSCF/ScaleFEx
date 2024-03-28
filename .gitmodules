@@ -13,3 +13,6 @@
 [submodule "MaskRCNN_Deployment"]
 	path = MaskRCNN_Deployment
 	url = https://github.com/NYSCF/MaskRCNN_Deployment.git
+[submodule "ScaleFEx_from_crop"]
+	path = ScaleFEx_from_crop
+	url = httsp://github.com/NYSCF/ScaleFEx_from_crop.git
