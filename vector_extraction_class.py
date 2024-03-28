@@ -44,7 +44,10 @@ class Screen_Compute: #come up with a better name
         print("retrieving files from ", (self.parameters['location_parameters']['exp_folder']))
 
         # Get the files
-        files = self.data_retrieve.query_data(self.parameters['location_parameters']['exp_folder'],plate_type= self.parameters['location_parameters']['plate_type'])
+        files = self.data_retrieve.query_data_updated(self.parameters['location_parameters']['exp_folder'],plate_type= self.parameters['location_parameters']['plate_type'],
+                                                      pattern=self.parameters['location_parameters']['fname_pattern'],delimiters=self.parameters['location_parameters']['fname_delimiters'],
+                                                      exts=self.parameters['location_parameters']['file_extensions'])
+        # files = self.data_retrieve.query_data(self.parameters['location_parameters']['exp_folder'],plate_type= self.parameters['location_parameters']['plate_type'])
 
         # Perform Flat Field Correction (FFC)
         self.flat_field_correction = {}
