@@ -3,7 +3,6 @@ import parallelize_computation
 import pandas as pd
 import numpy as np
 from datetime import datetime
-import Load_preprocess_images.image_preprocessing_functions
 import Quality_control_HCI.compute_global_values
 import Embeddings_extraction_from_image.batch_compute_embeddings
 import ScaleFEx_from_crop.compute_ScaleFEx
@@ -55,8 +54,9 @@ class Screen_Compute: #come up with a better name
                 print('Flat Field correction image not found in ' +
                       self.parameters['location_parameters']['saving_folder'],
                       ' Generating FFC now')
+                
                 self.flat_field_correction = self.data_retrieve.flat_field_correction_on_data(
-                    files, self.parameters['type_specific']['channel'], n_images=20)
+                    files, self.parameters['type_specific']['channel'], n_images=self.parameters['FFC_n_images'])
                 pickle.dump(self.flat_field_correction,
                             open(self.parameters['location_parameters']['saving_folder'] +
                                  self.parameters['location_parameters']['experiment_name'] + '_FFC.p', "wb"))
@@ -97,12 +97,16 @@ class Screen_Compute: #come up with a better name
             csv_fileQC = self.parameters['location_parameters']['saving_folder']+'QC_analysis/'+self.parameters['location_parameters']['experiment_name']+'_'+str(plate)+'QC.csv'
             if not os.path.exists(self.parameters['location_parameters']['saving_folder']+'QC_analysis'):
                 os.makedirs(self.parameters['location_parameters']['saving_folder']+'QC_analysis')
+        if self.parameters['segmentation']['csv_coordinates'] == '':
+            wells=self.data_retrieve.check_if_file_exists(csv_file,wells,task_fields)
 
-        wells=self.data_retrieve.check_if_file_exists(csv_file,wells,task_fields[-1])
-
-        if wells[0] == 'Over':
-            print('plate ', plate, 'is done')
-            return
+            if wells[0] == 'Over':
+                print('plate ', plate, 'is done')
+                return
+        else:
+    
+            self.locations=self.data_retrieve.check_if_file_exists(csv_file,wells,task_fields,self.parameters['segmentation']['csv_coordinates'],plate=plate)
+            wells=np.unique(self.locations.well)
             
         def compute_vector(well):
             ''' Function that imports the images and extracts the location of cells'''
@@ -113,7 +117,7 @@ class Screen_Compute: #come up with a better name
     
                 print(site, well, plate, datetime.now())
                 #stime=time.perf_counter()
-                np_images, original_images = Load_preprocess_images.image_preprocessing_functions.load_and_preprocess(task_files,
+                np_images, original_images = self.data_retrieve.load_and_preprocess(task_files,
                                     self.parameters['type_specific']['channel'],well,site,self.parameters['type_specific']['zstack'],self.data_retrieve,
                                     self.parameters['type_specific']['img_size'],self.flat_field_correction,
                                     self.parameters['downsampling'],return_original=self.parameters['QC'])
@@ -133,9 +137,9 @@ class Screen_Compute: #come up with a better name
                         else:
                             print('to be implemented')
                     else:
-                        locations=pd.read_csv(self.parameters['segmentation']['csv_coordinates'],index_col=0)
-                        locations['plate']=locations['plate'].astype(str)
-                        locations=locations.loc[(locations.well==well)&(locations.site==site)&(locations.plate==plate)]
+                        
+                        locations=self.locations
+                        locations=locations.loc[(locations.well==well)&(locations.site==site)&(locations.plate.astype(str)==str(plate))]
                         center_of_mass=np.asarray(locations[['coordX','coordY','cell_id']])
 
                         if self.parameters['type_specific']['compute_live_cells'] is False:
@@ -186,7 +190,7 @@ class Screen_Compute: #come up with a better name
                             vector=pd.DataFrame(np.asarray([plate,well,site,x,y,n]).reshape(1,6),columns=['plate','well','site','coordX','coordY','cell_id'],index=[ind])
 
                         
-                            if self.parameters['location_parameters']['coordinates_csv']=='':
+                            if self.parameters['segmentation']['csv_coordinates']=='':
                              
                                 tree = KDTree([row[:2] for row in center_of_mass])
 
