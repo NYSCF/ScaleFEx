@@ -4,9 +4,6 @@
 [submodule "Nuclei_segmentation"]
 	path = Nuclei_segmentation
 	url = https://github.com/NYSCF/Nuclei_segmentation
-[submodule "Load_preprocess_images"]
-	path = Load_preprocess_images
-	url = https://github.com/NYSCF/Load_preprocess_images
 [submodule "Quality_control_HCI"]
 	path = Quality_control_HCI
 	url = https://github.com/NYSCF/Quality_control_HCI.git

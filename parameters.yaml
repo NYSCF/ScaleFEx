@@ -2,18 +2,17 @@ vector_type: 'scalefex' #'scalefex', 'embeddings'
 
 
 location_parameters:
-  exp_folder: '/mnt/Syn18/HTDEV0026 iPSC Cell Painting Test/Cell Painting/'
-  experiment_name: 'HTDEV0026'
-  saving_folder: '/home/biancamigliori/Documents/HCI_Projects/iPSC/'
-  plates: ['101','102'] 
-  plate_type: '_CCU384_'
-  coordinates_csv: ''
+  exp_folder: '/mnt/2e6952d2-a327-41fa-9451-7ce13129d27c/HTS0033/'
+  experiment_name: 'HTS0033'
+  saving_folder: '/home/biancamigliori/Desktop/temp_try_output/'
+  plates: ['101'] 
+  plate_type: '_CV384W_'
   image_size: [2160,2160]
 
 type_specific:
   channel: ['ch4','ch2', 'ch3',  'ch1']        
   stack: False
-  ROI: 90
+  ROI: 150
   neurite_tracing: ''
   RNA_channel: '' #set only if you want to compute ScaleFex
   Mito_channel: '' #set only if you want to compute ScaleFex
@@ -30,14 +29,14 @@ FFC_n_images: 500
 tile_computation: False
 
 segmentation:
-  csv_coordinates: '' 
+  csv_coordinates: '/home/biancamigliori/Desktop/temp_try_output/HTS0033_coordinates.csv'
   segmenting_function: 'Nuclei_segmentation.nuclei_location_extraction' # 'MaskRCNN_Deployment.segmentation_mrcnn'   
   MaskRCNN_cell_segmentation: False
   Threshold_segmentation: True
   use_cpu_segmentation: True
   min_cell_size: 200 #area
-  max_cell_size: 1000
-  visualization: True
+  max_cell_size: 100000
+  visualization: False
   
 
 ## embeddings_settings
@@ -46,9 +45,7 @@ weights_location: "/home/biancamigliori/Documents/GitHubRepos/NYSCF_Embeddings_p
 
 ## Scalefex settings
 visualize_masks: False
-visualize_crops: True
-
-gpu_mrcnn: 'cpu'
+visualize_crops: False
 
 
 AWS: 
@@ -57,5 +54,5 @@ AWS:
 
 local:
   query_function: 'data_query.query_functions_local'
-  parallel: False
+  parallel: True
   n_of_workers: 100
