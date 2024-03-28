@@ -3,12 +3,12 @@ import parallelize_computation
 import pandas as pd
 import numpy as np
 from datetime import datetime
-import Load_preprocess_images.image_preprocessing_functions
 import Quality_control_HCI.compute_global_values
 import Embeddings_extraction_from_image.batch_compute_embeddings
 import ScaleFEx_from_crop.compute_ScaleFEx
 import time
 from scipy.spatial import KDTree
+import matplotlib.pyplot as plt
 
 
 
@@ -57,8 +57,9 @@ class Screen_Compute: #come up with a better name
                 print('Flat Field correction image not found in ' +
                       self.parameters['location_parameters']['saving_folder'],
                       ' Generating FFC now')
+                
                 self.flat_field_correction = self.data_retrieve.flat_field_correction_on_data(
-                    files, self.parameters['type_specific']['channel'], n_images=20)
+                    files, self.parameters['type_specific']['channel'], n_images=self.parameters['FFC_n_images'])
                 pickle.dump(self.flat_field_correction,
                             open(self.parameters['location_parameters']['saving_folder'] +
                                  self.parameters['location_parameters']['experiment_name'] + '_FFC.p', "wb"))
@@ -73,6 +74,10 @@ class Screen_Compute: #come up with a better name
         else:
             for channel in self.parameters['type_specific']['channel']:
                 self.flat_field_correction[channel] = 1
+        if self.parameters['segmentation']['MaskRCNN_cell_segmentation'] is True:
+            from MaskRCNN_Deployment.segmentation_mrcnn import MaskRCNN
+            self.mrcnn = MaskRCNN(weights='/home/biancamigliori/Documents/GitHubRepos/NYSCF_Embeddings_pipeline/maskrcnn_weights.pt',use_cpu=False)
+            self.mrcnn.load_model(gpu_id=self.parameters['gpu_mrcnn'])
 
         # Loop over plates and start computation
         for plate in self.parameters['location_parameters']['plates']:
@@ -95,12 +100,16 @@ class Screen_Compute: #come up with a better name
             csv_fileQC = self.parameters['location_parameters']['saving_folder']+'QC_analysis/'+self.parameters['location_parameters']['experiment_name']+'_'+str(plate)+'QC.csv'
             if not os.path.exists(self.parameters['location_parameters']['saving_folder']+'QC_analysis'):
                 os.makedirs(self.parameters['location_parameters']['saving_folder']+'QC_analysis')
+        if self.parameters['segmentation']['csv_coordinates'] == '':
+            wells=self.data_retrieve.check_if_file_exists(csv_file,wells,task_fields)
 
-        wells=self.data_retrieve.check_if_file_exists(csv_file,wells,task_fields[-1])
-
-        if wells[0] == 'Over':
-            print('plate ', plate, 'is done')
-            return
+            if wells[0] == 'Over':
+                print('plate ', plate, 'is done')
+                return
+        else:
+    
+            self.locations=self.data_retrieve.check_if_file_exists(csv_file,wells,task_fields,self.parameters['segmentation']['csv_coordinates'],plate=plate)
+            wells=np.unique(self.locations.well)
             
         def compute_vector(well):
             ''' Function that imports the images and extracts the location of cells'''
@@ -111,10 +120,10 @@ class Screen_Compute: #come up with a better name
     
                 print(site, well, plate, datetime.now())
                 #stime=time.perf_counter()
-                np_images, original_images = Load_preprocess_images.image_preprocessing_functions.load_and_preprocess(task_files,
+                np_images, original_images = self.data_retrieve.load_and_preprocess(task_files,
                                     self.parameters['type_specific']['channel'],well,site,self.parameters['type_specific']['zstack'],self.data_retrieve,
                                     self.parameters['type_specific']['img_size'],self.flat_field_correction,
-                                    self.parameters['downsampling'])#,return_original=self.parameters['QC'])
+                                    self.parameters['downsampling'],return_original=self.parameters['QC'])
                 try:
                     original_images.shape
                 except NameError:
@@ -125,15 +134,15 @@ class Screen_Compute: #come up with a better name
                     # stime = time.perf_counter()
                     if self.parameters['segmentation']['csv_coordinates']=='':
                         center_of_mass=self.segment_crop_images(original_images[0])
-                        center_of_mass=[row + [n] for n,row in enumerate(center_of_mass)]
+                        center_of_mass=[list(row) + [n] for n,row in enumerate(center_of_mass)]
                         if self.parameters['type_specific']['compute_live_cells'] is False:
                             live_cells=len(center_of_mass)
                         else:
                             print('to be implemented')
                     else:
-                        locations=pd.read_csv(self.parameters['segmentation']['csv_coordinates'],index_col=0)
-                        locations['plate']=locations['plate'].astype(str)
-                        locations=locations.loc[(locations.well==well)&(locations.site==site)&(locations.plate==plate)]
+                        
+                        locations=self.locations
+                        locations=locations.loc[(locations.well==well)&(locations.site==site)&(locations.plate.astype(str)==str(plate))]
                         center_of_mass=np.asarray(locations[['coordX','coordY','cell_id']])
 
                         if self.parameters['type_specific']['compute_live_cells'] is False:
@@ -176,11 +185,15 @@ class Screen_Compute: #come up with a better name
                             print(crop.shape, "cell on the border")
                             continue
                         else:
+                            if self.parameters['visualize_crops']==True:
+                                plt.imshow(crop[0])
+                                plt.show()
+
                             ind=0
                             vector=pd.DataFrame(np.asarray([plate,well,site,x,y,n]).reshape(1,6),columns=['plate','well','site','coordX','coordY','cell_id'],index=[ind])
 
                         
-                            if self.parameters['location_parameters']['coordinates_csv']=='':
+                            if self.parameters['segmentation']['csv_coordinates']=='':
                              
                                 tree = KDTree([row[:2] for row in center_of_mass])
 
@@ -240,11 +253,14 @@ class Screen_Compute: #come up with a better name
     
         nls=import_module(self.parameters['segmentation']['segmenting_function'])
         
-            
-        img_mask=nls.compute_DNA_mask(img_nuc)
-        center_of_mass = nls.retrieve_coordinates(img_mask,
-                    cell_size_min=self.parameters['segmentation']['min_cell_size']*self.parameters['downsampling'],
-                    cell_size_max=self.parameters['segmentation']['max_cell_size']/self.parameters['downsampling'])
+        if self.parameters['segmentation']['MaskRCNN_cell_segmentation'] is False:    
+            img_mask=nls.compute_DNA_mask(img_nuc)
+            center_of_mass = nls.retrieve_coordinates(img_mask,
+                        cell_size_min=self.parameters['segmentation']['min_cell_size']*self.parameters['downsampling'],
+                        cell_size_max=self.parameters['segmentation']['max_cell_size']/self.parameters['downsampling'])
+        else:
+            img_mask,center_of_mass = self.mrcnn.extract_centroids(img_nuc,ds_size=(540,540),score_thresh=0.8,
+                                    area_thresh=500,ROI=50,remove_edges=False)
         if self.visualization is True:
             self.show_image(img_nuc,img_mask)
 
