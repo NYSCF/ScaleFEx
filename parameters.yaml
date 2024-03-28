@@ -10,7 +10,9 @@ location_parameters:
             'HTN0001_CCU384_403__2024-02-14T23_02_44-Measurement 19',
             'HTN0001_CCU384_404__2024-02-15T23_28_53-Measurement 19'] 
   plate_type: '_CCU384_'
-  fname_pattern: 'Images/<Well(6)><Site(3)><Plane(3)>-<Channel(3)>.<ext>'
+  fname_pattern: 'Images/<Well(6)><Site(3)><Plane(3)>-<Channel(3)>.<ext>' # Phenix pattern
+  fname_delimiters: ['-','.']
+  file_extensions: ['tiff']
   coordinates_csv: ''
   image_size: [2160,2160]
 
