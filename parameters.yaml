@@ -3,48 +3,41 @@ vector_type: 'scalefex' #'scalefex', 'embeddings'
 
 location_parameters:
 
-  exp_folder: '/mnt/synology01/HTN0001/'
-  experiment_name: 'HTN0001'
-  saving_folder: '/mnt/data-storage/HCI_Projects/Neurons/HTN0001'
-  plates: ['HTN0001_CCU384_401__2024-02-17T22_04_34-Measurement 19',
-            'HTN0001_CCU384_402__2024-02-13T22_52_28-Measurement 19',
-            'HTN0001_CCU384_403__2024-02-14T23_02_44-Measurement 19',
-            'HTN0001_CCU384_404__2024-02-15T23_28_53-Measurement 19'] 
-  plate_type: '_CCU384_'
+  exp_folder: '/mnt/10b1e8d4-f3a8-46e5-9a1a-c197b4f39011/HTS0026/'
+  experiment_name: 'HTS0026'
+  saving_folder: '/home/biancamigliori/Desktop/temp_try_output/'
+  plates: ['101','102','103','104','106'] # ['HTS0026_CV384W_101__2022-10-15T22_41_08-Measurement 5',
+  #           'HTS0026_CV384W_102__2022-10-16T22_37_50-Measurement 5',
+  #           'HTS0026_CV384W_103__2022-10-17T22_30_07-Measurement 5',
+  #           'HTS0026_CV384W_104__2022-10-17T03_19_12-Measurement 5',
+  #           'HTS0026_CV384W_106__2022-10-18T03_10_38-Measurement 5'] 
+  plate_type: '_CV384W_'
   fname_pattern: 'Images/<Well(6)><Site(3)><Plane(3)>-<Channel(3)>.<ext>' # Phenix pattern
   fname_delimiters: ['-','.']
   file_extensions: ['tiff']
-  coordinates_csv: ''
-
-  # exp_folder: '/mnt/2e6952d2-a327-41fa-9451-7ce13129d27c/HTS0033/'
-  # experiment_name: 'HTS0033'
-  # saving_folder: '/home/biancamigliori/Desktop/temp_try_output/'
-  # plates: ['101'] 
-  # plate_type: '_CV384W_'
-
   image_size: [2160,2160]
 
 type_specific:
-  channel: ['ch4','ch2', 'ch3',  'ch1']        
+  channel: ['ch4','ch1', 'ch5',  'ch3', 'ch2']        
   stack: False
   ROI: 150
   neurite_tracing: ''
-  RNA_channel: '' #set only if you want to compute ScaleFex
-  Mito_channel: '' #set only if you want to compute ScaleFex
-  zstack: True
+  RNA_channel: 'ch5' #set only if you want to compute ScaleFex
+  Mito_channel: 'ch2' #set only if you want to compute ScaleFex
+  zstack: False
   img_size: [2160,2160]
   compute_live_cells: False 
 
 
 downsampling: 1
-QC: True
+QC: False
 FFC: True
 FFC_location: 'Saving Folder'
 FFC_n_images: 500
 tile_computation: False
 
 segmentation:
-  csv_coordinates: '/home/biancamigliori/Desktop/temp_try_output/HTS0033_coordinates.csv'
+  csv_coordinates: '/home/biancamigliori/Desktop/temp_try_output/HTS0026_coordinates.csv'
   segmenting_function: 'Nuclei_segmentation.nuclei_location_extraction' # 'MaskRCNN_Deployment.segmentation_mrcnn'   
   MaskRCNN_cell_segmentation: False
   Threshold_segmentation: True
@@ -70,4 +63,4 @@ AWS:
 local:
   query_function: 'data_query.query_functions_local'
   parallel: True
-  n_of_workers: 100
+  n_of_workers: 240

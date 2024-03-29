@@ -80,7 +80,12 @@ class Screen_Compute: #come up with a better name
             self.mrcnn.load_model(gpu_id=self.parameters['gpu_mrcnn'])
 
         # Loop over plates and start computation
-        for plate in self.parameters['location_parameters']['plates']:
+        if self.parameters['location_parameters']['plates'][0] == 'all':
+            Plates = np.unique(files.plate)
+        else:
+            Plates = self.parameters['location_parameters']['plates']
+        print('Computing plates: ', Plates)
+        for plate in Plates:
             self.start_computation(plate, files)
 
 ### Start computation
@@ -144,7 +149,7 @@ class Screen_Compute: #come up with a better name
                         locations=self.locations
                         locations=locations.loc[(locations.well==well)&(locations.site==site)&(locations.plate.astype(str)==str(plate))]
                         center_of_mass=np.asarray(locations[['coordX','coordY','cell_id']])
-
+                        
                         if self.parameters['type_specific']['compute_live_cells'] is False:
                             live_cells=len(center_of_mass)
                             
@@ -200,6 +205,8 @@ class Screen_Compute: #come up with a better name
                                 # Query the nearest distance and the index of the nearest point
                                 distance, _ = tree.query([x,y], k=2)    
                                 vector['distance']=distance[1] 
+                            else:
+                                vector['distance']=locations.loc[(locations.coordX==x)&(locations.coordY==y),'distance'].values[0]
 
                             
                             # print(crop.shape)
