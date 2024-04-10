@@ -44,10 +44,10 @@ class Screen_Compute: #come up with a better name
         print("retrieving files from ", (self.parameters['location_parameters']['exp_folder']))
 
         # Get the files
-        files = self.data_retrieve.query_data_updated(self.parameters['location_parameters']['exp_folder'],plate_type= self.parameters['location_parameters']['plate_type'],
+        files = self.data_retrieve.query_data(self.parameters['location_parameters']['exp_folder'],plate_type= self.parameters['location_parameters']['plate_type'],
                                                       pattern=self.parameters['location_parameters']['fname_pattern'],delimiters=self.parameters['location_parameters']['fname_delimiters'],
                                                       exts=self.parameters['location_parameters']['file_extensions'])
-        # files = self.data_retrieve.query_data(self.parameters['location_parameters']['exp_folder'],plate_type= self.parameters['location_parameters']['plate_type'])
+        # files = self.data_retrieve.query_data_outdated(self.parameters['location_parameters']['exp_folder'],plate_type= self.parameters['location_parameters']['plate_type'])
 
         # Perform Flat Field Correction (FFC)
         self.flat_field_correction = {}
@@ -138,7 +138,7 @@ class Screen_Compute: #come up with a better name
                 if np_images is not None:
                     # stime = time.perf_counter()
                     if self.parameters['segmentation']['csv_coordinates']=='':
-                        center_of_mass=self.segment_crop_images(original_images[0])
+                        center_of_mass=self.segment_crop_images(np_images[0,:,:,0])
                         center_of_mass=[list(row) + [n] for n,row in enumerate(center_of_mass)]
                         if self.parameters['type_specific']['compute_live_cells'] is False:
                             live_cells=len(center_of_mass)
@@ -227,7 +227,7 @@ class Screen_Compute: #come up with a better name
                                                     mito_ch=self.parameters['type_specific']['Mito_channel'], rna_ch=self.parameters['type_specific']['RNA_channel'],
                                                     neuritis_ch=self.parameters['type_specific']['neurite_tracing'],downsampling=self.parameters['downsampling'],
                                                     visualization=self.parameters['visualize_masks'], roi=int(self.parameters['type_specific']['ROI'])
-                                                    ).single_cell_vector.loc[1,0]
+                                                    ).single_cell_vector
                                 if isinstance(scalefex, pd.DataFrame):
                                     vector=pd.concat([vector,scalefex],axis=1)
                                     #print(vector)

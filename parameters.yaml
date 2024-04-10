@@ -5,7 +5,7 @@ location_parameters:
 
   exp_folder: '/mnt/10b1e8d4-f3a8-46e5-9a1a-c197b4f39011/HTS0026/'
   experiment_name: 'HTS0026'
-  saving_folder: '/home/biancamigliori/Desktop/temp_try_output/'
+  saving_folder: '/home/biancamigliori/Desktop/temp_try_output/test1'
   plates: ['103','104','106'] # ['HTS0026_CV384W_101__2022-10-15T22_41_08-Measurement 5',
   #           'HTS0026_CV384W_102__2022-10-16T22_37_50-Measurement 5',
   #           'HTS0026_CV384W_103__2022-10-17T22_30_07-Measurement 5',
@@ -37,7 +37,7 @@ FFC_n_images: 500
 tile_computation: False
 
 segmentation:
-  csv_coordinates: '/home/biancamigliori/Desktop/temp_try_output/HTS0026_coordinates.csv'
+  csv_coordinates: '' # put '' if you don't want to use a csv file
   segmenting_function: 'Nuclei_segmentation.nuclei_location_extraction' # 'MaskRCNN_Deployment.segmentation_mrcnn'   
   MaskRCNN_cell_segmentation: False
   Threshold_segmentation: True
