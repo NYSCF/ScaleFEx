@@ -6,7 +6,7 @@ location_parameters:
   exp_folder: '/mnt/10b1e8d4-f3a8-46e5-9a1a-c197b4f39011/HTS0026/'
   experiment_name: 'HTS0026'
   saving_folder: '/home/biancamigliori/Desktop/temp_try_output/'
-  plates: ['101','102','103','104','106'] # ['HTS0026_CV384W_101__2022-10-15T22_41_08-Measurement 5',
+  plates: ['103','104','106'] # ['HTS0026_CV384W_101__2022-10-15T22_41_08-Measurement 5',
   #           'HTS0026_CV384W_102__2022-10-16T22_37_50-Measurement 5',
   #           'HTS0026_CV384W_103__2022-10-17T22_30_07-Measurement 5',
   #           'HTS0026_CV384W_104__2022-10-17T03_19_12-Measurement 5',
@@ -63,4 +63,4 @@ AWS:
 local:
   query_function: 'data_query.query_functions_local'
   parallel: True
-  n_of_workers: 240
+  n_of_workers: 140
