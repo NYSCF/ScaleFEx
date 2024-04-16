@@ -62,5 +62,5 @@ AWS:
 
 local:
   query_function: 'data_query.query_functions_local'
-  parallel: True
+  parallel: False
   n_of_workers: 140
