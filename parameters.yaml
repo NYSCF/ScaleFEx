@@ -1,52 +1,49 @@
 vector_type: 'scalefex' #'scalefex', 'embeddings'
+ressource: 'local'
+query_function: 'data_query.query_functions_local'
+parallel: False
+n_of_workers: 140
 
+# location_parameters:
+exp_folder: '/mnt/synology01/HTS0026/'
+experiment_name: 'HTS0026'
+saving_folder: '/mnt/data-storage/HCI_Projects/Neurons/HTS0026/'
+plates: ['101'] # ['HTS0026_CV384W_101__2022-10-15T22_41_08-Measurement 5',
 
-location_parameters:
+plate_type: '_CV384W_'
+fname_pattern: 'Images/<Well(6)><Site(3)><Plane(3)>-<Channel(3)>.<ext>' # Phenix pattern
+fname_delimiters: ['-','.']
+file_extensions: ['tiff']
+image_size: [2160,2160]
 
-  exp_folder: '/mnt/synology01/HTS0026/'
-  experiment_name: 'HTS0026'
-  saving_folder: '/mnt/data-storage/HCI_Projects/Neurons/HTS0026/'
-  plates: ['103','104','106'] # ['HTS0026_CV384W_101__2022-10-15T22_41_08-Measurement 5',
-  #           'HTS0026_CV384W_102__2022-10-16T22_37_50-Measurement 5',
-  #           'HTS0026_CV384W_103__2022-10-17T22_30_07-Measurement 5',
-  #           'HTS0026_CV384W_104__2022-10-17T03_19_12-Measurement 5',
-  #           'HTS0026_CV384W_106__2022-10-18T03_10_38-Measurement 5'] 
-  plate_type: '_CV384W_'
-  fname_pattern: 'Images/<Well(6)><Site(3)><Plane(3)>-<Channel(3)>.<ext>' # Phenix pattern
-  fname_delimiters: ['-','.']
-  file_extensions: ['tiff']
-  image_size: [2160,2160]
-
-type_specific:
-  channel: ['ch4','ch1', 'ch5',  'ch3', 'ch2']        
-  stack: False
-  ROI: 150
-  neurite_tracing: ''
-  RNA_channel: 'ch5' #set only if you want to compute ScaleFex
-  Mito_channel: 'ch2' #set only if you want to compute ScaleFex
-  zstack: False
-  img_size: [2160,2160]
-  compute_live_cells: False 
-
+# type_specific:
+channel: ['ch4','ch1', 'ch5',  'ch3', 'ch2']        
+stack: False
+ROI: 150
+neurite_tracing: ''
+RNA_channel: 'ch5' #set only if you want to compute ScaleFex
+Mito_channel: 'ch2' #set only if you want to compute ScaleFex
+zstack: False
+img_size: [2160,2160]
+compute_live_cells: False 
 
 downsampling: 1
 QC: True
-FFC: True
+FFC: False
 FFC_location: 'Saving Folder'
 FFC_n_images: 500
 tile_computation: False
 
-segmentation:
-  csv_coordinates: '' # put '' if you don't want to use a csv file
-  segmenting_function: 'MaskRCNN_Deployment.segmentation_mrcnn' # 'MaskRCNN_Deployment.segmentation_mrcnn'   
-  MaskRCNN_cell_segmentation: True
-  gpu_mrcnn: 0
-  Threshold_segmentation: False
-  use_cpu_segmentation: False
-  min_cell_size: 200 #area
-  max_cell_size: 100000
-  visualization: False
-  
+# segmentation:
+csv_coordinates: '' # put '' if you don't want to use a csv file
+segmenting_function: 'Nuclei_segmentation.nuclei_location_extraction' # 'MaskRCNN_Deployment.segmentation_mrcnn'   
+MaskRCNN_cell_segmentation: False
+gpu_mrcnn: 0
+Threshold_segmentation: True
+use_cpu_segmentation: False
+min_cell_size: 200 #area
+max_cell_size: 100000
+visualization: False
 
 ## embeddings_settings
 device: "1"
@@ -56,12 +53,6 @@ weights_location: ""
 visualize_masks: False
 visualize_crops: False
 
-
-AWS: 
-  use_AWS: 'no'
-  query_function: 'data_query.query_functions_AWS'
-
-local:
-  query_function: 'data_query.query_functions_local'
-  parallel: False
-  n_of_workers: 140
+#AWS settings
+bucket_name: 'nyscf-scalefex'
+subset: 'A'
