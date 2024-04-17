@@ -1,13 +1,11 @@
 vector_type: 'scalefex' #'scalefex', 'embeddings'
-ressource: 'local'
-query_function: 'data_query.query_functions_local'
-parallel: False
-n_of_workers: 140
+resource: 'AWS' #'local', 'AWS'
+n_of_workers: 2
 
 # location_parameters:
-exp_folder: '/mnt/synology01/HTS0026/'
-experiment_name: 'HTS0026'
-saving_folder: '/mnt/data-storage/HCI_Projects/Neurons/HTS0026/'
+exp_folder: '/mnt/synology01/HTS0033/'
+experiment_name: 'HTS0033'
+saving_folder: '' #'/mnt/data-storage/HCI_Projects/Neurons/HTS0026/'
 plates: ['101'] # ['HTS0026_CV384W_101__2022-10-15T22_41_08-Measurement 5',
 
 plate_type: '_CV384W_'
@@ -24,18 +22,16 @@ neurite_tracing: ''
 RNA_channel: 'ch5' #set only if you want to compute ScaleFex
 Mito_channel: 'ch2' #set only if you want to compute ScaleFex
 zstack: False
-img_size: [2160,2160]
 compute_live_cells: False 
 
 downsampling: 1
 QC: True
-FFC: False
-FFC_location: 'Saving Folder'
+FFC: True
 FFC_n_images: 500
 tile_computation: False
 
 # segmentation:
-csv_coordinates: '' # put '' if you don't want to use a csv file
+csv_coordinates: '' # '' if you don't want to use a pre-computed coordinates file
 segmenting_function: 'Nuclei_segmentation.nuclei_location_extraction' # 'MaskRCNN_Deployment.segmentation_mrcnn'   
 MaskRCNN_cell_segmentation: False
 gpu_mrcnn: 0
@@ -54,5 +50,5 @@ visualize_masks: False
 visualize_crops: False
 
 #AWS settings
-bucket_name: 'nyscf-scalefex'
+s3_bucket: 'nyscf-scalefex'
 subset: 'A'
