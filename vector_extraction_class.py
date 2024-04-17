@@ -5,13 +5,12 @@ import numpy as np
 from datetime import datetime
 import Quality_control_HCI.compute_global_values
 import Embeddings_extraction_from_image.batch_compute_embeddings
+import data_query.query_functions_local
 import ScaleFEx_from_crop.compute_ScaleFEx
 import time
 from scipy.spatial import KDTree
 import matplotlib.pyplot as plt
 ROOT_DIR = '/'.join(__file__.split('/')[:-1])
-
-
 
 class Screen_Compute: #come up with a better name
     """
@@ -35,35 +34,28 @@ class Screen_Compute: #come up with a better name
 
         self.saving_folder = self.parameters['saving_folder']
 
-        # Import the data retrieval function
-        self.data_retrieve = import_module(self.parameters['query_function'])
-
-        # Print the experiment folder
-        print("retrieving files from ", (self.parameters['exp_folder']))
-        
-        # Get the files
-        files = self.data_retrieve.query_data(self.parameters['exp_folder'],plate_type= self.parameters['plate_type'],
-                                                      pattern=self.parameters['fname_pattern'],delimiters=self.parameters['fname_delimiters'],
-                                                      exts=self.parameters['file_extensions'])
+        files = data_query.query_functions_local.query_data(self.parameters['exp_folder'], plate_type = self.parameters['plate_type'],
+                                            pattern=self.parameters['fname_pattern'],delimiters = self.parameters['fname_delimiters'],
+                                            exts=self.parameters['file_extensions'],resource = self.parameters['resource'], 
+                                            experiment_name = self.parameters['experiment_name'],plates=self.parameters['plates'], 
+                                            s3_bucket = self.parameters['s3_bucket'])
         print(files.head())
         
         # Perform Flat Field Correction (FFC)
         self.flat_field_correction = {}
         if self.parameters['FFC'] is True:
-            ffc_file = os.path.join(self.saving_folder,self.parameters['vector_type'] + '_FFC.p')
+            ffc_file = os.path.join(self.saving_folder,self.parameters['experiment_name'] + '_FFC.p')
             if not os.path.exists(ffc_file):
-                print('Flat Field correction image not found in ' +
-                      self.saving_folder,
-                      ' Generating FFC now')
-                
-                self.flat_field_correction = self.data_retrieve.flat_field_correction_on_data(
-                    files, self.parameters['channel'], n_images=self.parameters['FFC_n_images'])
-                
-                pickle.dump(self.flat_field_correction, open(ffc_file, "wb"))
+                print(ffc_file + ' Not found generating FFC now')
 
+                if self.parameters['resource'] == 'AWS':
+                    self.flat_field_correction = data_query.query_functions_local.flat_field_correction_AWS(files,ffc_file,
+                    self.parameters['s3_bucket'],self.parameters['channel'],self.parameters['experiment_name'],n_images=20)
+                else :
+                    self.flat_field_correction = data_query.query_functions_local.flat_field_correction_on_data(
+                    files, self.parameters['channel'], n_images=self.parameters['FFC_n_images'])
             else:
-                print('Flat Field correction image found in ' +
-                      self.saving_folder,' Loading FFC')
+                print(ffc_file + ' Found, loading FFC')
                 self.flat_field_correction = pickle.load(open(ffc_file, "rb"))
         else:
             for channel in self.parameters['channel']:
@@ -87,16 +79,14 @@ class Screen_Compute: #come up with a better name
             
     def start_computation(self,plate,files):
         
-        # self.plate=plate
-        
         task_files=files.loc[files.plate==plate]
-        wells, task_fields = self.data_retrieve.make_well_and_field_list(task_files)
+        wells, task_fields = data_query.query_functions_local.make_well_and_field_list(task_files,self.parameters['resource']
+                                                                                       ,self.parameters['subset'])
         vec_dir = os.path.join(self.saving_folder,self.parameters['vector_type'])
         if not os.path.exists(vec_dir):
             os.makedirs(vec_dir)
-        csv_file = os.path.join(vec_dir,self.parameters['vector_type']+'_'+str(plate)+'_'+self.parameters['vector_type']+'.csv')
-
-        # Create QC directory
+        csv_file = os.path.join(vec_dir,self.parameters['experiment_name']+'_'+str(plate)+'_'+self.parameters['vector_type']+'.csv')
+        # QC
         if self.parameters['QC']==True:
             qc_dir = os.path.join(self.saving_folder,'QC_analysis')
             csv_fileQC = os.path.join(qc_dir,self.parameters['vector_type']+'_'+str(plate)+'QC.csv')
@@ -104,12 +94,13 @@ class Screen_Compute: #come up with a better name
                 os.makedirs(qc_dir)
 
         if self.parameters['csv_coordinates'] == '':
-            wells=self.data_retrieve.check_if_file_exists(csv_file,wells,task_fields)
+            wells=data_query.query_functions_local.check_if_file_exists(csv_file,wells,task_fields)
             if wells[0] == 'Over':
                 print('plate ', plate, 'is done')
                 return
         else:
-            self.locations=self.data_retrieve.check_if_file_exists(csv_file,wells,task_fields,self.parameters['csv_coordinates'],plate=plate)
+            self.locations=data_query.query_functions_local.check_if_file_exists(csv_file,wells,task_fields,
+                                                                                 self.parameters['csv_coordinates'],plate=plate)
             wells=np.unique(self.locations.well)
             
         def compute_vector(well):
@@ -120,16 +111,16 @@ class Screen_Compute: #come up with a better name
     
                 print(site, well, plate, datetime.now())
                 #stime=time.perf_counter()
-                np_images, original_images = self.data_retrieve.load_and_preprocess(task_files,
-                                    self.parameters['channel'],well,site,self.parameters['zstack'],self.data_retrieve,
-                                    self.parameters['img_size'],self.flat_field_correction,
-                                    self.parameters['downsampling'],return_original=self.parameters['QC'])
+                np_images, original_images = data_query.query_functions_local.load_and_preprocess(task_files,
+                                    self.parameters['channel'],well,site,self.parameters['zstack'],self.parameters['resource'],
+                                    self.parameters['image_size'],self.flat_field_correction,
+                                    self.parameters['downsampling'],return_original=self.parameters['QC'],
+                                    s3_bucket = self.parameters['s3_bucket'])
                 try:
                     original_images.shape
                 except NameError:
                     print('Images corrupted')
                 #print('images load and process time ',time.perf_counter()-stime)
-
                 if np_images is not None:
                     # stime = time.perf_counter()
                     if self.parameters['csv_coordinates']=='':
@@ -148,9 +139,6 @@ class Screen_Compute: #come up with a better name
                         if self.parameters['compute_live_cells'] is False:
                             live_cells=len(center_of_mass)
                             
-                    # print('coordinates time ',time.perf_counter()-stime)    
-                        
-                    #print(center_of_mass)
                     # stime = time.perf_counter()
                     if self.parameters['QC']==True:
                         indQC=0
@@ -189,13 +177,9 @@ class Screen_Compute: #come up with a better name
                             if self.parameters['visualize_crops']==True:
                                 plt.imshow(crop[0])
                                 plt.show()
-
                             ind=0
                             vector=pd.DataFrame(np.asarray([plate,well,site,x,y,n]).reshape(1,6),columns=['plate','well','site','coordX','coordY','cell_id'],index=[ind])
-
-                        
                             if self.parameters['csv_coordinates']=='':
-                             
                                 tree = KDTree([row[:2] for row in center_of_mass])
 
                                 # Query the nearest distance and the index of the nearest point
@@ -204,13 +188,10 @@ class Screen_Compute: #come up with a better name
                             else:
                                 vector['distance']=locations.loc[(locations.coordX==x)&(locations.coordY==y),'distance'].values[0]
 
-                            
-                            # print(crop.shape)
-
                             if 'mbed' in self.parameters['vector_type']:
 
                                 vector=pd.concat([vector,Embeddings_extraction_from_image.batch_compute_embeddings.Compute_embeddings(crop,0,self.parameters['channel'],
-                                                                                                self.parameters["device"],weights=self.parameters['weights_location']).embeddings],axis=1)
+                                                self.parameters["device"],weights=self.parameters['weights_location']).embeddings],axis=1)
                                 
                                 if not os.path.exists(csv_file):
                                     vector.to_csv(csv_file,header=True)
@@ -218,7 +199,7 @@ class Screen_Compute: #come up with a better name
                                     vector.to_csv(csv_file,mode='a',header=False)
                                 print('embedding_computation time ',time.perf_counter()-stime)
                             
-                            elif ('cale' in self.parameters['vector_type']) or ('FEx' in self.parameters['vector_type']) or ('fex' in self.parameters['vector_type']):
+                            elif ('cal' in self.parameters['vector_type']) :
                                 scalefex=ScaleFEx_from_crop.compute_ScaleFEx.ScaleFEx(crop, channel=self.parameters['channel'],
                                                     mito_ch=self.parameters['Mito_channel'], rna_ch=self.parameters['RNA_channel'],
                                                     neuritis_ch=self.parameters['neurite_tracing'],downsampling=self.parameters['downsampling'],
@@ -226,34 +207,26 @@ class Screen_Compute: #come up with a better name
                                                     ).single_cell_vector
                                 if isinstance(scalefex, pd.DataFrame):
                                     vector=pd.concat([vector,scalefex],axis=1)
-                                    #print(vector)
                                     if not os.path.exists(csv_file):
                                         vector.to_csv(csv_file,header=True)
                                     else:
                                         vector.to_csv(csv_file,mode='a',header=False)
-
                                     # print('vector_computatiomn time ',time.perf_counter()-stime)
-
                             else:
                                 print('Not a valid vector type entry')
                             
-
-        if self.parameters['ressource']=='local':
-            if self.parameters['parallel'] is True:
-                function = compute_vector
-                parallelize_computation.parallelize_local(wells,function)
-            else:
-                for well in wells:
-                    stime=time.perf_counter()
-                    compute_vector(well)
-                    print('well time ',time.perf_counter()-stime)
-        # elif self.parameters['ressource']=='AWS':
-        #     print('Gab to finish :) ')
+        if self.parameters['n_of_workers'] != 1:
+            function = compute_vector
+            parallelize_computation.parallelize_local(wells,function,self.parameters['n_of_workers'],mode = 'dev')
+        else:
+            for well in wells:
+                stime=time.perf_counter()
+                compute_vector(well)
+                print('well time ',time.perf_counter()-stime)
 
     def segment_crop_images(self,img_nuc):
 
         # extraction of the location of the cells
-    
         nls=import_module(self.parameters['segmenting_function'])
         
         if self.parameters['MaskRCNN_cell_segmentation'] is False:    
@@ -280,7 +253,6 @@ class Screen_Compute: #come up with a better name
             center_of_mass = []
             print('No Cells detected')
         
-
         return center_of_mass
 
     def show_image(self,img,nuc):
@@ -289,7 +261,6 @@ class Screen_Compute: #come up with a better name
         ax[0].imshow(img)
         ax[1].imshow(nuc)
         plt.show()                    
-
 
 def import_module(module_name):
     try:
