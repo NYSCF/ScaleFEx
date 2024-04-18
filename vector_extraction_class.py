@@ -67,7 +67,7 @@ class Screen_Compute: #come up with a better name
             self.mrcnn = MaskRCNN(weights=mrcnn_weights,use_cpu=False,gpu_id=self.parameters['gpu_mrcnn'])
 
         # Loop over plates and start computation
-        if self.parameters['plates'][0] == 'all':
+        if self.parameters['plates'] != 'all' and isinstance(self.parameters['plates'],list):
             plate_list = np.unique(files.plate)
         else:
             plate_list = self.parameters['plates']
