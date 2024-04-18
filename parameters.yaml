@@ -1,5 +1,5 @@
 vector_type: 'scalefex' #'scalefex', 'embeddings'
-resource: 'AWS' #'local', 'AWS'
+resource: 'local' #'local', 'AWS'
 n_of_workers: 2
 
 # location_parameters:
