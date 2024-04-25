@@ -199,7 +199,7 @@ class Screen_Compute: #come up with a better name
                                     vector.to_csv(csv_file,mode='a',header=False)
                                 print('embedding_computation time ',time.perf_counter()-stime)
                             
-                            elif ('cal' in self.parameters['vector_type']) :
+                            elif ('cal' in self.parameters['vector_type']) :                                
                                 scalefex=ScaleFEx_from_crop.compute_ScaleFEx.ScaleFEx(crop, channel=self.parameters['channel'],
                                                     mito_ch=self.parameters['Mito_channel'], rna_ch=self.parameters['RNA_channel'],
                                                     neuritis_ch=self.parameters['neurite_tracing'],downsampling=self.parameters['downsampling'],
