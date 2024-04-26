@@ -72,6 +72,12 @@ class Screen_Compute: #come up with a better name
         else:
             plate_list = self.parameters['plates']
         print('Computing plates: ', plate_list)
+        if 'mbed' in self.parameters['vector_type']:
+            import Embeddings_extraction_from_image.inception_set
+            
+            self.parser = Embeddings_extraction_from_image.inception_set.place_holder(channel=self.parameters['channel'],
+                                                                                      device=self.parameters['device'],weights=self.parameters['weights_location'])
+            
         for plate in plate_list:
             self.start_computation(plate, files)
 
@@ -151,12 +157,15 @@ class Screen_Compute: #come up with a better name
                         else:
                             QC_vector.to_csv(csv_fileQC,mode='a',header=False)
                     # print('QC time ',time.perf_counter()-stime)
-                    
+                    # if self.parameters['vector_type'] == 'embeddings':
+
+
+
                     if self.parameters['tile_computation'] is True:
                         ind=0
                         vector=pd.DataFrame(np.asarray([plate,well,site]).reshape(1,3),columns=['plate','well','site'],index=[ind])
-                        vector=pd.concat([vector,Embeddings_extraction_from_image.batch_compute_embeddings.Compute_embeddings(np_images,ind,self.parameters['channel'],
-                                                                                            self.parameters["device"],weights=self.parameters['weights_location']).embeddings],axis=1)
+                        vector=pd.concat([vector,Embeddings_extraction_from_image.batch_compute_embeddings.Compute_embeddings(self.parser,np_images,ind,self.parameters['channel'],
+                                                                                            ).embeddings],axis=1)
                         tile_csv = csv_file[:-4]+'Tile.csv'
                         if not os.path.exists(tile_csv):
                             vector.to_csv(tile_csv,header=True)
@@ -190,16 +199,16 @@ class Screen_Compute: #come up with a better name
 
                             if 'mbed' in self.parameters['vector_type']:
 
-                                vector=pd.concat([vector,Embeddings_extraction_from_image.batch_compute_embeddings.Compute_embeddings(crop,0,self.parameters['channel'],
-                                                self.parameters["device"],weights=self.parameters['weights_location']).embeddings],axis=1)
+                                vector=pd.concat([vector,Embeddings_extraction_from_image.batch_compute_embeddings.Compute_embeddings(self.parser,
+                                                                        crop,0,self.parameters['channel']).embeddings],axis=1)
                                 
                                 if not os.path.exists(csv_file):
                                     vector.to_csv(csv_file,header=True)
                                 else:
                                     vector.to_csv(csv_file,mode='a',header=False)
-                                print('embedding_computation time ',time.perf_counter()-stime)
+                                #print('embedding_computation time ',time.perf_counter()-stime)
                             
-                            elif ('cal' in self.parameters['vector_type']) :
+                            elif ('cal' in self.parameters['vector_type']) :                                
                                 scalefex=ScaleFEx_from_crop.compute_ScaleFEx.ScaleFEx(crop, channel=self.parameters['channel'],
                                                     mito_ch=self.parameters['Mito_channel'], rna_ch=self.parameters['RNA_channel'],
                                                     neuritis_ch=self.parameters['neurite_tracing'],downsampling=self.parameters['downsampling'],
