@@ -1,4 +1,4 @@
-vector_type: 'scalefex' #'scalefex', 'embeddings'
+vector_type: 'embeddings' #'scalefex', 'embeddings'
 resource: 'local' #'local', 'AWS'
 n_of_workers: 1
 
@@ -39,15 +39,15 @@ Threshold_segmentation: True
 use_cpu_segmentation: False
 min_cell_size: 200 #area
 max_cell_size: 100000
-visualization: True
+visualization: False
 
 ## embeddings_settings
 device: "1"
-weights_location: ""
+weights_location: "/home/biancamigliori/Documents/models/"
 
 ## Scalefex settings
 visualize_masks: False
-visualize_crops: True
+visualize_crops: False
 
 #AWS settings
 s3_bucket: 'nyscf-scalefex'
