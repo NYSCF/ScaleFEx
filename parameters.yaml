@@ -36,7 +36,7 @@ csv_coordinates: '' # '' if you don't want to use a pre-computed coordinates fil
 segmenting_function: 'MaskRCNN_Deployment.segmentation_mrcnn' # 'Nuclei_segmentation.nuclei_location_extraction' # 'MaskRCNN_Deployment.segmentation_mrcnn'   
 AI_cell_segmentation: True
 save_coordinates: True
-gpu_AI: False
+gpu_AI: 0
 Threshold_segmentation: True
 use_cpu_segmentation: True
 min_cell_size: 200 #area
