@@ -1,12 +1,12 @@
 vector_type: '' #'scalefex', 'embeddings' '' for QC only, 'coordinates' for coordinates of cells
 resource: 'local' #'local', 'AWS'
-n_of_workers: 1
+n_of_workers: 240
 
 # location_parameters:
 exp_folder: '/mnt/2e6952d2-a327-41fa-9451-7ce13129d27c/HTF0006/'
 experiment_name: 'HTF0006'
-saving_folder: '/home/biancamigliori/Desktop/temp_try_output/test1scalefex/' #'/mnt/data-storage/HCI_Projects/Neurons/HTS0026/'
-plates: ['202','203'] # ['HTS0026_CV384W_101__2022-10-15T22_41_08-Measurement 5',
+saving_folder: '/home/biancamigliori/Documents/HCI_Projects/GBA/' #'/mnt/data-storage/HCI_Projects/Neurons/HTS0026/'
+plates: ['201','202','203','204','205'] # ['HTS0026_CV384W_101__2022-10-15T22_41_08-Measurement 5',
 
 plate_type: '_CV384W_'
 fname_pattern: 'Images/<Well(6)><Site(3)><Plane(3)>-<Channel(3)>.<ext>' # Phenix pattern
@@ -16,7 +16,6 @@ image_size: [2160,2160]
 
 # type_specific:
 channel: ['ch4','ch1', 'ch5',  'ch3', 'ch2']        
-stack: False
 ROI: 150
 neurite_tracing: ''
 bf_channel: ''
@@ -27,17 +26,17 @@ compute_live_cells: False
 
 downsampling: 1
 QC: True
-FFC: False
+FFC: True
 FFC_n_images: 500
 tile_computation: False
 
-# segmentation:
+## segmentation:
 csv_coordinates: '' # '' if you don't want to use a pre-computed coordinates file
-segmenting_function: 'MaskRCNN_Deployment.segmentation_mrcnn' # 'Nuclei_segmentation.nuclei_location_extraction' # 'MaskRCNN_Deployment.segmentation_mrcnn'   
-AI_cell_segmentation: True
+segmenting_function: 'Nuclei_segmentation.nuclei_location_extraction' # 'MaskRCNN_Deployment.segmentation_mrcnn'   
+AI_cell_segmentation: False
 save_coordinates: True
 gpu_AI: False
-Threshold_segmentation: True
+#Threshold_segmentation: True
 use_cpu_segmentation: True
 min_cell_size: 200 #area
 max_cell_size: 100000

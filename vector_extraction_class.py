@@ -64,7 +64,7 @@ class Screen_Compute: #come up with a better name
         else:
             for channel in self.parameters['channel']:
                 self.flat_field_correction[channel] = 1
-
+        # Initialize segmentation weights if using AI models
         if self.parameters['AI_cell_segmentation'] is True:
             if self.parameters['segmenting_function'] == 'MaskRCNN_Deployment.segmentation_mrcnn':
                 from MaskRCNN_Deployment.segmentation_mrcnn import MaskRCNN
@@ -73,14 +73,16 @@ class Screen_Compute: #come up with a better name
                 self.mrcnn = MaskRCNN(weights=mrcnn_weights,use_cpu=self.parameters['use_cpu_segmentation'],gpu_id=self.parameters['gpu_AI'])
             elif self.parameters['segmenting_function'] == 'ADDIEs':
                 print("For Addie to implement")
-        
+
 
         # Loop over plates and start computation
         if self.parameters['plates'] != 'all' and isinstance(self.parameters['plates'],list):
             plate_list = np.unique(files.plate)
         else:
             plate_list = self.parameters['plates']
+
         print('Computing plates: ', plate_list)
+        
         if 'mbed' in self.parameters['vector_type']:
             import Embeddings_extraction_from_image.inception_set
             
