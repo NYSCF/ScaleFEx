@@ -50,11 +50,12 @@ class Screen_Compute: #come up with a better name
 
                 if self.parameters['resource'] == 'AWS':
                     self.flat_field_correction = data_query.query_functions_local.flat_field_correction_AWS(files,ffc_file,
-                    self.parameters['s3_bucket'],self.parameters['channel'],self.parameters['experiment_name'],n_images=20)
+                    self.parameters['s3_bucket'],self.parameters['channel'],self.parameters['experiment_name'],bf_channel=self.parameters['bf_channel'],
+                    n_images=self.parameters['FFC_n_images'])
                     
                 else :
                     self.flat_field_correction = data_query.query_functions_local.flat_field_correction_on_data(
-                    files, self.parameters['channel'], n_images=self.parameters['FFC_n_images'])
+                    files, self.parameters['channel'], bf_channel=self.parameters['bf_channel'],n_images=self.parameters['FFC_n_images'])
 
                     pickle.dump(self.flat_field_correction, open(ffc_file, "wb"))
             else:
