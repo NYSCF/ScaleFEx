@@ -264,7 +264,8 @@ class Screen_Compute: #come up with a better name
             if img_nuc.max() > 1:
                 img_nuc = img_nuc/img_nuc.max()
             img_mask,center_of_mass = self.mrcnn.generate_masks(img_nuc,ds_size=(540,540),score_thresh=0.8,
-                                                                area_thresh=self.parameters['min_cell_size'],
+                                                                min_area_thresh=self.parameters['min_cell_size'],
+                                                                max_area_thresh=self.parameters['max_cell_size'],
                                                                 ROI=self.parameters['ROI'],
                                                                 remove_edges=False,try_quadrants=True)
             if center_of_mass is None:
