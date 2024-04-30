@@ -64,10 +64,15 @@ class Screen_Compute: #come up with a better name
             for channel in self.parameters['channel']:
                 self.flat_field_correction[channel] = 1
 
-        if self.parameters['MaskRCNN_cell_segmentation'] is True:
-            from MaskRCNN_Deployment.segmentation_mrcnn import MaskRCNN
-            mrcnn_weights = os.path.join(ROOT_DIR,'MaskRCNN_Deployment/weights/maskrcnn_weights.pt')
-            self.mrcnn = MaskRCNN(weights=mrcnn_weights,use_cpu=False,gpu_id=self.parameters['gpu_mrcnn'])
+        if self.parameters['AI_cell_segmentation'] is True:
+            if self.parameters['segmenting_function'] == 'MaskRCNN_Deployment.segmentation_mrcnn':
+                from MaskRCNN_Deployment.segmentation_mrcnn import MaskRCNN
+                mrcnn_weights = os.path.join(ROOT_DIR,'MaskRCNN_Deployment/weights/maskrcnn_weights.pt')
+                mrcnn_weights = '/home/biancamigliori/Documents/random_projection/maskrcnn_weights.pt'
+                self.mrcnn = MaskRCNN(weights=mrcnn_weights,use_cpu=self.parameters['use_cpu_segmentation'],gpu_id=self.parameters['gpu_AI'])
+            elif self.parameters['segmenting_function'] == 'ADDIEs':
+                print("For Addie to implement")
+        
 
         # Loop over plates and start computation
         if self.parameters['plates'] != 'all' and isinstance(self.parameters['plates'],list):
@@ -98,9 +103,11 @@ class Screen_Compute: #come up with a better name
         # QC
         if self.parameters['QC']==True:
             qc_dir = os.path.join(self.saving_folder,'QC_analysis')
-            csv_fileQC = os.path.join(qc_dir,self.parameters['vector_type']+'_'+str(plate)+'QC.csv')
+            csv_fileQC = os.path.join(qc_dir,self.parameters['experiment_name']+'_'+str(plate)+'QC.csv')
             if not os.path.exists(qc_dir):
                 os.makedirs(qc_dir)
+        if self.parameters['save_coordinates'] == True:
+            csv_file_coordinates = os.path.join(self.saving_folder,self.parameters['experiment_name'] + '_coordinates_'+str(plate)+'.csv')
 
         if self.parameters['csv_coordinates'] == '':
             wells=data_query.query_functions_local.check_if_file_exists(csv_file,wells,task_fields)
@@ -199,6 +206,12 @@ class Screen_Compute: #come up with a better name
                                 vector['distance']=distance[1] 
                             else:
                                 vector['distance']=locations.loc[(locations.coordX==x)&(locations.coordY==y),'distance'].values[0]
+                            
+                            if self.parameters['save_coordinates']==True:
+                                if not os.path.exists(csv_file_coordinates):
+                                    vector.to_csv(csv_file_coordinates,header=True)
+                                else:
+                                    vector.to_csv(csv_file_coordinates,mode='a',header=False)
 
                             if 'mbed' in self.parameters['vector_type']:
 
@@ -241,7 +254,7 @@ class Screen_Compute: #come up with a better name
         # extraction of the location of the cells
         nls=import_module(self.parameters['segmenting_function'])
         
-        if self.parameters['MaskRCNN_cell_segmentation'] is False:    
+        if self.parameters['AI_cell_segmentation'] is False:    
             img_mask=nls.compute_DNA_mask(img_nuc)
             center_of_mass = nls.retrieve_coordinates(img_mask,
                         cell_size_min=self.parameters['min_cell_size']*self.parameters['downsampling'],
