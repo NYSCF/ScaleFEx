@@ -36,7 +36,6 @@ segmenting_function: 'Nuclei_segmentation.nuclei_location_extraction' # 'MaskRCN
 AI_cell_segmentation: False
 save_coordinates: True
 gpu_AI: False
-#Threshold_segmentation: True
 use_cpu_segmentation: True
 min_cell_size: 200 #area
 max_cell_size: 100000
