@@ -262,10 +262,10 @@ class Screen_Compute: #come up with a better name
                                     print("An error occurred during ScaleFEx computation:", e)
                             else:
                                 print('Not a valid vector type entry')
-                            
+        
         if self.parameters['n_of_workers'] != 1:
             function = compute_vector
-            parallelize_computation.parallelize_local(wells,function,self.parameters['n_of_workers'],mode = 'dev')
+            parallelize_computation.parallelize_local(wells,function,self.parameters['n_of_workers'],mode = 'prod')
         else:
             for well in wells:
                 stime=time.perf_counter()
