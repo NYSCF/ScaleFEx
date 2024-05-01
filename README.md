@@ -52,31 +52,35 @@ pip install -r requirements.txt
     - **segmenting_function**: 'MaskRCNN_Deployment.segmentation_mrcnn' for AI method # 'Nuclei_segmentation.nuclei_location_extraction' for threholding method 
     - **AI_cell_segmentation**: True ;use an AI model to compute the segmentation. Setting True would initialize the model only once at the beginning of the script.
     - **save_coordinates**: True ; save a csv file with the coordinates for each plate
-    - **gpu_AI**: False ; use GPU to compute the coordinates using the AI model
-    - **Threshold_segmentation**: True
-use_cpu_segmentation: True
-min_cell_size: 200 #area
-max_cell_size: 100000
-visualization: False
-
-## embeddings_settings
-device: "0"
-weights_location: "/home/biancamigliori/Documents/"
-
-## Scalefex settings
-visualize_masks: False
-visualize_crops: False
-
-#AWS settings
-s3_bucket: 'nyscf-scalefex'
-subset: 'A'
+    - **use_cpu_segmentation**: True ; specify weather the computtion should happen on a cpu
+    - **gpu_AI**: 0 ; if use_cpu_segmentation == False, specify the decive number where to run the computation
+    - **min_cell_size**: 200 ;min area of the cell, all the object with smaller area will be removed
+    - **max_cell_size**: 100000 ;max area of the cell, all the object with bigger area will be removed
+    - **visualization**: False ; if true, the segmentation masks of the entire field will be visualizaed (using matplotlib). NOTE: we suggest to visualize the masks for testing, but to turn it off during the processing of large screens
+    
+    **Embeddings only parameters**
+    - **device**: "0" ; specify the device you want to use. Could be 'cpu', 'cuda', or a specific device name
+    - **weights_location**: "/path/to/weights/" ; Path to the folder tat contains the pretrained weights
+  
+   **ScaleFEx only parameters**
+    - **visualize_masks**: False ; visualize the segmentation mask from each channel. NOTE: we suggest to visualize the masks for testing, but to turn it off during the processing of large screens
+    - **visualize_crops**: False ; visualizes the crop of the cell. This helps setting the best ROI size, but we suggest to visualize the crop for testing, but to turn it off during the processing of large screens
+    
+   **AWS settings**
+    - **s3_bucket**: 'your-bucket-name'
+    - **subset**: 'A' [TO BE CHANGED]
+  
+      
 3. **Execute Analysis**:
+   From the terminal:
+   After setting the parameters of the yaml file, navigate to the folder of your code and execute
    ```
    python vector_extraction_class()
    ```
+   
 ### Example
 
-tbd
+[TO BE DONE]: jupyter notebook with example of a site
 
 ### Contributing
 
