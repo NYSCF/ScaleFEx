@@ -133,7 +133,7 @@ class Screen_Compute: #come up with a better name
             self.locations=self.locations.loc[self.locations.plate.astype(str)==str(plate)]
             
             if self.parameters['resource'] == 'AWS':
-                self.locations = data_query.query_functions_local.filter_coord(self.locations,self.parameters['subset'])
+                self.locations = data_query.query_functions_local.filter_coord(self.locations,csv_files_list)
             wells=np.unique(self.locations.well)
        
         if self.parameters['resource'] == 'local':
