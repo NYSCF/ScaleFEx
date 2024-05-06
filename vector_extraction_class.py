@@ -41,7 +41,7 @@ class Screen_Compute: #come up with a better name
             import Quality_control_HCI.compute_global_values
         
         self.saving_folder = self.parameters['saving_folder']
-        files = data_query.query_functions_local.query_data(self.parameters['exp_folder'], plate_type = self.parameters['plate_type'],
+        files = data_query.query_functions_local.query_data(self.parameters['exp_folder'], plate_identifier = self.parameters['plate_identifier'],
                                             pattern=self.parameters['fname_pattern'],delimiters = self.parameters['fname_delimiters'],
                                             exts=self.parameters['file_extensions'],resource = self.parameters['resource'], 
                                             experiment_name = self.parameters['experiment_name'],plates=self.parameters['plates'], 
@@ -163,7 +163,7 @@ class Screen_Compute: #come up with a better name
 
                 print(site, well, plate, datetime.now())
                 #stime=time.perf_counter()
-                np_images, original_images = data_query.query_functions_local.load_and_preprocess(task_files,
+                np_images, original_images, current_file = data_query.query_functions_local.load_and_preprocess(task_files,
                                     self.parameters['channel'],well,site,self.parameters['zstack'],self.parameters['resource'],
                                     self.parameters['image_size'],self.flat_field_correction,
                                     self.parameters['downsampling'],return_original=self.parameters['QC'],
@@ -198,6 +198,7 @@ class Screen_Compute: #come up with a better name
                         QC_vector,indQC = Quality_control_HCI.compute_global_values.calculateQC(len(center_of_mass),live_cells,
                                             self.parameters['vector_type'],original_images,well,plate,site,self.parameters['channel'],
                                             indQC,self.parameters['neurite_tracing'])
+                        QC_vector['file_path'] = current_file
                         
                         self.csv_fileQC = self.save_csv_file(QC_vector,self.csv_fileQC)
 
@@ -206,6 +207,7 @@ class Screen_Compute: #come up with a better name
                         vector=pd.DataFrame(np.asarray([plate,well,site]).reshape(1,3),columns=['plate','well','site'],index=[ind])
                         vector=pd.concat([vector,Embeddings_extraction_from_image.batch_compute_embeddings.Compute_embeddings(self.parser,np_images,ind,self.parameters['channel'],
                                                                                             ).embeddings],axis=1)
+                        vector['file_path'] = current_file
                         
                         try: 
                             tile_csv
@@ -247,7 +249,9 @@ class Screen_Compute: #come up with a better name
 
                                 vector=pd.concat([vector,Embeddings_extraction_from_image.batch_compute_embeddings.Compute_embeddings(self.parser,
                                                                         crop,0,self.parameters['channel']).embeddings],axis=1)
-                                
+                                vector['file_path'] = current_file
+                                vector['ROI_size'] = self.parameters['ROI']
+                                vector['channel_order'] = str(self.parameters['channel'])
                                 self.csv_file = self.save_csv_file(vector,self.csv_file)
                             
                             elif 'scal' in self.parameters['vector_type']:
@@ -265,7 +269,10 @@ class Screen_Compute: #come up with a better name
 
                                     if isinstance(scalefex, pd.DataFrame):
                                         vector = pd.concat([vector, scalefex], axis=1)
-
+                                        vector['file_path'] = current_file
+                                        vector['ROI_size'] = self.parameters['ROI']
+                                        vector['channel_order'] = self.parameters['channel']
+                                        vector['downsampling'] = self.parameters['downsampling']
                                         self.csv_file = self.save_csv_file(vector, self.csv_file)
 
                                 except Exception as e:
