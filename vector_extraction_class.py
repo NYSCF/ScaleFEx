@@ -3,13 +3,12 @@ import parallelize_computation
 import pandas as pd
 import numpy as np
 from datetime import datetime
-import Quality_control_HCI.compute_global_values
-import Embeddings_extraction_from_image.batch_compute_embeddings
 import data_query.query_functions_local
-import ScaleFEx_from_crop.compute_ScaleFEx
 import time
 from scipy.spatial import KDTree
 import matplotlib.pyplot as plt
+
+
 ROOT_DIR = '/'.join(__file__.split('/')[:-1])
 
 class Screen_Compute: #come up with a better name
@@ -31,9 +30,17 @@ class Screen_Compute: #come up with a better name
         # Read the yaml file
         with open(yaml_path, 'rb') as f:
             self.parameters = yaml.load(f.read(), Loader=yaml.CLoader)
-
+        if 'mbed' in self.parameters['vector_type']:
+            global Embeddings_extraction_from_image
+            import Embeddings_extraction_from_image.batch_compute_embeddings
+        else:
+            global ScaleFEx_from_crop
+            import ScaleFEx_from_crop.compute_ScaleFEx
+        if self.parameters['QC']==True:
+            global Quality_control_HCI 
+            import Quality_control_HCI.compute_global_values
+        
         self.saving_folder = self.parameters['saving_folder']
-
         files = data_query.query_functions_local.query_data(self.parameters['exp_folder'], plate_type = self.parameters['plate_type'],
                                             pattern=self.parameters['fname_pattern'],delimiters = self.parameters['fname_delimiters'],
                                             exts=self.parameters['file_extensions'],resource = self.parameters['resource'], 
@@ -50,11 +57,12 @@ class Screen_Compute: #come up with a better name
 
                 if self.parameters['resource'] == 'AWS':
                     self.flat_field_correction = data_query.query_functions_local.flat_field_correction_AWS(files,ffc_file,
-                    self.parameters['s3_bucket'],self.parameters['channel'],self.parameters['experiment_name'],n_images=20)
+                    self.parameters['s3_bucket'],self.parameters['channel'],self.parameters['experiment_name'],bf_channel=self.parameters['bf_channel'],
+                    n_images=self.parameters['FFC_n_images'])
                     
                 else :
                     self.flat_field_correction = data_query.query_functions_local.flat_field_correction_on_data(
-                    files, self.parameters['channel'], n_images=self.parameters['FFC_n_images'])
+                    files, self.parameters['channel'], bf_channel=self.parameters['bf_channel'],n_images=self.parameters['FFC_n_images'])
 
                     pickle.dump(self.flat_field_correction, open(ffc_file, "wb"))
             else:
@@ -63,7 +71,7 @@ class Screen_Compute: #come up with a better name
         else:
             for channel in self.parameters['channel']:
                 self.flat_field_correction[channel] = 1
-
+        # Initialize segmentation weights if using AI models
         if self.parameters['AI_cell_segmentation'] is True:
             if self.parameters['segmenting_function'] == 'MaskRCNN_Deployment.segmentation_mrcnn':
                 from MaskRCNN_Deployment.segmentation_mrcnn import MaskRCNN
@@ -73,21 +81,36 @@ class Screen_Compute: #come up with a better name
                 
             elif self.parameters['segmenting_function'] == 'ADDIEs':
                 print("For Addie to implement")
-        
 
         # Loop over plates and start computation
         if self.parameters['plates'] != 'all' and isinstance(self.parameters['plates'],list):
             plate_list = np.unique(files.plate)
         else:
             plate_list = self.parameters['plates']
+
         print('Computing plates: ', plate_list)
+        
         if 'mbed' in self.parameters['vector_type']:
             import Embeddings_extraction_from_image.inception_set
             
             self.parser = Embeddings_extraction_from_image.inception_set.place_holder(channel=self.parameters['channel'],
                                                                                       device=self.parameters['device'],weights=self.parameters['weights_location'])
+        vec_dir = os.path.join(self.saving_folder,self.parameters['vector_type'])
+        if not os.path.exists(vec_dir):
+            os.makedirs(vec_dir)   
             
         for plate in plate_list:
+             # QC
+            if self.parameters['QC']==True:
+                qc_dir = os.path.join(self.saving_folder,'QC_analysis')
+                self.csv_fileQC = os.path.join(qc_dir,self.parameters['experiment_name']+'_'+str(plate)+'QC.csv')
+                if not os.path.exists(qc_dir):
+                    os.makedirs(qc_dir)
+                    
+            if self.parameters['save_coordinates'] == True:
+                self.csv_file_coordinates = os.path.join(self.saving_folder,self.parameters['experiment_name'] + '_coordinates_'+str(plate)+'.csv')
+            if self.parameters['resource'] == 'local':
+                self.csv_file = os.path.join(vec_dir,self.parameters['experiment_name']+'_'+str(plate)+'_'+self.parameters['vector_type']+'.csv')
             self.start_computation(plate, files)
 
 ### Start computation
@@ -95,37 +118,50 @@ class Screen_Compute: #come up with a better name
     def start_computation(self,plate,files):
         
         task_files=files.loc[files.plate==plate]
-        wells, task_fields = data_query.query_functions_local.make_well_and_field_list(task_files,self.parameters['resource']
-                                                                                       ,self.parameters['subset'])
         vec_dir = os.path.join(self.saving_folder,self.parameters['vector_type'])
         if not os.path.exists(vec_dir):
             os.makedirs(vec_dir)
-        csv_file = os.path.join(vec_dir,self.parameters['experiment_name']+'_'+str(plate)+'_'+self.parameters['vector_type']+'.csv')
-        # QC
-        if self.parameters['QC']==True:
-            qc_dir = os.path.join(self.saving_folder,'QC_analysis')
-            csv_fileQC = os.path.join(qc_dir,self.parameters['experiment_name']+'_'+str(plate)+'QC.csv')
-            if not os.path.exists(qc_dir):
-                os.makedirs(qc_dir)
-        if self.parameters['save_coordinates'] == True:
-            csv_file_coordinates = os.path.join(self.saving_folder,self.parameters['experiment_name'] + '_coordinates_'+str(plate)+'.csv')
 
-        if self.parameters['csv_coordinates'] == '':
-            wells=data_query.query_functions_local.check_if_file_exists(csv_file,wells,task_fields)
+        if self.parameters['resource'] == 'AWS':
+            task_files,csv_files_list=data_query.query_functions_local.process_files_AWS(task_files,vec_dir,self.parameters['vector_type']
+                                    ,self.parameters['experiment_name'],plate,self.parameters['subset'])
+        
+
+        wells, sites = data_query.query_functions_local.make_well_and_field_list(task_files)
+
+        if os.path.exists(self.parameters['csv_coordinates']):
+            self.locations=pd.read_csv(self.parameters['csv_coordinates'])
+            self.locations=self.locations.loc[self.locations.plate.astype(str)==str(plate)]
+            
+            if self.parameters['resource'] == 'AWS':
+                self.locations = data_query.query_functions_local.filter_coord(self.locations,csv_files_list)
+            wells=np.unique(self.locations.well)
+       
+        if self.parameters['resource'] == 'local':
+            if self.parameters['csv_coordinates'] == '':
+                self.csv_file,wells=data_query.query_functions_local.check_if_file_exists(self.csv_file,wells,sites)
             if wells[0] == 'Over':
                 print('plate ', plate, 'is done')
                 return
         else:
-            self.locations=data_query.query_functions_local.check_if_file_exists(csv_file,wells,task_fields,
+            self.csv_file,self.locations=data_query.query_functions_local.check_if_file_exists(self.csv_file,wells,sites,
                                                                                  self.parameters['csv_coordinates'],plate=plate)
             wells=np.unique(self.locations.well)
-            
+
+
         def compute_vector(well):
             ''' Function that imports the images and extracts the location of cells'''
-
             print(well, plate, datetime.now())
-            for site in task_fields:
-    
+
+            if self.parameters['resource'] == 'AWS':
+                column = well[3:]
+                self.csv_file = os.path.join(vec_dir,self.parameters['experiment_name']+'_'+str(plate)
+                                        +'_'+self.parameters['vector_type']+'_'+column+'.csv') 
+            else: 
+                self.csv_file = os.path.join(vec_dir,self.parameters['experiment_name']+'_'+str(plate)+'_'+self.parameters['vector_type']+'.csv')
+            
+            for site in sites:
+
                 print(site, well, plate, datetime.now())
                 #stime=time.perf_counter()
                 np_images, original_images = data_query.query_functions_local.load_and_preprocess(task_files,
@@ -163,25 +199,22 @@ class Screen_Compute: #come up with a better name
                         QC_vector,indQC = Quality_control_HCI.compute_global_values.calculateQC(len(center_of_mass),live_cells,
                                             self.parameters['vector_type'],original_images,well,plate,site,self.parameters['channel'],
                                             indQC,self.parameters['neurite_tracing'])
-                        if not os.path.exists(csv_fileQC):
-                            QC_vector.to_csv(csv_fileQC,header=True)
-                        else:
-                            QC_vector.to_csv(csv_fileQC,mode='a',header=False)
-                    # print('QC time ',time.perf_counter()-stime)
-                    # if self.parameters['vector_type'] == 'embeddings':
-
-
+                        
+                        self.csv_fileQC = self.save_csv_file(QC_vector,self.csv_fileQC)
 
                     if self.parameters['tile_computation'] is True:
                         ind=0
                         vector=pd.DataFrame(np.asarray([plate,well,site]).reshape(1,3),columns=['plate','well','site'],index=[ind])
                         vector=pd.concat([vector,Embeddings_extraction_from_image.batch_compute_embeddings.Compute_embeddings(self.parser,np_images,ind,self.parameters['channel'],
                                                                                             ).embeddings],axis=1)
-                        tile_csv = csv_file[:-4]+'Tile.csv'
-                        if not os.path.exists(tile_csv):
-                            vector.to_csv(tile_csv,header=True)
-                        else:
-                            vector.to_csv(tile_csv,mode='a',header=False)
+                        
+                        try: 
+                            tile_csv
+                        except NameError:
+                            tile_csv = self.csv_file[:-4]+'Tile.csv'
+
+                        tile_csv = self.save_csv_file(vector,tile_csv)
+
               
                     for x,y,n in center_of_mass:
                        
@@ -209,46 +242,72 @@ class Screen_Compute: #come up with a better name
                                 vector['distance']=locations.loc[(locations.coordX==x)&(locations.coordY==y),'distance'].values[0]
                             
                             if self.parameters['save_coordinates']==True:
-                                if not os.path.exists(csv_file_coordinates):
-                                    vector.to_csv(csv_file_coordinates,header=True)
-                                else:
-                                    vector.to_csv(csv_file_coordinates,mode='a',header=False)
+                                self.csv_file_coordinates = self.save_csv_file(vector,self.csv_file_coordinates)
 
                             if 'mbed' in self.parameters['vector_type']:
 
                                 vector=pd.concat([vector,Embeddings_extraction_from_image.batch_compute_embeddings.Compute_embeddings(self.parser,
                                                                         crop,0,self.parameters['channel']).embeddings],axis=1)
                                 
-                                if not os.path.exists(csv_file):
-                                    vector.to_csv(csv_file,header=True)
-                                else:
-                                    vector.to_csv(csv_file,mode='a',header=False)
-                                #print('embedding_computation time ',time.perf_counter()-stime)
+                                self.csv_file = self.save_csv_file(vector,self.csv_file)
                             
-                            elif ('cal' in self.parameters['vector_type']) :                                
-                                scalefex=ScaleFEx_from_crop.compute_ScaleFEx.ScaleFEx(crop, channel=self.parameters['channel'],
-                                                    mito_ch=self.parameters['Mito_channel'], rna_ch=self.parameters['RNA_channel'],
-                                                    neuritis_ch=self.parameters['neurite_tracing'],downsampling=self.parameters['downsampling'],
-                                                    visualization=self.parameters['visualize_masks'], roi=int(self.parameters['ROI'])
-                                                    ).single_cell_vector
-                                if isinstance(scalefex, pd.DataFrame):
-                                    vector=pd.concat([vector,scalefex],axis=1)
-                                    if not os.path.exists(csv_file):
-                                        vector.to_csv(csv_file,header=True)
-                                    else:
-                                        vector.to_csv(csv_file,mode='a',header=False)
-                                    # print('vector_computatiomn time ',time.perf_counter()-stime)
+                            elif 'scal' in self.parameters['vector_type']:
+                                try:
+                                    scalefex = ScaleFEx_from_crop.compute_ScaleFEx.ScaleFEx(
+                                        crop,
+                                        channel=self.parameters['channel'],
+                                        mito_ch=self.parameters['Mito_channel'],
+                                        rna_ch=self.parameters['RNA_channel'],
+                                        neuritis_ch=self.parameters['neurite_tracing'],
+                                        downsampling=self.parameters['downsampling'],
+                                        visualization=self.parameters['visualize_masks'],
+                                        roi=int(self.parameters['ROI'])
+                                    ).single_cell_vector
+
+                                    if isinstance(scalefex, pd.DataFrame):
+                                        vector = pd.concat([vector, scalefex], axis=1)
+
+                                        self.csv_file = self.save_csv_file(vector, self.csv_file)
+
+                                except Exception as e:
+                                    print("An error occurred during ScaleFEx computation:", e)
                             else:
                                 print('Not a valid vector type entry')
-                            
+        
         if self.parameters['n_of_workers'] != 1:
             function = compute_vector
-            parallelize_computation.parallelize_local(wells,function,self.parameters['n_of_workers'],mode = 'dev')
+            parallelize_computation.parallelize_local(wells,function,self.parameters['n_of_workers'],mode = 'prod')
         else:
             for well in wells:
                 stime=time.perf_counter()
                 compute_vector(well)
                 print('well time ',time.perf_counter()-stime)
+            
+        print('All processes have completed their tasks.')
+        
+        if self.parameters['resource'] == 'AWS':
+            print('done')
+            
+            data_query.query_functions_local.push_all_files(self.parameters['s3_bucket'],self.parameters['experiment_name'],
+                                                            self.parameters['plates'],self.parameters['subset'],csv_files_list)
+            data_query.query_functions_local.terminate_current_instance(self.parameters['s3_bucket'],self.parameters['experiment_name'],
+                                                            self.parameters['plates'],self.parameters['subset'])
+    def save_csv_file(self,vector,csv_file):
+        '''
+        Save the vector in a csv file'''
+        if not os.path.exists(csv_file):
+            vector.to_csv(csv_file,header=True)
+        else:
+            if os.stat(csv_file).st_size < self.parameters['max_file_size']*10**6:
+                vector.to_csv(csv_file,mode='a',header=False)
+            else:
+                try: 
+                    int(csv_file[-6:-4])
+                    csv_file=csv_file[:-6]+str(int(csv_file[-6:-4])+1).zfill(2)+'.csv'
+                except ValueError:
+                    csv_file=csv_file[:-4]+str(1).zfill(2)+'.csv'
+                vector.to_csv(csv_file,mode='a',header=True)
+        return csv_file
 
     def segment_crop_images(self,img_nuc):
 
@@ -264,7 +323,8 @@ class Screen_Compute: #come up with a better name
             if img_nuc.max() > 1:
                 img_nuc = img_nuc/img_nuc.max()
             img_mask,center_of_mass = self.mrcnn.generate_masks(img_nuc,ds_size=(540,540),score_thresh=0.8,
-                                                                area_thresh=self.parameters['min_cell_size'],
+                                                                min_area_thresh=self.parameters['min_cell_size'],
+                                                                max_area_thresh=self.parameters['max_cell_size'],
                                                                 ROI=self.parameters['ROI'],
                                                                 remove_edges=False,try_quadrants=True)
             if center_of_mass is None:
