@@ -70,7 +70,8 @@ pip install -r requirements.txt
     - **s3_bucket**: 'your-bucket-name'
     - **subset**: 'A' [TO BE CHANGED]
   
-  if running the code locally: 
+  if running the code locally:  
+  From terminal: run ...
       
 3. **Execute Analysis**:
    From the terminal:
