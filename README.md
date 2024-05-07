@@ -70,14 +70,15 @@ pip install -r requirements.txt
     - **s3_bucket**: 'your-bucket-name'
     - **subset**: 'A' [TO BE CHANGED]
   
-  if running the code locally:  
-  From terminal: run ...
+  
       
 3. **Execute Analysis**:
+    
+   If running the code locally:  
    From the terminal:
    After setting the parameters of the yaml file, navigate to the folder of your code and execute
    ```
-   python vector_extraction_class()
+   python vector_extraction_class.py
    ```
    
 ### Example
