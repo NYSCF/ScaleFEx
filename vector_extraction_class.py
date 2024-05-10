@@ -4,6 +4,11 @@ import pandas as pd
 import numpy as np
 from datetime import datetime
 import data_query.query_functions_local
+import ScaleFEx_from_crop.compute_ScaleFEx
+import Quality_control_HCI
+import Embeddings_extraction_from_image
+import Nuclei_segmentation
+import MaskRCNN_Deployment
 import time
 from scipy.spatial import KDTree
 import matplotlib.pyplot as plt
@@ -75,17 +80,19 @@ class Screen_Compute: #come up with a better name
         if self.parameters['AI_cell_segmentation'] is True:
             if self.parameters['segmenting_function'] == 'MaskRCNN_Deployment.segmentation_mrcnn':
                 from MaskRCNN_Deployment.segmentation_mrcnn import MaskRCNN
-                mrcnn_weights = os.path.join(ROOT_DIR,'MaskRCNN_Deployment/weights/maskrcnn_weights.pt')
-                mrcnn_weights = '/home/biancamigliori/Documents/random_projection/maskrcnn_weights.pt'
+                if self.parameters['segment_brightfield'] == True:
+                    mrcnn_weights = os.path.join(ROOT_DIR, 'MaskRCNN_Deployment/weights/bf_maskrcnn_weights.pt')
+                else:
+                    mrcnn_weights = os.path.join(ROOT_DIR,'MaskRCNN_Deployment/weights/maskrcnn_weights.pt')
+                # mrcnn_weights = '/home/biancamigliori/Documents/random_projection/maskrcnn_weights.pt'
                 self.mrcnn = MaskRCNN(weights=mrcnn_weights,use_cpu=self.parameters['use_cpu_segmentation'],gpu_id=self.parameters['gpu_AI'])
-            elif self.parameters['segmenting_function'] == 'ADDIEs':
-                print("For Addie to implement")
 
         # Loop over plates and start computation
         if self.parameters['plates'] != 'all' and isinstance(self.parameters['plates'],list):
-            plate_list = np.unique(files.plate)
-        else:
             plate_list = self.parameters['plates']
+
+        else:
+            plate_list = np.unique(files.plate)
 
         print('Computing plates: ', plate_list)
         
@@ -130,13 +137,20 @@ class Screen_Compute: #come up with a better name
 
         if os.path.exists(self.parameters['csv_coordinates']):
             self.locations=pd.read_csv(self.parameters['csv_coordinates'])
+
             self.locations=self.locations.loc[self.locations.plate.astype(str)==str(plate)]
+            print('here', self.locations.plate.astype(str))
+            print(str(plate))
             
             if self.parameters['resource'] == 'AWS':
                 self.locations = data_query.query_functions_local.filter_coord(self.locations,csv_files_list)
+
+            print('getting wells from coordinate files!!!')
             wells=np.unique(self.locations.well)
+            print(wells)
        
         if self.parameters['resource'] == 'local':
+            print('this is wells', wells)
             if self.parameters['csv_coordinates'] == '':
                 self.csv_file,wells=data_query.query_functions_local.check_if_file_exists(self.csv_file,wells,sites)
             if wells[0] == 'Over':
@@ -170,7 +184,7 @@ class Screen_Compute: #come up with a better name
                                     s3_bucket = self.parameters['s3_bucket'])
                 try:
                     original_images.shape
-                except NameError:
+                except (NameError, AttributeError):
                     print('Images corrupted')
                 #print('images load and process time ',time.perf_counter()-stime)
                 if np_images is not None:
@@ -304,6 +318,7 @@ class Screen_Compute: #come up with a better name
         if not os.path.exists(csv_file):
             vector.to_csv(csv_file,header=True)
         else:
+            print(os.stat(csv_file).st_size)
             if os.stat(csv_file).st_size < self.parameters['max_file_size']*10**6:
                 vector.to_csv(csv_file,mode='a',header=False)
             else:
@@ -332,7 +347,8 @@ class Screen_Compute: #come up with a better name
                                                                 min_area_thresh=self.parameters['min_cell_size'],
                                                                 max_area_thresh=self.parameters['max_cell_size'],
                                                                 ROI=self.parameters['ROI'],
-                                                                remove_edges=False,try_quadrants=True)
+                                                                remove_edges=False,try_quadrants=True, 
+                                                                force_quadrants = self.parameters['segment_brightfield'])
             if center_of_mass is None:
                 center_of_mass = []
         if self.parameters['visualization'] is True:
