@@ -1,0 +1,43 @@
+n_of_workers: 1
+experiment_name: 'HTS0019'
+plates: ['103']
+
+plate_identifier: '_CV384W_' #identifier for finding the plate number
+fname_pattern: 'Images/<Well(6)><Site(3)><Plane(3)>-<Channel(3)>.<ext>' # Phenix pattern
+fname_delimiters: ['-','.']
+file_extensions: ['tiff']
+image_size: [2160,2160]
+
+# type_specific:
+channel: ['ch4','ch1','ch5','ch3','ch2']        
+ROI: 150
+neurite_tracing: ''
+RNA_channel: 'ch5' #set only if you want to compute ScaleFex
+Mito_channel: 'ch2' #set only if you want to compute ScaleFex
+zstack: False
+compute_live_cells: False 
+
+downsampling: 1
+QC: True
+FFC: False
+FFC_n_images: 500
+tile_computation: False
+
+## segmentation:
+csv_coordinates: '' # '' if you don't want to use a pre-computed coordinates file
+segmenting_function: 'Nuclei_segmentation.nuclei_location_extraction' # 'MaskRCNN_Deployment.segmentation_mrcnn'   
+save_coordinates: True
+gpu_AI: False
+use_cpu_segmentation: True
+min_cell_size: 200 #area
+max_cell_size: 100000
+
+#AWS settings
+s3_bucket: 'nyscf-scalefex'
+nb_subsets: 5
+subset_index: 1
+image_id: 'ami-04e5276ebb8451442'
+instance_type: 'c5.xlarge'
+max_file_size: 2000
+
+
