@@ -5,7 +5,7 @@ n_of_workers: 1
 # location_parameters:
 exp_folder: '/mnt/2e6952d2-a327-41fa-9451-7ce13129d27c/HTF0006/'
 experiment_name: 'HTF0006'
-saving_folder: '/home/biancamigliori/Documents/HCI_Projects/GBA/' #'/mnt/data-storage/HCI_Projects/Neurons/HTS0026/'
+saving_folder: '/home/biancamigliori/Desktop/temp_try_output/test1scalefex/' #'/mnt/data-storage/HCI_Projects/Neurons/HTS0026/'
 plates: ['202'] # ['HTS0026_CV384W_101__2022-10-15T22_41_08-Measurement 5',
 max_file_size: 2000 # in MB
 
