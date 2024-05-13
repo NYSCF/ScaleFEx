@@ -12,48 +12,46 @@ class Screen_Init: #come up with a better name
     Class representing the initialisation of AWS screen.
 
     Methods:
-        __init__(yaml_path='parameters.yaml'): 
-            Initializes the Screen_Compute object with parameters from a YAML file.
+        __init__(yaml_path='param_AWS.yaml'): 
+            Initializes the Screen_Compute object with param_AWS from a YAML file.
     """
-    def __init__(self, yaml_path='parameters.yaml'):
+    def __init__(self, yaml_path='param_AWS.yaml'):
         """
-        Initializes the Screen_Compute object with parameters from a YAML file.
+        Initializes the Screen_Compute object with param_AWS from a YAML file.
 
         Args:
-            yaml_path (str): Path to the YAML file containing parameters. Default is 'parameters.yaml'.
+            yaml_path (str): Path to the YAML file containing param_AWS. Default is 'param_AWS.yaml'.
         """
         # Read the yaml file
         with open(yaml_path, 'rb') as f:
-            self.parameters = yaml.load(f.read(), Loader=yaml.CLoader)
-
-        self.saving_folder = self.parameters['saving_folder']
-        files = dq.query_data(self.parameters['fname_pattern'],plate_identifier = self.parameters['plate_identifier'],
-                            delimiters = self.parameters['fname_delimiters'],exts=self.parameters['file_extensions'],
-                            experiment_name = self.parameters['experiment_name'],plates=self.parameters['plates'], 
-                            s3_bucket = self.parameters['s3_bucket'])
+            self.param_AWS = yaml.load(f.read(), Loader=yaml.CLoader)
+        files = dq.query_data(self.param_AWS['fname_pattern'],plate_identifier = self.param_AWS['plate_identifier'],
+                            delimiters = self.param_AWS['fname_delimiters'],exts=self.param_AWS['file_extensions'],
+                            experiment_name = self.param_AWS['experiment_name'],plates=self.param_AWS['plates'], 
+                            s3_bucket = self.param_AWS['s3_bucket'])
         
         # Perform Flat Field Correction (FFC)
         self.flat_field_correction = {}
     
-        if self.parameters['FFC'] is True:
-            ffc_file = os.path.join(self.parameters['experiment_name'] + '_FFC.p')
+        if self.param_AWS['FFC'] is True:
+            ffc_file = os.path.join(self.param_AWS['experiment_name'] + '_FFC.p')
             if not os.path.exists(ffc_file):
                 print(ffc_file + ' Not found generating FFC now')
                 self.flat_field_correction = dq.flat_field_correction_AWS(files,ffc_file,
-                self.parameters['s3_bucket'],self.parameters['channel'],self.parameters['experiment_name'],
-                n_images=self.parameters['FFC_n_images'])
+                self.param_AWS['s3_bucket'],self.param_AWS['channel'],self.param_AWS['experiment_name'],
+                n_images=self.param_AWS['FFC_n_images'])
             else:
                 print(ffc_file + ' Found, loading FFC')
                 self.flat_field_correction = pickle.load(open(ffc_file, "rb"))
         else:
-            for channel in self.parameters['channel']:
+            for channel in self.param_AWS['channel']:
                 self.flat_field_correction[channel] = 1
 
-        dq.upload_ffc_to_s3(self.parameters['s3_bucket'],'parameters.yaml',self.parameters['experiment_name'])
+        dq.upload_ffc_to_s3(self.param_AWS['s3_bucket'],'param_AWS.yaml',self.param_AWS['experiment_name'])
 
         if len(files) != 0:
-            dq.launch_ec2_instances(self.parameters['experiment_name'],
-                self.parameters['image_id'], self.parameters['instance_type'], self.parameters['plates'], self.parameters['nb_subsets'])
+            dq.launch_ec2_instances(self.param_AWS['experiment_name'],
+                self.param_AWS['image_id'], self.param_AWS['instance_type'], self.param_AWS['plates'], self.param_AWS['nb_subsets'])
         else  :
             print('No files found')
 

@@ -7,6 +7,10 @@ import data_query.query_functions_AWS as dq
 import time
 from scipy.spatial import KDTree
 import matplotlib.pyplot as plt
+global ScaleFEx_from_crop
+import ScaleFEx_from_crop.compute_ScaleFEx
+global Quality_control_HCI 
+import Quality_control_HCI.compute_global_values
 
 
 ROOT_DIR = '/'.join(__file__.split('/')[:-1])
@@ -16,179 +20,178 @@ class Screen_Compute: #come up with a better name
     Class representing the computation of screen data.
 
     Methods:
-        __init__(yaml_path='parameters.yaml'): 
-            Initializes the Screen_Compute object with parameters from a YAML file.
+        __init__(yaml_path='param_AWS.yaml'): 
+            Initializes the Screen_Compute object with param_AWS from a YAML file.
     """
-    def __init__(self, yaml_path='parameters.yaml'):
+    def __init__(self, yaml_path='param_AWS.yaml'):
         """
-        Initializes the Screen_Compute object with parameters from a YAML file.
+        Initializes the Screen_Compute object with param_AWS from a YAML file.
 
         Args:
-            yaml_path (str): Path to the YAML file containing parameters. Default is 'parameters.yaml'.
+            yaml_path (str): Path to the YAML file containing param_AWS. Default is 'param_AWS.yaml'.
         """
 
         # Read the yaml file
         with open(yaml_path, 'rb') as f:
-            self.parameters = yaml.load(f.read(), Loader=yaml.CLoader)
-            global ScaleFEx_from_crop
-            import ScaleFEx_from_crop.compute_ScaleFEx
-        if self.parameters['QC']==True:
-            global Quality_control_HCI 
-            import Quality_control_HCI.compute_global_values
+            self.param_AWS = yaml.load(f.read(), Loader=yaml.CLoader)
         
-        files = dq.query_data(self.parameters['fname_pattern'],plate_identifier = self.parameters['plate_identifier'],
-                            delimiters = self.parameters['fname_delimiters'],exts=self.parameters['file_extensions'],
-                            experiment_name = self.parameters['experiment_name'],plates=self.parameters['plates'], 
-                            s3_bucket = self.parameters['s3_bucket'])
+        self.files = dq.query_data(self.param_AWS['fname_pattern'],plate_identifier = self.param_AWS['plate_identifier'],
+                            delimiters = self.param_AWS['fname_delimiters'],exts=self.param_AWS['file_extensions'],
+                            experiment_name = self.param_AWS['experiment_name'],plates=self.param_AWS['plates'], 
+                            s3_bucket = self.param_AWS['s3_bucket'])
 
-        print(files.head())
-        print(files)
+        print(self.files.head())
+        print(self.files)
         
-        self.vec_dir = os.path.join(self.parameters['vector_type'])
+        self.vec_dir = os.path.join(self.param_AWS['vector_type'])
         if not os.path.exists(self.vec_dir):
             os.makedirs(self.vec_dir)  
-        ffc_file = os.path.join(self.vec_dir,self.parameters['experiment_name'] + '_FFC.p')
+        ffc_file = os.path.join(self.vec_dir,self.param_AWS['experiment_name'] + '_FFC.p')
         self.flat_field_correction = {}
-        if self.parameters['FFC'] is True and os.path.exists(ffc_file):
+        if self.param_AWS['FFC'] is True and os.path.exists(ffc_file):
                 print(ffc_file + ' Found generating FFC now')
         else:
-            for channel in self.parameters['channel']:
+            for channel in self.param_AWS['channel']:
                 self.flat_field_correction[channel] = 1
 
-        plate = self.parameters['plates'][0]
+        self.plate = self.param_AWS['plates'][0]
         
-        if self.parameters['QC']==True:
-            self.csv_fileQC = os.path.join(self.vec_dir,self.parameters['experiment_name']+'_'+str(plate)+'_'+'QC'
-                                    +'_'+str(self.parameters['subset_index'])+'.csv') 
-        self.start_computation(plate, files)
+        if self.param_AWS['QC']==True:
+            self.csv_fileQC = os.path.join(self.vec_dir,self.param_AWS['experiment_name']+'_'+str(self.plate)+'_'+'QC'
+                    +'_'+str(self.param_AWS['subset_index'])+'.csv') 
+        self.start_computation(self.plate, self.files)
+
+    def compute_vector(self,well):
+        ''' Function that imports the images and extracts the location of cells'''
+
+        print(well, self.plate, datetime.now())
+        csv_file = os.path.join(self.vec_dir,self.param_AWS['experiment_name']+'_'+self.plate
+                            +'_SF_'+str(self.param_AWS['subset_index'])+'A'+'.csv')
+        
+        sites = np.unique(self.task_files.site)
+        sites.sort()
+
+        for site in sites:
+            print(site, well, self.plate, datetime.now())
+            np_images, original_images = dq.load_and_preprocess(self.task_files,
+                                self.param_AWS['channel'],well,site,self.param_AWS['zstack'],
+                                self.param_AWS['image_size'],self.flat_field_correction,
+                                self.param_AWS['downsampling'],return_original=self.param_AWS['QC'],
+                                s3_bucket = self.param_AWS['s3_bucket'])
+            
+            try:
+                original_images.shape
+            except NameError:
+                print('Images corrupted')
+            if np_images is not None:
+                if self.param_AWS['csv_coordinates']=='':
+                    center_of_mass=self.segment_crop_images(np_images[0,:,:,0])
+                    center_of_mass=[list(row) + [n] for n,row in enumerate(center_of_mass)]
+                    if self.param_AWS['compute_live_cells'] is False:
+                        live_cells=len(center_of_mass)
+                    else:
+                        print('to be implemented')
+                else:
+                    
+                    locations=self.locations
+                    locations=locations.loc[(locations.well==well)&(locations.site==site)]
+                    center_of_mass=np.asarray(locations[['coordX','coordY','cell_id']])
+                    
+                    if self.param_AWS['compute_live_cells'] is False:
+                        live_cells=len(center_of_mass)
+                        
+                if self.param_AWS['QC']==True:
+                    indQC=0
+                    QC_vector,indQC = Quality_control_HCI.compute_global_values.calculateQC(len(center_of_mass),live_cells,
+                                        self.param_AWS['vector_type'],original_images,well,self.plate,site,self.param_AWS['channel'],
+                                        indQC,self.param_AWS['neurite_tracing'])
+                    self.csv_fileQC = dq.save_csv_file(QC_vector,self.csv_fileQC,self.param_AWS['max_file_size'])
+            
+                for x,y,n in center_of_mass:
+                    crop=np_images[:,int(float(x)-self.param_AWS['ROI']):int(float(x)+self.param_AWS['ROI']),
+                                        int(float(y)-self.param_AWS['ROI']):int(float(y)+self.param_AWS['ROI']),:]
+                    if crop.shape != (len(self.param_AWS['channel']),self.param_AWS['ROI']*2,self.param_AWS['ROI']*2,1):
+                        continue
+                    else:
+                        ind=0
+                        vector=pd.DataFrame(np.asarray([self.plate,well,site,x,y,n]).reshape(1,6),columns=['plate','well','site','coordX','coordY','cell_id'],index=[ind])
+                        if self.param_AWS['csv_coordinates']=='':
+                            tree = KDTree([row[:2] for row in center_of_mass])
+                            # Query the nearest distance and the index of the nearest point
+                            distance, _ = tree.query([x,y], k=2)    
+                            vector['distance']=distance[1] 
+                        else:
+                            vector['distance']=locations.loc[(locations.coordX==x)&(locations.coordY==y),'distance'].values[0]
+
+                        try:
+                            scalefex = ScaleFEx_from_crop.compute_ScaleFEx.ScaleFEx(
+                                crop,
+                                channel=self.param_AWS['channel'],
+                                mito_ch=self.param_AWS['Mito_channel'],
+                                rna_ch=self.param_AWS['RNA_channel'],
+                                neuritis_ch=self.param_AWS['neurite_tracing'],
+                                downsampling=self.param_AWS['downsampling'],
+                                visualization=self.param_AWS['visualize_masks'],
+                                roi=int(self.param_AWS['ROI'])
+                            ).single_cell_vector
+
+                            if isinstance(scalefex, pd.DataFrame):
+                                vector = pd.concat([vector, scalefex], axis=1)
+                                csv_file = dq.save_csv_file(vector, csv_file, self.param_AWS['max_file_size'])
+                        except Exception as e:
+                            print("An error occurred during ScaleFEx computation:", e)
 
 ### Start computation
             
     def start_computation(self,plate,files):
         
-        task_files = dq.filter_task_files(files,self.parameters['subset_index'], self.parameters['nb_subsets']) 
+        self.task_files = dq.filter_task_files(files,self.param_AWS['subset_index'], self.param_AWS['nb_subsets']) 
 
-        if os.path.exists(self.parameters['csv_coordinates']):
-            self.locations=pd.read_csv(self.parameters['csv_coordinates'])
+        if os.path.exists(self.param_AWS['csv_coordinates']):
+            self.locations=pd.read_csv(self.param_AWS['csv_coordinates'])
             self.locations=self.locations.loc[self.locations.plate.astype(str)==str(plate)]
-            self.locations = dq.filter_coord(self.locations, task_files)
+            self.locations = dq.filter_coord(self.locations, self.task_files)
             
             wells=np.unique(self.locations.well)
-        wells=np.unique(task_files.well)
+        wells=np.unique(self.task_files.well)
 
-        def compute_vector(well):
-            ''' Function that imports the images and extracts the location of cells'''
-            
-            print(well, plate, datetime.now())
-            csv_file = os.path.join(self.vec_dir,self.parameters['experiment_name']+'_'+plate
-                                +'_SF_'+str(self.parameters['subset_index'])+'A'+'.csv')
-            
-            sites = np.unique(files.site)
-            sites.sort()
-
-            for site in sites:
-                print(site, well, plate, datetime.now())
-                np_images, original_images = dq.load_and_preprocess(task_files,
-                                    self.parameters['channel'],well,site,self.parameters['zstack'],
-                                    self.parameters['image_size'],self.flat_field_correction,
-                                    self.parameters['downsampling'],return_original=self.parameters['QC'],
-                                    s3_bucket = self.parameters['s3_bucket'])
-                
-                try:
-                    original_images.shape
-                except NameError:
-                    print('Images corrupted')
-                if np_images is not None:
-                    if self.parameters['csv_coordinates']=='':
-                        center_of_mass=self.segment_crop_images(np_images[0,:,:,0])
-                        center_of_mass=[list(row) + [n] for n,row in enumerate(center_of_mass)]
-                        if self.parameters['compute_live_cells'] is False:
-                            live_cells=len(center_of_mass)
-                        else:
-                            print('to be implemented')
-                    else:
-                        
-                        locations=self.locations
-                        locations=locations.loc[(locations.well==well)&(locations.site==site)]
-                        center_of_mass=np.asarray(locations[['coordX','coordY','cell_id']])
-                        
-                        if self.parameters['compute_live_cells'] is False:
-                            live_cells=len(center_of_mass)
-                            
-                    if self.parameters['QC']==True:
-                        indQC=0
-                        QC_vector,indQC = Quality_control_HCI.compute_global_values.calculateQC(len(center_of_mass),live_cells,
-                                            self.parameters['vector_type'],original_images,well,plate,site,self.parameters['channel'],
-                                            indQC,self.parameters['neurite_tracing'])
-                        self.csv_fileQC = dq.save_csv_file(QC_vector,self.csv_fileQC,self.parameters['max_file_size'])
-              
-                    for x,y,n in center_of_mass:
-                        crop=np_images[:,int(float(x)-self.parameters['ROI']):int(float(x)+self.parameters['ROI']),
-                                           int(float(y)-self.parameters['ROI']):int(float(y)+self.parameters['ROI']),:]
-                        if crop.shape != (len(self.parameters['channel']),self.parameters['ROI']*2,self.parameters['ROI']*2,1):
-                            continue
-                        else:
-                            ind=0
-                            vector=pd.DataFrame(np.asarray([plate,well,site,x,y,n]).reshape(1,6),columns=['plate','well','site','coordX','coordY','cell_id'],index=[ind])
-                            if self.parameters['csv_coordinates']=='':
-                                tree = KDTree([row[:2] for row in center_of_mass])
-                                # Query the nearest distance and the index of the nearest point
-                                distance, _ = tree.query([x,y], k=2)    
-                                vector['distance']=distance[1] 
-                            else:
-                                vector['distance']=locations.loc[(locations.coordX==x)&(locations.coordY==y),'distance'].values[0]
-
-                            try:
-                                scalefex = ScaleFEx_from_crop.compute_ScaleFEx.ScaleFEx(
-                                    crop,
-                                    channel=self.parameters['channel'],
-                                    mito_ch=self.parameters['Mito_channel'],
-                                    rna_ch=self.parameters['RNA_channel'],
-                                    neuritis_ch=self.parameters['neurite_tracing'],
-                                    downsampling=self.parameters['downsampling'],
-                                    visualization=self.parameters['visualize_masks'],
-                                    roi=int(self.parameters['ROI'])
-                                ).single_cell_vector
-
-                                if isinstance(scalefex, pd.DataFrame):
-                                    vector = pd.concat([vector, scalefex], axis=1)
-                                    csv_file = dq.save_csv_file(vector, csv_file, self.parameters['max_file_size'])
-                            except Exception as e:
-                                print("An error occurred during ScaleFEx computation:", e)
-        
-        function = compute_vector
-        parallelize_computation.parallelize_local(wells,function,self.parameters['n_of_workers'],mode = 'dev')
+        function = self.compute_vector
+        parallelize_computation.parallelize(wells,function,self.param_AWS['n_of_workers'],mode = 'dev')
             
         print('All processes have completed their tasks.')
         
-        # dq.push_all_files(self.parameters['s3_bucket'],self.parameters['experiment_name'],
-        #                                         self.parameters['plate'],self.parameters['subset_index'],self.vec_dir)
+        # dq.push_all_files(self.param_AWS['s3_bucket'],self.param_AWS['experiment_name'],
+        #                                         self.param_AWS['plate'],self.param_AWS['subset_index'],self.vec_dir)
         
-        # dq.terminate_current_instance(self.parameters['s3_bucket'],self.parameters['experiment_name'],
-        #                                                     self.parameters['plate'],self.parameters['subset_index'])
-    
+        # dq.terminate_current_instance(self.param_AWS['s3_bucket'],self.param_AWS['experiment_name'],
+        #                                                     self.param_AWS['plate'],self.param_AWS['subset_index'])
 
+    
+    
+    
+    
+    
     def segment_crop_images(self,img_nuc):
 
         # extraction of the location of the cells
-        nls=import_module(self.parameters['segmenting_function'])
+        nls=import_module(self.param_AWS['segmenting_function'])
         
-        if self.parameters['AI_cell_segmentation'] is False:    
+        if self.param_AWS['AI_cell_segmentation'] is False:    
             img_mask=nls.compute_DNA_mask(img_nuc)
             center_of_mass = nls.retrieve_coordinates(img_mask,
-                        cell_size_min=self.parameters['min_cell_size']*self.parameters['downsampling'],
-                        cell_size_max=self.parameters['max_cell_size']/self.parameters['downsampling'])
+                        cell_size_min=self.param_AWS['min_cell_size']*self.param_AWS['downsampling'],
+                        cell_size_max=self.param_AWS['max_cell_size']/self.param_AWS['downsampling'])
         else:
             if img_nuc.max() > 1:
                 img_nuc = img_nuc/img_nuc.max()
             img_mask,center_of_mass = self.mrcnn.generate_masks(img_nuc,ds_size=(540,540),score_thresh=0.8,
-                                                                min_area_thresh=self.parameters['min_cell_size'],
-                                                                max_area_thresh=self.parameters['max_cell_size'],
-                                                                ROI=self.parameters['ROI'],
+                                                                min_area_thresh=self.param_AWS['min_cell_size'],
+                                                                max_area_thresh=self.param_AWS['max_cell_size'],
+                                                                ROI=self.param_AWS['ROI'],
                                                                 remove_edges=False,try_quadrants=True)
             if center_of_mass is None:
                 center_of_mass = []
-        if self.parameters['visualization'] is True:
+        if self.param_AWS['visualization'] is True:
             self.show_image(img_nuc,img_mask)
 
         try:
