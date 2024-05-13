@@ -1,15 +1,6 @@
-vector_type: 'scalefex' #'scalefex', 'embeddings' '' for QC only, 'coordinates' for coordinates of cells
-resource: 'AWS' #'local', 'AWS'
 n_of_workers: 1
-
-
-# location_parameters:
-exp_folder: '' #'/mnt/2e6952d2-a327-41fa-9451-7ce13129d27c/HTF0006/'
 experiment_name: 'HTS0019'
-saving_folder: '' #'/home/biancamigliori/Documents/HCI_Projects/GBA/' #'/mnt/data-storage/HCI_Projects/Neurons/HTS0026/'
 plates: ['103']
-# plate: '102' # ['HTS0026_CV384W_101__2022-10-15T22_41_08-Measurement 5',
-max_file_size: 3 # in MB
 
 plate_identifier: '_CV384W_' #identifier for finding the plate number
 fname_pattern: 'Images/<Well(6)><Site(3)><Plane(3)>-<Channel(3)>.<ext>' # Phenix pattern
@@ -20,8 +11,6 @@ image_size: [2160,2160]
 # type_specific:
 channel: ['ch4','ch1','ch5','ch3','ch2']        
 ROI: 150
-neurite_tracing: ''
-bf_channel: ''
 RNA_channel: 'ch5' #set only if you want to compute ScaleFex
 Mito_channel: 'ch2' #set only if you want to compute ScaleFex
 zstack: False
@@ -29,7 +18,7 @@ compute_live_cells: False
 
 downsampling: 1
 QC: True
-FFC: True
+FFC: False
 FFC_n_images: 500
 tile_computation: False
 
@@ -45,7 +34,6 @@ max_cell_size: 100000
 visualization: False
 
 ## embeddings_settings
-device: "0"
 weights_location: "/home/biancamigliori/Documents/"
 
 ## Scalefex settings

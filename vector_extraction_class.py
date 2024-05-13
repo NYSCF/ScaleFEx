@@ -43,9 +43,7 @@ class Screen_Compute: #come up with a better name
         self.saving_folder = self.parameters['saving_folder']
         files = data_query.query_functions_local.query_data(self.parameters['exp_folder'], plate_identifier = self.parameters['plate_identifier'],
                                             pattern=self.parameters['fname_pattern'],delimiters = self.parameters['fname_delimiters'],
-                                            exts=self.parameters['file_extensions'],resource = self.parameters['resource'], 
-                                            experiment_name = self.parameters['experiment_name'],plates=self.parameters['plates'], 
-                                            s3_bucket = self.parameters['s3_bucket'])
+                                            exts=self.parameters['file_extensions'],plates=self.parameters['plates'])
         print(files.head())
         
         # Perform Flat Field Correction (FFC)
@@ -53,18 +51,10 @@ class Screen_Compute: #come up with a better name
         if self.parameters['FFC'] is True:
             ffc_file = os.path.join(self.saving_folder,self.parameters['experiment_name'] + '_FFC.p')
             if not os.path.exists(ffc_file):
-                print(ffc_file + ' Not found generating FFC now')
-
-                if self.parameters['resource'] == 'AWS':
-                    self.flat_field_correction = data_query.query_functions_local.flat_field_correction_AWS(files,ffc_file,
-                    self.parameters['s3_bucket'],self.parameters['channel'],self.parameters['experiment_name'],bf_channel=self.parameters['bf_channel'],
-                    n_images=self.parameters['FFC_n_images'])
-                    
-                else :
-                    self.flat_field_correction = data_query.query_functions_local.flat_field_correction_on_data(
-                    files, self.parameters['channel'], bf_channel=self.parameters['bf_channel'],n_images=self.parameters['FFC_n_images'])
-
-                    pickle.dump(self.flat_field_correction, open(ffc_file, "wb"))
+                print(ffc_file + ' Not found generating FFC now') 
+                self.flat_field_correction = data_query.query_functions_local.flat_field_correction_on_data(
+                files, self.parameters['channel'], bf_channel=self.parameters['bf_channel'],n_images=self.parameters['FFC_n_images'])
+                pickle.dump(self.flat_field_correction, open(ffc_file, "wb"))
             else:
                 print(ffc_file + ' Found, loading FFC')
                 self.flat_field_correction = pickle.load(open(ffc_file, "rb"))
@@ -108,8 +98,7 @@ class Screen_Compute: #come up with a better name
                     
             if self.parameters['save_coordinates'] == True:
                 self.csv_file_coordinates = os.path.join(self.saving_folder,self.parameters['experiment_name'] + '_coordinates_'+str(plate)+'.csv')
-            if self.parameters['resource'] == 'local':
-                self.csv_file = os.path.join(vec_dir,self.parameters['experiment_name']+'_'+str(plate)+'_'+self.parameters['vector_type']+'.csv')
+ 
             self.start_computation(plate, files)
 
 ### Start computation
@@ -121,53 +110,33 @@ class Screen_Compute: #come up with a better name
         if not os.path.exists(vec_dir):
             os.makedirs(vec_dir)
 
-        if self.parameters['resource'] == 'AWS':
-            task_files,csv_files_list=data_query.query_functions_local.process_files_AWS(task_files,vec_dir,self.parameters['vector_type']
-                                    ,self.parameters['experiment_name'],plate,self.parameters['subset'])
-        
-
         wells, sites = data_query.query_functions_local.make_well_and_field_list(task_files)
 
         if os.path.exists(self.parameters['csv_coordinates']):
             self.locations=pd.read_csv(self.parameters['csv_coordinates'])
             self.locations=self.locations.loc[self.locations.plate.astype(str)==str(plate)]
-            
-            if self.parameters['resource'] == 'AWS':
-                self.locations = data_query.query_functions_local.filter_coord(self.locations,csv_files_list)
             wells=np.unique(self.locations.well)
        
-        if self.parameters['resource'] == 'local':
-            if self.parameters['csv_coordinates'] == '':
-                self.csv_file,wells=data_query.query_functions_local.check_if_file_exists(self.csv_file,wells,sites)
-            if wells[0] == 'Over':
-                print('plate ', plate, 'is done')
-                return
-        else:
-            self.csv_file,self.locations=data_query.query_functions_local.check_if_file_exists(self.csv_file,wells,sites,
-                                                                                 self.parameters['csv_coordinates'],plate=plate)
-            wells=np.unique(self.locations.well)
-
+        if self.parameters['csv_coordinates'] == '':
+            self.csv_file,wells=data_query.query_functions_local.check_if_file_exists(self.csv_file,wells,sites)
+        if wells[0] == 'Over':
+            print('plate ', plate, 'is done')
+            return
 
         def compute_vector(well):
             ''' Function that imports the images and extracts the location of cells'''
             print(well, plate, datetime.now())
 
-            if self.parameters['resource'] == 'AWS':
-                column = well[3:]
-                self.csv_file = os.path.join(vec_dir,self.parameters['experiment_name']+'_'+str(plate)
-                                        +'_'+self.parameters['vector_type']+'_'+column+'.csv') 
-            else: 
-                self.csv_file = os.path.join(vec_dir,self.parameters['experiment_name']+'_'+str(plate)+'_'+self.parameters['vector_type']+'.csv')
+            self.csv_file = os.path.join(vec_dir,self.parameters['experiment_name']+'_'+str(plate)+'_'+self.parameters['vector_type']+'.csv')
             
             for site in sites:
 
                 print(site, well, plate, datetime.now())
                 #stime=time.perf_counter()
                 np_images, original_images, current_file = data_query.query_functions_local.load_and_preprocess(task_files,
-                                    self.parameters['channel'],well,site,self.parameters['zstack'],self.parameters['resource'],
+                                    self.parameters['channel'],well,site,self.parameters['zstack'],
                                     self.parameters['image_size'],self.flat_field_correction,
-                                    self.parameters['downsampling'],return_original=self.parameters['QC'],
-                                    s3_bucket = self.parameters['s3_bucket'])
+                                    self.parameters['downsampling'],return_original=self.parameters['QC'])
                 try:
                     original_images.shape
                 except NameError:
@@ -282,7 +251,7 @@ class Screen_Compute: #come up with a better name
         
         if self.parameters['n_of_workers'] != 1:
             function = compute_vector
-            parallelize_computation.parallelize_local(wells,function,self.parameters['n_of_workers'],mode = 'prod')
+            parallelize_computation.parallelize(wells,function,self.parameters['n_of_workers'],mode = 'prod')
         else:
             for well in wells:
                 stime=time.perf_counter()
@@ -291,13 +260,6 @@ class Screen_Compute: #come up with a better name
             
         print('All processes have completed their tasks.')
         
-        if self.parameters['resource'] == 'AWS':
-            print('done')
-            
-            data_query.query_functions_local.push_all_files(self.parameters['s3_bucket'],self.parameters['experiment_name'],
-                                                            self.parameters['plates'],self.parameters['subset'],csv_files_list)
-            data_query.query_functions_local.terminate_current_instance(self.parameters['s3_bucket'],self.parameters['experiment_name'],
-                                                            self.parameters['plates'],self.parameters['subset'])
     def save_csv_file(self,vector,csv_file):
         '''
         Save the vector in a csv file'''
