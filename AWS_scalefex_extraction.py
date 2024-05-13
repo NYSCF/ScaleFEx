@@ -43,7 +43,7 @@ class Screen_Compute: #come up with a better name
         print(self.files.head())
         print(self.files)
         
-        self.vec_dir = os.path.join(self.param_AWS['vector_type'])
+        self.vec_dir = 'scalefex'
         if not os.path.exists(self.vec_dir):
             os.makedirs(self.vec_dir)  
         ffc_file = os.path.join(self.vec_dir,self.param_AWS['experiment_name'] + '_FFC.p')
@@ -103,7 +103,7 @@ class Screen_Compute: #come up with a better name
                 if self.param_AWS['QC']==True:
                     indQC=0
                     QC_vector,indQC = Quality_control_HCI.compute_global_values.calculateQC(len(center_of_mass),live_cells,
-                                        self.param_AWS['vector_type'],original_images,well,self.plate,site,self.param_AWS['channel'],
+                                        'scalefex',original_images,well,self.plate,site,self.param_AWS['channel'],
                                         indQC,self.param_AWS['neurite_tracing'])
                     self.csv_fileQC = dq.save_csv_file(QC_vector,self.csv_fileQC,self.param_AWS['max_file_size'])
             
@@ -129,9 +129,7 @@ class Screen_Compute: #come up with a better name
                                 channel=self.param_AWS['channel'],
                                 mito_ch=self.param_AWS['Mito_channel'],
                                 rna_ch=self.param_AWS['RNA_channel'],
-                                neuritis_ch=self.param_AWS['neurite_tracing'],
                                 downsampling=self.param_AWS['downsampling'],
-                                visualization=self.param_AWS['visualize_masks'],
                                 roi=int(self.param_AWS['ROI'])
                             ).single_cell_vector
 
@@ -166,33 +164,15 @@ class Screen_Compute: #come up with a better name
         # dq.terminate_current_instance(self.param_AWS['s3_bucket'],self.param_AWS['experiment_name'],
         #                                                     self.param_AWS['plate'],self.param_AWS['subset_index'])
 
-    
-    
-    
-    
-    
     def segment_crop_images(self,img_nuc):
 
         # extraction of the location of the cells
         nls=import_module(self.param_AWS['segmenting_function'])
         
-        if self.param_AWS['AI_cell_segmentation'] is False:    
-            img_mask=nls.compute_DNA_mask(img_nuc)
-            center_of_mass = nls.retrieve_coordinates(img_mask,
-                        cell_size_min=self.param_AWS['min_cell_size']*self.param_AWS['downsampling'],
-                        cell_size_max=self.param_AWS['max_cell_size']/self.param_AWS['downsampling'])
-        else:
-            if img_nuc.max() > 1:
-                img_nuc = img_nuc/img_nuc.max()
-            img_mask,center_of_mass = self.mrcnn.generate_masks(img_nuc,ds_size=(540,540),score_thresh=0.8,
-                                                                min_area_thresh=self.param_AWS['min_cell_size'],
-                                                                max_area_thresh=self.param_AWS['max_cell_size'],
-                                                                ROI=self.param_AWS['ROI'],
-                                                                remove_edges=False,try_quadrants=True)
-            if center_of_mass is None:
-                center_of_mass = []
-        if self.param_AWS['visualization'] is True:
-            self.show_image(img_nuc,img_mask)
+        img_mask=nls.compute_DNA_mask(img_nuc)
+        center_of_mass = nls.retrieve_coordinates(img_mask,
+                    cell_size_min=self.param_AWS['min_cell_size']*self.param_AWS['downsampling'],
+                    cell_size_max=self.param_AWS['max_cell_size']/self.param_AWS['downsampling'])
 
         try:
             center_of_mass
