@@ -34,10 +34,10 @@ max_cell_size: 100000
 
 #AWS settings
 s3_bucket: 'nyscf-scalefex'
-nb_subsets: 5
+nb_subsets: 2
 subset_index: 1
 image_id: 'ami-04e5276ebb8451442'
-instance_type: 'c5.xlarge'
-max_file_size: 2000
+instance_type: 'c5.12xlarge'
+max_file_size: 1000
 
 
