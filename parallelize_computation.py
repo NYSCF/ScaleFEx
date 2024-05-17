@@ -2,7 +2,7 @@ import multiprocessing as mp
 from multiprocessing import Manager, Semaphore, Process, Value, Lock, current_process, Queue
 from datetime import datetime
 
-class parallelize_local:
+class parallelize:
      #Parallelesation
     def __init__(self,tasks,function,max_processes=1,mode='dev'):
         if mode =='dev':
