@@ -76,17 +76,17 @@ class Screen_Compute: #come up with a better name
             if self.parameters['segmenting_function'] == 'MaskRCNN_Deployment.segmentation_mrcnn':
                 from MaskRCNN_Deployment.segmentation_mrcnn import MaskRCNN
                 mrcnn_weights = os.path.join(ROOT_DIR,'MaskRCNN_Deployment/weights/maskrcnn_weights.pt')
-                mrcnn_weights = '/home/biancamigliori/Documents/random_projection/maskrcnn_weights.pt'
+                # mrcnn_weights = '/home/biancamigliori/Documents/random_projection/maskrcnn_weights.pt'
                 self.mrcnn = MaskRCNN(weights=mrcnn_weights,use_cpu=self.parameters['use_cpu_segmentation'],gpu_id=self.parameters['gpu_AI'])
             elif self.parameters['segmenting_function'] == 'ADDIEs':
                 print("For Addie to implement")
 
         # Loop over plates and start computation
-        if self.parameters['plates'] != 'all' and isinstance(self.parameters['plates'],list):
-            plate_list = np.unique(files.plate)
-        else:
-            plate_list = self.parameters['plates']
-
+        # if self.parameters['plates'] != 'all' and isinstance(self.parameters['plates'],list):
+        #     plate_list = np.unique(files.plate)
+        # else:
+        #     plate_list = self.parameters['plates']
+        plate_list = sorted(files.plate.unique().tolist())
         print('Computing plates: ', plate_list)
         
         if 'mbed' in self.parameters['vector_type']:
@@ -229,7 +229,11 @@ class Screen_Compute: #come up with a better name
                             continue
                         else:
                             if self.parameters['visualize_crops']==True:
-                                plt.imshow(crop[0])
+                                fig,axes = plt.subplots(nrows=1,ncols=len(crop),figsize=(len(crop)*3,3))
+                                for i,ax in enumerate(axes.flat):
+                                    ax.imshow(crop[i],cmap='gray')
+                                    ax.axis('off')
+                                    ax.set_title(self.parameters['channel'][i])
                                 plt.show()
                             ind=0
                             vector=pd.DataFrame(np.asarray([plate,well,site,x,y,n]).reshape(1,6),columns=['plate','well','site','coordX','coordY','cell_id'],index=[ind])
@@ -328,10 +332,10 @@ class Screen_Compute: #come up with a better name
         else:
             if img_nuc.max() > 1:
                 img_nuc = img_nuc/img_nuc.max()
-            img_mask,center_of_mass = self.mrcnn.generate_masks(img_nuc,ds_size=(540,540),score_thresh=0.8,
+            img_mask,center_of_mass = self.mrcnn.generate_masks(img_nuc,ds_size=(540,540),score_thresh=0.7,
                                                                 min_area_thresh=self.parameters['min_cell_size'],
                                                                 max_area_thresh=self.parameters['max_cell_size'],
-                                                                ROI=self.parameters['ROI'],
+                                                                ROI=self.parameters['ROI'],min_cells=0,
                                                                 remove_edges=False,try_quadrants=True)
             if center_of_mass is None:
                 center_of_mass = []
@@ -350,8 +354,13 @@ class Screen_Compute: #come up with a better name
     def show_image(self,img,nuc):
         import matplotlib.pyplot as plt
         _,ax=plt.subplots(1,2,figsize=(10,5))
-        ax[0].imshow(img)
-        ax[1].imshow(nuc)
+        ax[0].imshow(img.squeeze(),cmap='gray')
+        ax[0].axis('off')
+        ax[0].set_title('Image')
+        if nuc is not None:
+            ax[1].imshow(nuc.squeeze(),cmap='tab20')
+            ax[1].set_title('Mask')
+        ax[1].axis('off')
         plt.show()                    
 
 def import_module(module_name):
