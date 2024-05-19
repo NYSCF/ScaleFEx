@@ -1,4 +1,4 @@
-vector_type: 'scalefex' #'scalefex', 'embeddings' '' for QC only, 'coordinates' for coordinates of cells
+vector_type: 'embeddings' #'scalefex', 'embeddings' '' for QC only, 'coordinates' for coordinates of cells
 resource: 'local' #'local', 'AWS'
 n_of_workers: 1
 
@@ -6,7 +6,7 @@ n_of_workers: 1
 exp_folder: '/mnt/data-storage/BetaCellDiff/data/'
 experiment_name: 'NIHB111'
 saving_folder: '/mnt/data-storage/BetaCellDiff/' #'/mnt/data-storage/HCI_Projects/Neurons/HTS0026/'
-plates: [202] # ['HTS0026_CV384W_101__2022-10-15T22_41_08-Measurement 5',
+plates: [201,202] # ['HTS0026_CV384W_101__2022-10-15T22_41_08-Measurement 5',
 max_file_size: 2000 # in MB
 
 plate_identifier: 'NIHB111_C384W_' #identifier for finding the plate number
@@ -41,7 +41,7 @@ gpu_AI: 0 # gpu ID to use for model
 use_cpu_segmentation: True
 min_cell_size: 3000 #area
 max_cell_size: 100000
-visualization: True
+visualization: False
 
 ## embeddings_settings
 device: "1"
@@ -49,7 +49,7 @@ weights_location: "/home/jeffdatasci/Documents/submodules/Embeddings_extraction_
 
 ## Scalefex settings
 visualize_masks: False
-visualize_crops: True
+visualize_crops: False
 
 #AWS settings
 s3_bucket: 'nyscf-scalefex'

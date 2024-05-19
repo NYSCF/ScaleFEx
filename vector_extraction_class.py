@@ -116,7 +116,7 @@ class Screen_Compute: #come up with a better name
             self.locations=pd.read_csv(self.parameters['csv_coordinates'])
             self.locations=self.locations.loc[self.locations.plate.astype(str)==str(plate)]
             wells=np.unique(self.locations.well)
-       
+        self.csv_file = ''
         if self.parameters['csv_coordinates'] == '':
             self.csv_file,wells=data_query.query_functions_local.check_if_file_exists(self.csv_file,wells,sites)
         if wells[0] == 'Over':
