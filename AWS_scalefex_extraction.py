@@ -34,7 +34,6 @@ class Screen_Compute: #come up with a better name
         # Read the yaml file
         with open(yaml_path, 'rb') as f:
             self.AWS_params = yaml.load(f.read(), Loader=yaml.CLoader)
-        
         self.files = dq.query_data(self.AWS_params['fname_pattern'],plate_identifier = self.AWS_params['plate_identifier'],
                             delimiters = self.AWS_params['fname_delimiters'],exts=self.AWS_params['file_extensions'],
                             experiment_name = self.AWS_params['experiment_name'],plates=self.AWS_params['plates'], 
@@ -158,11 +157,11 @@ class Screen_Compute: #come up with a better name
             
         print('All processes have completed their tasks.')
         
-        # dq.push_all_files(self.AWS_params['s3_bucket'],self.AWS_params['experiment_name'],
-        #                                         self.AWS_params['plate'],self.AWS_params['subset_index'],self.vec_dir)
+        dq.push_all_files(self.AWS_params['s3_bucket'],self.AWS_params['experiment_name'],
+                                                self.AWS_params['plates'],self.AWS_params['subset_index'],self.vec_dir)
         
-        # dq.terminate_current_instance(self.AWS_params['s3_bucket'],self.AWS_params['experiment_name'],
-        #                                                     self.AWS_params['plate'],self.AWS_params['subset_index'])
+        dq.terminate_current_instance(self.AWS_params['s3_bucket'],self.AWS_params['experiment_name'],
+                                                self.AWS_params['plates'],self.AWS_params['subset_index'])
 
     def segment_crop_images(self,img_nuc):
 

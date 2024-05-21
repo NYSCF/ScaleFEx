@@ -9,7 +9,7 @@ import time
 
 ROOT_DIR = '/'.join(__file__.split('/')[:-1])
 
-class Screen_Init: #come up with a better name
+class Screen_Init: 
     """
     Class representing the initialisation of AWS screen.
 
