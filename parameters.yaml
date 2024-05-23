@@ -6,7 +6,7 @@ n_of_workers: 1
 exp_folder: '/mnt/data-storage/BetaCellDiff/data/'
 experiment_name: 'NIHB111'
 saving_folder: '/mnt/data-storage/BetaCellDiff/' #'/mnt/data-storage/HCI_Projects/Neurons/HTS0026/'
-plates: [201,202] # ['HTS0026_CV384W_101__2022-10-15T22_41_08-Measurement 5',
+# plates: [203,204] # ['HTS0026_CV384W_101__2022-10-15T22_41_08-Measurement 5',
 max_file_size: 2000 # in MB
 
 plate_identifier: 'NIHB111_C384W_' #identifier for finding the plate number
