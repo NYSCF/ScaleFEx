@@ -1,8 +1,60 @@
-vector_type: 'embeddings' #'scalefex', 'embeddings' '' for QC only, 'coordinates' for coordinates of cells
-resource: 'local' #'local', 'AWS'
-n_of_workers: 1
+# HCI PIPELINE PARAMETERS 
+
+# GENERAL PARAMETERS
+vector_type: 'embeddings' #'scalefex', 'embeddings', '' for QC only, 'coordinates' for coordinates of cells
+resource: 'local' #'local', 'AWS' # 'local' for local computation, 'AWS' for cloud computing
+n_of_workers: 1 # int, n of workers to use in parallel. LOWER FOR TESTING PURPOSES
 
 # location_parameters:
+
+exp_folder: '/mnt/2e6952d2-a327-41fa-9451-7ce13129d27c/HTF0006/' # Main folder with subfolders of plates (each with a subfolder of images)
+experiment_name: 'HTF0006' # Experiment name used to identify the experiment
+saving_folder: '/home/biancamigliori/Desktop/temp_try_output/test1scalefex/' # folder to save results (e.g., embeddings, scalefex, coordinates, QC)
+plates: ['202'] # list of plates to be processed (each should be in one plate subdirectory name)
+max_file_size: 2000 # max file size in MB before a new file is created
+
+# image file parsing parameters:
+plate_identifier: '_CV384W_' #identifier for finding the plate number; should directly precede each plate in "plates" list
+fname_pattern: 'Images/<Well(6)><Site(3)><Plane(3)>-<Channel(3)>.<ext>' # Phenix default pattern (see the README for https://github.com/NYSCF/data_query for more details)
+fname_delimiters: ['-','.'] # character separators (delimiters) for information parsed from file_names (example: ('-','.') for 'r03c03f01p01-ch1sk1fk1fl1.tiff')
+file_extensions: ['tiff'] # possible extensions of images to be processed
+image_size: [2160,2160] # size of images to be processed in pixels (height, width)
+
+# COMPUTATION PARAMETERS
+channel: ['ch4','ch1', 'ch5',  'ch3', 'ch2'] # channels in order to be processed. NOTE: the nuclear channel should be first
+zstack: False # set to True if you have multi-plane images and you want to process max projections of the planes
+ROI: 150 # half the size of the cropped area around the cell (e.g., 150 for 300x300 ROI)
+downsampling: 1 # Downsampling ratio
+QC: True # if true, compute a Quality Control step
+FFC: True # if true, compute a flat field correction image to correct for non-uniform background illumination
+FFC_n_images: 500 # n of images to be used to produce the background trend image for the Flat Field Correction
+
+## NUCLEI SEGMENTATION PARAMETERS
+csv_coordinates: '' # '' if you don't want to use a pre-computed coordinates file
+segmenting_function: 'Nuclei_segmentation.nuclei_location_extraction' # 'MaskRCNN_Deployment.segmentation_mrcnn'   
+AI_cell_segmentation: False # if true, use an AI model to compute the segmentation
+save_coordinates: True # if true, saves a csv file with the coordinates for cells for each plate
+gpu_AI: False # ID of GPU to use for AI segmentation (e.g., 0:primary, 1:secondary)
+use_cpu_segmentation: True # if true, use CPU for segmentation
+min_cell_size: 200 # min area threshold for mask (any object with smaller area will be removed)
+max_cell_size: 100000 # max area threshold for mask (any object with bigger area will be removed)
+visualization: False # if true, the segmentation masks of the entire field will be visualizaed (using matplotlib). NOTE: we suggest to visualize the masks for testing, but to turn it off during the processing of large screens
+
+## EMBEDDINGS ONLY PARAMETERS
+device: "0" # specify the device you want to use. Could be 'cpu', 'cuda', or a specific device name
+weights_location: "/home/biancamigliori/Documents/" # Location of weights for inception model (this should be automatically parsed by the script in the future)
+tile_computation: False # only for the embeddings! Compute a tile level embeddings
+
+## SCALEFEX ONLY PARAMETERS
+RNA_channel: 'ch5' # channel with RNA stain (if any)
+Mito_channel: 'ch2' # channel with mitochondrial stain (if any)
+neurite_tracing: '' # channel where to compute tracing (if any)
+visualize_masks: False # visualize the segmentation mask from each channel. NOTE: we suggest to visualize the masks for testing, but to turn it off during the processing of large screens
+visualize_crops: False # visualizes the crop of the cell. This helps setting the best ROI size, but we suggest to visualize the crop for testing, but to turn it off during the processing of large screens
+
+# AWS SETTINGS
+s3_bucket: 'nyscf-scalefex' # AWS bucket name with images to process
+=======
 exp_folder: '/mnt/data-storage/BetaCellDiff/data/'
 experiment_name: 'NIHB111'
 saving_folder: '/mnt/data-storage/BetaCellDiff/' #'/mnt/data-storage/HCI_Projects/Neurons/HTS0026/'
@@ -53,4 +105,9 @@ visualize_crops: False
 
 #AWS settings
 s3_bucket: 'nyscf-scalefex'
-subset: 'A'
+
+subset: 'A' 
+
+# UNSURE ABOUT THESE?
+bf_channel: '' # brightfield channel (if any) (to handle FFC differently)
+compute_live_cells: False 
