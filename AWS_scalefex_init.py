@@ -52,16 +52,15 @@ class Screen_Init:
         dq.upload_ffc_to_s3(self.AWS_params['s3_bucket'],'AWS_params.yaml',self.AWS_params['experiment_name'])
 
         if len(files) != 0:
-            instance_ids = dq.launch_ec2_instances(self.AWS_params['experiment_name'],
-                self.AWS_params['image_id'], self.AWS_params['instance_type'], self.AWS_params['plates'], self.AWS_params['nb_subsets'])
+            instance_ids,instance_tags = dq.launch_ec2_instances(self.AWS_params['experiment_name'],self.AWS_params['s3_bucket'],
+                self.AWS_params['amazon_image_id'], self.AWS_params['instance_type'], self.AWS_params['plates'], self.AWS_params['nb_subsets'],
+                self.AWS_params['csv_coordinates'])
             scheduler = sched.scheduler(time.time, time.sleep)
-            scheduler.enter(300, 1, dq.periodic_check, (scheduler, 360, dq.check_instance_metrics, (instance_ids,0.35,0)))
+            scheduler.enter(300, 1, dq.periodic_check, (scheduler, 360, dq.check_instance_metrics, (instance_ids,instance_tags,0.35,0)))
             scheduler.run()
         
         else  :
             print('No files found')
-
-        # dq.terminate_current_instance()
 
 def import_module(module_name):
     try:

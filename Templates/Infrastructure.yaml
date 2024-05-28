@@ -19,7 +19,7 @@ Resources:
     Properties:
       VpcId: !Ref ScaleFExVPC
       CidrBlock: '10.0.1.0/24'
-      MapPublicIpOnLaunch: false
+      MapPublicIpOnLaunch: true
       AvailabilityZone: !Select [ 0, !GetAZs '' ]  # Select the first Availability Zone in the region
       Tags:
         - Key: Name
@@ -63,6 +63,15 @@ Resources:
     Properties:
       SubnetId: !Ref ScaleFExSubnet
       RouteTableId: !Ref ScaleFExRouteTable
+
+  # S3 VPC Endpoint
+  S3VPCEndpoint:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      VpcId: !Ref ScaleFExVPC
+      ServiceName: !Sub 'com.amazonaws.${AWS::Region}.s3'
+      RouteTableIds:
+        - !Ref ScaleFExRouteTable
 
   # Security Group
   ScaleFExSecurityGroup:
@@ -128,15 +137,23 @@ Outputs:
   VPCId:
     Description: 'VPC Id'
     Value: !Ref ScaleFExVPC
+    Export:
+      Name: ScaleFExVPCId
 
   SubnetId:
     Description: 'Subnet Id'
     Value: !Ref ScaleFExSubnet
+    Export:
+      Name: ScaleFExSubnetId
 
   SecurityGroupId:
     Description: 'Security Group Id'
     Value: !Ref ScaleFExSecurityGroup
+    Export:
+      Name: ScaleFExSecurityGroupId
 
   InstanceProfileName:
     Description: 'IAM Instance Profile Name'
     Value: !Ref ScaleFExInstanceProfile
+    Export:
+      Name: ScaleFExInstanceProfileName

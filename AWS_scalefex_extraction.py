@@ -56,16 +56,16 @@ class Screen_Compute: #come up with a better name
         self.plate = self.AWS_params['plates'][0]
         
         if self.AWS_params['QC']==True:
-            self.csv_fileQC = os.path.join(self.vec_dir,self.AWS_params['experiment_name']+'_'+str(self.plate)+'_'+'QC'
-                    +'_'+str(self.AWS_params['subset_index'])+'.csv') 
+            self.csv_fileQC = os.path.join(self.vec_dir,'QC_'+self.AWS_params['experiment_name']+'_'+str(self.plate)+'_'
+                    +str(self.AWS_params['subset_index'])+'.csv') 
         self.start_computation(self.plate, self.files)
 
     def compute_vector(self,well):
         ''' Function that imports the images and extracts the location of cells'''
 
         print(well, self.plate, datetime.now())
-        csv_file = os.path.join(self.vec_dir,self.AWS_params['experiment_name']+'_'+self.plate
-                            +'_SF_'+str(self.AWS_params['subset_index'])+'A'+'.csv')
+        csv_file = os.path.join(self.vec_dir,'SF_'+self.AWS_params['experiment_name']+'_'+self.plate+'_'
+                            +str(self.AWS_params['subset_index'])+'_01'+'.csv')
         
         sites = np.unique(self.task_files.site)
         sites.sort()
@@ -83,22 +83,17 @@ class Screen_Compute: #come up with a better name
             except NameError:
                 print('Images corrupted')
             if np_images is not None:
+                
                 if self.AWS_params['csv_coordinates']=='':
                     center_of_mass=self.segment_crop_images(np_images[0,:,:,0])
                     center_of_mass=[list(row) + [n] for n,row in enumerate(center_of_mass)]
-                    if self.AWS_params['compute_live_cells'] is False:
-                        live_cells=len(center_of_mass)
-                    else:
-                        print('to be implemented')
-                else:
                     
+                else:
                     locations=self.locations
                     locations=locations.loc[(locations.well==well)&(locations.site==site)]
                     center_of_mass=np.asarray(locations[['coordX','coordY','cell_id']])
                     
-                    if self.AWS_params['compute_live_cells'] is False:
-                        live_cells=len(center_of_mass)
-                        
+                live_cells=len(center_of_mass)  
                 if self.AWS_params['QC']==True:
                     indQC=0
                     QC_vector,indQC = Quality_control_HCI.compute_global_values.calculateQC(len(center_of_mass),live_cells,
@@ -160,8 +155,7 @@ class Screen_Compute: #come up with a better name
         dq.push_all_files(self.AWS_params['s3_bucket'],self.AWS_params['experiment_name'],
                                                 self.AWS_params['plates'],self.AWS_params['subset_index'],self.vec_dir)
         
-        dq.terminate_current_instance(self.AWS_params['s3_bucket'],self.AWS_params['experiment_name'],
-                                                self.AWS_params['plates'],self.AWS_params['subset_index'])
+        dq.terminate_current_instance()
 
     def segment_crop_images(self,img_nuc):
 
