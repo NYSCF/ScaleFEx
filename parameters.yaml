@@ -6,6 +6,7 @@ resource: 'local' #'local', 'AWS' # 'local' for local computation, 'AWS' for clo
 n_of_workers: 1 # int, n of workers to use in parallel. LOWER FOR TESTING PURPOSES
 
 # location_parameters:
+
 exp_folder: '/mnt/2e6952d2-a327-41fa-9451-7ce13129d27c/HTF0006/' # Main folder with subfolders of plates (each with a subfolder of images)
 experiment_name: 'HTF0006' # Experiment name used to identify the experiment
 saving_folder: '/home/biancamigliori/Desktop/temp_try_output/test1scalefex/' # folder to save results (e.g., embeddings, scalefex, coordinates, QC)
@@ -53,7 +54,59 @@ visualize_crops: False # visualizes the crop of the cell. This helps setting the
 
 # AWS SETTINGS
 s3_bucket: 'nyscf-scalefex' # AWS bucket name with images to process
-subset: 'A'
+=======
+exp_folder: '/mnt/data-storage/BetaCellDiff/data/'
+experiment_name: 'NIHB111'
+saving_folder: '/mnt/data-storage/BetaCellDiff/' #'/mnt/data-storage/HCI_Projects/Neurons/HTS0026/'
+# plates: [203,204] # ['HTS0026_CV384W_101__2022-10-15T22_41_08-Measurement 5',
+max_file_size: 2000 # in MB
+
+plate_identifier: 'NIHB111_C384W_' #identifier for finding the plate number
+fname_pattern: 'Images/<Well(6)><Site(3)><Plane(3)>-<Channel(3)>.<ext>' # Phenix pattern
+fname_delimiters: ['-','.']
+file_extensions: ['tiff']
+image_size: [2160,2160]
+
+# type_specific:
+channel: ['ch4','ch1', 'ch2', 'ch3']        
+ROI: 90
+neurite_tracing: ''
+bf_channel: ''
+RNA_channel: '' #set only if you want to compute ScaleFex
+Mito_channel: 'ch2' #set only if you want to compute ScaleFex
+zstack: True
+compute_live_cells: False 
+
+downsampling: 1
+QC: True
+FFC: True
+FFC_n_images: 500
+tile_computation: False
+
+## segmentation:
+csv_coordinates: '' # '' if you don't want to use a pre-computed coordinates file
+# segmenting_function: 'Nuclei_segmentation.nuclei_location_extraction' # 'MaskRCNN_Deployment.segmentation_mrcnn'
+segmenting_function: 'MaskRCNN_Deployment.segmentation_mrcnn'   
+AI_cell_segmentation: True
+save_coordinates: True
+gpu_AI: 0 # gpu ID to use for model
+use_cpu_segmentation: True
+min_cell_size: 3000 #area
+max_cell_size: 100000
+visualization: False
+
+## embeddings_settings
+device: "1"
+weights_location: "/home/jeffdatasci/Documents/submodules/Embeddings_extraction_from_image/"
+
+## Scalefex settings
+visualize_masks: False
+visualize_crops: False
+
+#AWS settings
+s3_bucket: 'nyscf-scalefex'
+
+subset: 'A' 
 
 # UNSURE ABOUT THESE?
 bf_channel: '' # brightfield channel (if any) (to handle FFC differently)
