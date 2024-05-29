@@ -41,6 +41,7 @@ class Screen_Compute: #come up with a better name
             import Quality_control_HCI.compute_global_values
         
         self.saving_folder = self.parameters['saving_folder']
+        self.csv_file=self.parameters['csv_coordinates']
         files = data_query.query_functions_local.query_data(self.parameters['exp_folder'], plate_identifier = self.parameters['plate_identifier'],
                                             pattern=self.parameters['fname_pattern'],delimiters = self.parameters['fname_delimiters'],
                                             exts=self.parameters['file_extensions'],plates=self.parameters['plates'])

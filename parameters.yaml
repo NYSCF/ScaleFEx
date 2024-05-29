@@ -3,10 +3,10 @@ resource: 'local' #'local', 'AWS'
 n_of_workers: 1
 
 # location_parameters:
-exp_folder: '/mnt/2e6952d2-a327-41fa-9451-7ce13129d27c/HTF0006/'
-experiment_name: 'HTF0006'
-saving_folder: '/home/biancamigliori/Desktop/temp_try_output/test1scalefex/' #'/mnt/data-storage/HCI_Projects/Neurons/HTS0026/'
-plates: ['202'] # ['HTS0026_CV384W_101__2022-10-15T22_41_08-Measurement 5',
+exp_folder: '/mnt/2e6952d2-a327-41fa-9451-7ce13129d27c/HTF0007/'
+experiment_name: 'HTF0007'
+saving_folder: '/home/biancamigliori/Documents/HCI_Projects/INAD/' #'/mnt/data-storage/HCI_Projects/Neurons/HTS0026/'
+plates: ['204','205','206'] # ['HTS0026_CV384W_101__2022-10-15T22_41_08-Measurement 5',
 max_file_size: 2000 # in MB
 
 plate_identifier: '_CV384W_' #identifier for finding the plate number
@@ -33,8 +33,8 @@ tile_computation: False
 
 ## segmentation:
 csv_coordinates: '' # '' if you don't want to use a pre-computed coordinates file
-segmenting_function: 'Nuclei_segmentation.nuclei_location_extraction' # 'MaskRCNN_Deployment.segmentation_mrcnn'   
-AI_cell_segmentation: False
+segmenting_function: 'MaskRCNN_Deployment.segmentation_mrcnn'#'Nuclei_segmentation.nuclei_location_extraction' 
+AI_cell_segmentation: True
 save_coordinates: True
 gpu_AI: False
 use_cpu_segmentation: True
@@ -43,7 +43,7 @@ max_cell_size: 100000
 visualization: False
 
 ## embeddings_settings
-device: "0"
+device: "1"
 weights_location: "/home/biancamigliori/Documents/"
 
 ## Scalefex settings
