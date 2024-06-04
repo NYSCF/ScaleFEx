@@ -1,0 +1,26 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "cloudformation:CreateStack",
+        "cloudformation:DescribeStacks",
+        "cloudformation:DescribeStackResources",
+        "cloudformation:ValidateTemplate",
+        "cloudformation:UpdateStack",
+        "cloudformation:DeleteStack"
+      ],
+      "Resource": ""
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "ec2:",
+        "iam:",
+        "s3:"
+      ],
+      "Resource": "*"
+    }
+  ]
+}
