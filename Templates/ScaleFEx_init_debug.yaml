@@ -1,0 +1,225 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Create an EC2 instance using existing VPC, subnet, and security group.
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: "Base Configuration"
+        Parameters:
+          - S3Bucket
+          - NbSubsets
+          - ExperimentName
+          - plates
+          - channel
+          - AWSRegion
+
+      - Label:
+          default: "Advanced"
+        Parameters:
+          - downsampling
+          - FFC
+          - FFCNbImages
+          - MinCellSize
+          - MaxCellSize
+          - CsvCoordinates
+          - QC
+          - zstack
+          - PlateIdentifier
+          - FnamePattern
+          - FnameDelimiters
+          - FileExtensions
+          - ImageSize
+          - ROI
+          - MaxFileSize
+          - InstanceType
+          - AmazonAMI
+          - NbWorkers
+          - SegmentingFunction
+          - NeuriteTracing
+
+Parameters:
+  S3Bucket:
+    Description: Name of the S3 bucket to sync data from
+    Type: String
+    Default: 'nyscf-scalefex'
+  channel:
+    Description: List of channels to be computed in order
+    Type: String
+    Default: "['ch4','ch1','ch5','ch3','ch2']"
+  ExperimentName:
+    Description: "Experiment name -> Must be in the image's key"
+    Type: String
+    Default: 'HTS0019'
+  AmazonAMI:
+    Description: "Up to date Amazon Linux Machine ID"
+    Type: String
+    Default: 'ami-04e5276ebb8451442'
+  plates:
+    Description: "List of plates to compute, formatted as a Python list"
+    Type: String
+    Default: "['101', '102']"
+  PlateIdentifier:
+    Description: "Identifier for finding the plate number"
+    Type: String
+    Default: '_CV384W_'
+  FnamePattern:
+    Description: "Phenix pattern for filename"
+    Type: String
+    Default: 'Images/<Well(6)><Site(3)><Plane(3)>-<Channel(3)>.<ext>'
+  FnameDelimiters:
+    Description: "Delimiters used in filename pattern, formatted as a Python list"
+    Type: String
+    Default: "['-', '.']"
+  FileExtensions:
+    Description: "List of file extensions to consider, formatted as a Python list"
+    Type: String
+    Default: "['tiff']"
+  ImageSize:
+    Description: "Dimensions of the images as width,height, formatted as a Python list"
+    Type: String
+    Default: "[2160, 2160]"
+  ROI:
+    Description: "Region of Interest size"
+    Type: Number
+    Default: 150
+  RNAChannel:
+    Description: "Channel for RNA, set only if you want to compute ScaleFex"
+    Type: String
+    Default: 'ch5'
+  MitoChannel:
+    Description: "Channel for mitochondria, set only if you want to compute ScaleFex"
+    Type: String
+    Default: 'ch2'
+  zstack:
+    Description: "Enable or disable z-stack computation"
+    Type: String
+    AllowedValues: ['true', 'false']
+    Default: 'false'
+  downsampling:
+    Description: "Level of image downsampling"
+    Type: Number
+    Default: 1
+  QC:
+    Description: "Enable or disable Quality Control"
+    Type: String
+    AllowedValues: ['true', 'false']
+    Default: 'true'
+  FFC:
+    Description: "Enable or disable Flat Field Correction"
+    Type: String
+    AllowedValues: ['true', 'false']
+    Default: 'true'
+  FFCNbImages:
+    Description: "Number of images per channel to be used for Flat Field Correction"
+    Type: Number
+    Default: 500
+  MinCellSize:
+    Description: "Minimum cell size area"
+    Type: Number
+    Default: 200
+  MaxCellSize:
+    Description: "Maximum cell size area"
+    Type: Number
+    Default: 100000
+  CsvCoordinates:
+    Description: "CSV file for coordinates | coord.csv"
+    Type: String
+    Default: ''
+  SegmentingFunction:
+    Description: "Segmenting function to use"
+    Type: String
+    Default: 'Nuclei_segmentation.nuclei_location_extraction'
+  NbSubsets:
+    Description: "How many machines per plate"
+    Type: Number
+    Default: 5
+  NbWorkers:
+    Description: "How many workers per machine"
+    Type: Number
+    Default: 40
+  InstanceType:
+    Description: "Instance type to use"
+    Type: String
+    Default: 'c5.12xlarge'
+  MaxFileSize:
+    Description: "Maximum file size"
+    Type: Number
+    Default: 50
+  NeuriteTracing:
+    Description: "NeuriteTracing"
+    Type: String
+    Default: ''
+  AWSRegion:
+    Description: "AWSRegion"
+    Type: String
+    Default: us-east-1
+
+Resources:
+  # EC2 Instance
+  ScaleFExEC2Instance1:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: !Ref InstanceType
+      ImageId: !Ref AmazonAMI
+      NetworkInterfaces:
+        - AssociatePublicIpAddress: true
+          DeleteOnTermination: true
+          DeviceIndex: 0
+          GroupSet:
+            - 'sg-0b8de5a2df4b409dc'
+          SubnetId: 'subnet-02c84612973fa10bf'
+      IamInstanceProfile: 'ScaleFExInstanceProfile'
+      Tags:
+        - Key: Name
+          Value: !Sub "${ExperimentName}_Init"
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash
+          cd /home/ec2-user
+          sudo yum update -y
+          mkdir project
+          sudo chown ec2-user:ec2-user project
+          sudo chmod 755 project
+          aws s3 sync s3://${S3Bucket}/NYSCF_HCI_image_processing/ project
+          aws s3 sync s3://${S3Bucket}/resultfolder/${ExperimentName}/ project --exclude '*' --include='${ExperimentName}_FFC.p'
+          sudo yum install python3 python3-pip -y
+          python3 -m pip install --user virtualenv
+          python3 -m virtualenv venv
+          source venv/bin/activate
+          sudo yum install libglvnd-glx -y
+          cd project
+          pip install -r AWS_requirements.txt
+          sudo sed -i "s|^n_of_workers:.*|n_of_workers: ${NbWorkers}|" AWS_params.yaml
+          sudo sed -i "s|^experiment_name:.*|experiment_name: ${ExperimentName}|" AWS_params.yaml
+          sudo sed -i "s|^plates:.*|plates: ${plates}|" AWS_params.yaml
+          sudo sed -i "s|^plate_identifier:.*|plate_identifier: ${PlateIdentifier}|" AWS_params.yaml
+          sudo sed -i "s|^fname_pattern:.*|fname_pattern: ${FnamePattern}|" AWS_params.yaml
+          sudo sed -i "s|^fname_delimiters:.*|fname_delimiters: ${FnameDelimiters}|" AWS_params.yaml
+          sudo sed -i "s|^file_extensions:.*|file_extensions: ${FileExtensions}|" AWS_params.yaml
+          sudo sed -i "s|^image_size:.*|image_size: ${ImageSize}|" AWS_params.yaml
+          sudo sed -i "s|^channel:.*|channel: ${channel}|" AWS_params.yaml
+          sudo sed -i "s|^ROI:.*|ROI: ${ROI}|" AWS_params.yaml
+          sudo sed -i "s|^RNA_channel:.*|RNA_channel: ${RNAChannel}|" AWS_params.yaml
+          sudo sed -i "s|^Mito_channel:.*|Mito_channel: ${MitoChannel}|" AWS_params.yaml
+          sudo sed -i "s|^zstack:.*|zstack: ${zstack}|" AWS_params.yaml
+          sudo sed -i "s|^downsampling:.*|downsampling: ${downsampling}|" AWS_params.yaml
+          sudo sed -i "s|^QC:.*|QC: ${QC}|" AWS_params.yaml
+          sudo sed -i "s|^FFC:.*|FFC: ${FFC}|" AWS_params.yaml
+          sudo sed -i "s|^FFC_n_images:.*|FFC_n_images: ${FFCNbImages}|" AWS_params.yaml
+          sudo sed -i "s|^csv_coordinates:.*|csv_coordinates: ${CsvCoordinates}|" AWS_params.yaml
+          sudo sed -i "s|^segmenting_function:.*|segmenting_function: ${SegmentingFunction}|" AWS_params.yaml
+          sudo sed -i "s|^min_cell_size:.*|min_cell_size: ${MinCellSize}|" AWS_params.yaml
+          sudo sed -i "s|^max_cell_size:.*|max_cell_size: ${MaxCellSize}|" AWS_params.yaml
+          sudo sed -i "s|^s3_bucket:.*|s3_bucket: ${S3Bucket}|" AWS_params.yaml
+          sudo sed -i "s|^nb_subsets:.*|nb_subsets: ${NbSubsets}|" AWS_params.yaml
+          sudo sed -i "s|^amazon_image_id:.*|amazon_image_id: ${AmazonAMI}|" AWS_params.yaml
+          sudo sed -i "s|^instance_type:.*|instance_type: ${InstanceType}|" AWS_params.yaml
+          sudo sed -i "s|^max_file_size:.*|max_file_size: ${MaxFileSize}|" AWS_params.yaml
+          sudo sed -i "s|^neurite_tracing:.*|neurite_tracing: ${NeuriteTracing}|" AWS_params.yaml
+          sudo sed -i "s|^region:.*|region: ${AWSRegion}|" AWS_params.yaml
+          python3 AWS_scalefex_init.py
+Outputs:
+  InstanceId1:
+    Description: EC2 Instance ID 1
+    Value: !Ref ScaleFExEC2Instance1

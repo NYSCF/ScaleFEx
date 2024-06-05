@@ -1,0 +1,174 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: CloudFormation template to create a secure VPC, subnet, security group, and IAM role for EC2 instances with S3, GitHub, EC2, and CloudWatch access.
+
+Resources:
+  # VPC
+  ScaleFExVPC:
+    Type: 'AWS::EC2::VPC'
+    Properties:
+      CidrBlock: '10.0.0.0/16'
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+        - Key: Name
+          Value: ScaleFExVPC
+
+  # Subnet
+  ScaleFExSubnet:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      VpcId: !Ref ScaleFExVPC
+      CidrBlock: '10.0.1.0/24'
+      MapPublicIpOnLaunch: true
+      AvailabilityZone: !Select [ 0, !GetAZs '' ]  # Select the first Availability Zone in the region
+      Tags:
+        - Key: Name
+          Value: ScaleFExSubnet
+
+  # Internet Gateway
+  ScaleFExInternetGateway:
+    Type: 'AWS::EC2::InternetGateway'
+    Properties:
+      Tags:
+        - Key: Name
+          Value: ScaleFExInternetGateway
+
+  # Attach Internet Gateway to VPC
+  AttachScaleFExGateway:
+    Type: 'AWS::EC2::VPCGatewayAttachment'
+    Properties:
+      VpcId: !Ref ScaleFExVPC
+      InternetGatewayId: !Ref ScaleFExInternetGateway
+
+  # Route Table
+  ScaleFExRouteTable:
+    Type: 'AWS::EC2::RouteTable'
+    Properties:
+      VpcId: !Ref ScaleFExVPC
+      Tags:
+        - Key: Name
+          Value: ScaleFExRouteTable
+
+  # Route
+  ScaleFExRoute:
+    Type: 'AWS::EC2::Route'
+    Properties:
+      RouteTableId: !Ref ScaleFExRouteTable
+      DestinationCidrBlock: '0.0.0.0/0'
+      GatewayId: !Ref ScaleFExInternetGateway
+
+  # Associate Subnet with Route Table
+  ScaleFExSubnetRouteTableAssociation:
+    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+    Properties:
+      SubnetId: !Ref ScaleFExSubnet
+      RouteTableId: !Ref ScaleFExRouteTable
+
+  # S3 VPC Endpoint
+  S3VPCEndpoint:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      VpcId: !Ref ScaleFExVPC
+      ServiceName: !Sub 'com.amazonaws.${AWS::Region}.s3'
+      RouteTableIds:
+        - !Ref ScaleFExRouteTable
+
+  # Security Group
+  ScaleFExSecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      GroupDescription: 'Allow only outbound internet access'
+      VpcId: !Ref ScaleFExVPC
+      SecurityGroupEgress:
+        - IpProtocol: '-1'
+          CidrIp: '0.0.0.0/0'
+      SecurityGroupIngress: []  # No inbound traffic allowed
+      Tags:
+        - Key: Name
+          Value: ScaleFExSecurityGroup
+
+  # IAM Role
+  ScaleFExIAMRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: 'ec2.amazonaws.com'
+            Action: 'sts:AssumeRole'
+      Path: '/'
+
+  # IAM Instance Profile
+  ScaleFExInstanceProfile:
+    Type: 'AWS::IAM::InstanceProfile'
+    Properties:
+      InstanceProfileName: 'ScaleFExInstanceProfile'  # Fixed name
+      Path: '/'
+      Roles:
+        - !Ref ScaleFExIAMRole
+
+  # IAM Role Policy
+  ScaleFExIAMPolicy:
+    Type: 'AWS::IAM::Policy'
+    Properties:
+      PolicyName: 'ScaleFExEC2S3GitHubCloudWatchAccess'
+      Roles:
+        - !Ref ScaleFExIAMRole
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - 's3:GetObject'
+              - 's3:PutObject'
+              - 's3:ListBucket'
+            Resource: '*'
+          - Effect: Allow
+            Action:
+              - 'ec2:*'
+            Resource: '*'
+          - Effect: Allow
+            Action:
+              - 'cloudwatch:*'
+            Resource: '*'
+          - Effect: Allow
+            Action:
+              - 'logs:CreateLogGroup'
+              - 'logs:CreateLogStream'
+              - 'logs:PutLogEvents'
+            Resource: 'arn:aws:logs:*:*:*'
+          - Effect: Allow
+            Action:
+              - 'iam:PassRole'
+            Resource: !GetAtt ScaleFExIAMRole.Arn
+          - Effect: Allow
+            Action:
+              - 'sts:DecodeAuthorizationMessage'
+            Resource: '*'
+
+Outputs:
+  VPCId:
+    Description: 'VPC Id'
+    Value: !Ref ScaleFExVPC
+    Export:
+      Name: ScaleFExVPCId
+
+  SubnetId:
+    Description: 'Subnet Id'
+    Value: !Ref ScaleFExSubnet
+    Export:
+      Name: ScaleFExSubnetId
+
+  SecurityGroupId:
+    Description: 'Security Group Id'
+    Value: !Ref ScaleFExSecurityGroup
+    Export:
+      Name: ScaleFExSecurityGroupId
+
+  InstanceProfileName:
+    Description: 'IAM Instance Profile Name'
+    Value: 'ScaleFExInstanceProfile'
+    Export:
+      Name: ScaleFExInstanceProfileName

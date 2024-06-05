@@ -4,58 +4,63 @@ import numpy as np
 from datetime import datetime
 import data_query.query_functions_AWS as dq
 import boto3
+import sched
+import time
 
 ROOT_DIR = '/'.join(__file__.split('/')[:-1])
 
-class Screen_Init: #come up with a better name
+class Screen_Init: 
     """
     Class representing the initialisation of AWS screen.
 
     Methods:
-        __init__(yaml_path='param_AWS.yaml'): 
-            Initializes the Screen_Compute object with param_AWS from a YAML file.
+        __init__(yaml_path='AWS_params.yaml'): 
+            Initializes the Screen_Compute object with AWS_params from a YAML file.
     """
-    def __init__(self, yaml_path='param_AWS.yaml'):
+    def __init__(self, yaml_path='AWS_params.yaml'):
         """
-        Initializes the Screen_Compute object with param_AWS from a YAML file.
+        Initializes the Screen_Compute object with AWS_params from a YAML file.
 
         Args:
-            yaml_path (str): Path to the YAML file containing param_AWS. Default is 'param_AWS.yaml'.
+            yaml_path (str): Path to the YAML file containing AWS_params. Default is 'AWS_params.yaml'.
         """
         # Read the yaml file
         with open(yaml_path, 'rb') as f:
-            self.param_AWS = yaml.load(f.read(), Loader=yaml.CLoader)
-        files = dq.query_data(self.param_AWS['fname_pattern'],plate_identifier = self.param_AWS['plate_identifier'],
-                            delimiters = self.param_AWS['fname_delimiters'],exts=self.param_AWS['file_extensions'],
-                            experiment_name = self.param_AWS['experiment_name'],plates=self.param_AWS['plates'], 
-                            s3_bucket = self.param_AWS['s3_bucket'])
+            self.AWS_params = yaml.load(f.read(), Loader=yaml.CLoader)
+        files = dq.query_data(self.AWS_params['fname_pattern'],plate_identifier = self.AWS_params['plate_identifier'],
+                            delimiters = self.AWS_params['fname_delimiters'],exts=self.AWS_params['file_extensions'],
+                            experiment_name = self.AWS_params['experiment_name'],plates=self.AWS_params['plates'], 
+                            s3_bucket = self.AWS_params['s3_bucket'])
         
         # Perform Flat Field Correction (FFC)
         self.flat_field_correction = {}
     
-        if self.param_AWS['FFC'] is True:
-            ffc_file = os.path.join(self.param_AWS['experiment_name'] + '_FFC.p')
+        if self.AWS_params['FFC'] is True:
+            ffc_file = os.path.join(self.AWS_params['experiment_name'] + '_FFC.p')
             if not os.path.exists(ffc_file):
                 print(ffc_file + ' Not found generating FFC now')
                 self.flat_field_correction = dq.flat_field_correction_AWS(files,ffc_file,
-                self.param_AWS['s3_bucket'],self.param_AWS['channel'],self.param_AWS['experiment_name'],
-                n_images=self.param_AWS['FFC_n_images'])
+                self.AWS_params['s3_bucket'],self.AWS_params['channel'],self.AWS_params['experiment_name'],
+                n_images=self.AWS_params['FFC_n_images'])
             else:
                 print(ffc_file + ' Found, loading FFC')
                 self.flat_field_correction = pickle.load(open(ffc_file, "rb"))
         else:
-            for channel in self.param_AWS['channel']:
+            for channel in self.AWS_params['channel']:
                 self.flat_field_correction[channel] = 1
 
-        dq.upload_ffc_to_s3(self.param_AWS['s3_bucket'],'param_AWS.yaml',self.param_AWS['experiment_name'])
+        dq.upload_ffc_to_s3(self.AWS_params['s3_bucket'],'AWS_params.yaml',self.AWS_params['experiment_name'])
 
         if len(files) != 0:
-            dq.launch_ec2_instances(self.param_AWS['experiment_name'],
-                self.param_AWS['image_id'], self.param_AWS['instance_type'], self.param_AWS['plates'], self.param_AWS['nb_subsets'])
+            instance_ids,instance_tags = dq.launch_ec2_instances(self.AWS_params['experiment_name'],self.AWS_params['region'],self.AWS_params['s3_bucket'],
+                self.AWS_params['amazon_image_id'], self.AWS_params['instance_type'], self.AWS_params['plates'], self.AWS_params['nb_subsets'],
+                self.AWS_params['csv_coordinates'],subnet_id = self.AWS_params['subnet_id'],security_group_id =self.AWS_params['security_group_id'])
+            scheduler = sched.scheduler(time.time, time.sleep)
+            scheduler.enter(300, 1, dq.periodic_check, (scheduler, 360, dq.check_instance_metrics, (instance_ids,instance_tags,0.35,0)))
+            scheduler.run()
+        
         else  :
             print('No files found')
-
-        # dq.terminate_current_instance()
 
 def import_module(module_name):
     try:
