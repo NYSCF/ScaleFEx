@@ -77,12 +77,16 @@ Resources:
   ScaleFExSecurityGroup:
     Type: 'AWS::EC2::SecurityGroup'
     Properties:
-      GroupDescription: 'Allow only outbound internet access'
+      GroupDescription: 'Allow inbound SSH and outbound internet access'
       VpcId: !Ref ScaleFExVPC
       SecurityGroupEgress:
         - IpProtocol: '-1'
           CidrIp: '0.0.0.0/0'
-      SecurityGroupIngress: []  # No inbound traffic allowed
+      SecurityGroupIngress:
+        - IpProtocol: 'tcp'
+          FromPort: 22
+          ToPort: 22
+          CidrIp: '0.0.0.0/0'
       Tags:
         - Key: Name
           Value: ScaleFExSecurityGroup
