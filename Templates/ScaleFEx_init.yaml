@@ -147,7 +147,7 @@ Parameters:
   MaxFileSize:
     Description: "Maximum file size"
     Type: Number
-    Default: 50
+    Default: 32
   NeuriteTracing:
     Description: "NeuriteTracing"
     Type: String
@@ -159,11 +159,11 @@ Parameters:
   SubnetID:
     Description: "SubnetID"
     Type: String
-    Default: 
+    Default: ''
   SecurityGroupID:
     Description: "SecurityGroupID"
     Type: String
-    Default: 
+    Default: ''
 
 Resources:
   # EC2 Instance
