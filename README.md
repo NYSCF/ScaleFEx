@@ -66,9 +66,15 @@ pip install -r requirements.txt
     - **visualize_masks**: False ; visualize the segmentation mask from each channel. NOTE: we suggest to visualize the masks for testing, but to turn it off during the processing of large screens
     - **visualize_crops**: False ; visualizes the crop of the cell. This helps setting the best ROI size, but we suggest to visualize the crop for testing, but to turn it off during the processing of large screens
     
-   **AWS settings**
-    - **s3_bucket**: 'your-bucket-name'
-    - **subset**: 'A' [TO BE CHANGED]
+   **AWS parameters**
+    - **s3_bucket**: 'your-bucket-name' ; i.e: 'nyscf-scalefex'
+    - **nb_subsets**: 5 ; How many machines you want to deploy, for each plate listed.
+    - **NbWorkers**: 40
+    - **MaxFileSize**: 32
+    - **region**: 'us-east-1' ; Your AWS Region
+    - **instance_type**: 'c5.12xlarge'
+    - **subnet_id**: 'subnet-XXXXXXXX' ; Your subnet_id, if left empty it will use a default subnet
+    - **security_group_id**: 'sg-XXXXXXXX' ; Your subnet_id, if left empty it will use a default security group
   
   
       
