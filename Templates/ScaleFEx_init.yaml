@@ -188,10 +188,21 @@ Resources:
           #!/bin/bash
           cd /home/ec2-user
           sudo yum update -y
-          mkdir project
-          aws s3 sync s3://${S3Bucket}/NYSCF_HCI_image_processing/ project
-          aws s3 sync s3://${S3Bucket}/resultfolder/${ExperimentName}/ project --exclude '*' --include='${ExperimentName}_FFC.p'
           sudo yum install python3 python3-pip -y
+          sudo yum install -y awscli jq
+          sudo yum install git -y
+          SECRET_NAME="Gab_Github"
+          REGION="${AWSRegion}"
+          SECRET=$(aws secretsmanager get-secret-value --secret-id $SECRET_NAME --region $REGION --query SecretString --output text)
+          USERNAME=$(echo "$SECRET" | jq -r 'keys[]')
+          TOKEN=$(echo "$SECRET" | jq -r '.[keys[]]')
+          echo -e "machine github.com\nlogin $USERNAME\npassword $TOKEN" > ~/.netrc 
+          chmod 600 ~/.netrc
+          MAIN_REPO_URL="https://github.com/NYSCF/NYSCF_HCI_image_processing.git"
+          git clone $MAIN_REPO_URL
+          cd NYSCF_HCI_image_processing
+          git submodule update --init --recursive
+          mv ../NYSCF_HCI_image_processing project
           python3 -m pip install --user virtualenv
           python3 -m virtualenv venv
           source venv/bin/activate
@@ -200,18 +211,18 @@ Resources:
           pip install -r AWS_requirements.txt
           sudo sed -i "s|^n_of_workers:.*|n_of_workers: ${NbWorkers}|" AWS_params.yaml
           sudo sed -i "s|^experiment_name:.*|experiment_name: ${ExperimentName}|" AWS_params.yaml
-          sudo sed -i "s|^plates:.*|plates: ${plates}|" AWS_params.yaml
+          sudo sed -i "s|^plates:.*|plates: ${Plates}|" AWS_params.yaml
           sudo sed -i "s|^plate_identifier:.*|plate_identifier: ${PlateIdentifier}|" AWS_params.yaml
           sudo sed -i "s|^fname_pattern:.*|fname_pattern: ${FnamePattern}|" AWS_params.yaml
           sudo sed -i "s|^fname_delimiters:.*|fname_delimiters: ${FnameDelimiters}|" AWS_params.yaml
           sudo sed -i "s|^file_extensions:.*|file_extensions: ${FileExtensions}|" AWS_params.yaml
           sudo sed -i "s|^image_size:.*|image_size: ${ImageSize}|" AWS_params.yaml
-          sudo sed -i "s|^channel:.*|channel: ${channel}|" AWS_params.yaml
+          sudo sed -i "s|^channel:.*|channel: ${Channel}|" AWS_params.yaml
           sudo sed -i "s|^ROI:.*|ROI: ${ROI}|" AWS_params.yaml
           sudo sed -i "s|^RNA_channel:.*|RNA_channel: ${RNAChannel}|" AWS_params.yaml
           sudo sed -i "s|^Mito_channel:.*|Mito_channel: ${MitoChannel}|" AWS_params.yaml
-          sudo sed -i "s|^zstack:.*|zstack: ${zstack}|" AWS_params.yaml
-          sudo sed -i "s|^downsampling:.*|downsampling: ${downsampling}|" AWS_params.yaml
+          sudo sed -i "s|^zstack:.*|zstack: ${ZStack}|" AWS_params.yaml
+          sudo sed -i "s|^downsampling:.*|downsampling: ${Downsampling}|" AWS_params.yaml
           sudo sed -i "s|^QC:.*|QC: ${QC}|" AWS_params.yaml
           sudo sed -i "s|^FFC:.*|FFC: ${FFC}|" AWS_params.yaml
           sudo sed -i "s|^FFC_n_images:.*|FFC_n_images: ${FFCNbImages}|" AWS_params.yaml
@@ -228,7 +239,6 @@ Resources:
           sudo sed -i "s|^region:.*|region: ${AWSRegion}|" AWS_params.yaml
           sudo sed -i "s|^security_group_id:.*|security_group_id: ${SecurityGroupID}|" AWS_params.yaml
           sudo sed -i "s|^subnet_id:.*|subnet_id: ${SubnetID}|" AWS_params.yaml
-
           python3 AWS_scalefex_init.py
 
 Outputs:
