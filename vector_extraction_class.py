@@ -66,7 +66,7 @@ class Screen_Compute: #come up with a better name
         if self.parameters['AI_cell_segmentation'] is True:
             if self.parameters['segmenting_function'] == 'MaskRCNN_Deployment.segmentation_mrcnn':
                 from MaskRCNN_Deployment.segmentation_mrcnn import MaskRCNN
-                mrcnn_weights = os.path.join(ROOT_DIR,'MaskRCNN_Deployment/weights/maskrcnn_weights.pt')
+                mrcnn_weights = os.path.join('/home/biancamigliori/Documents/random_projection','maskrcnn_weights.pt')
                 # mrcnn_weights = '/home/biancamigliori/Documents/random_projection/maskrcnn_weights.pt'
                 self.mrcnn = MaskRCNN(weights=mrcnn_weights,use_cpu=self.parameters['use_cpu_segmentation'],gpu_id=self.parameters['gpu_AI'])
             elif self.parameters['segmenting_function'] == 'ADDIEs':
