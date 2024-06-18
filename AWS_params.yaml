@@ -28,7 +28,7 @@ amazon_image_id: 'ami-04e5276ebb8451442'
 segmenting_function: 'Nuclei_segmentation.nuclei_location_extraction' # 'MaskRCNN_Deployment.segmentation_mrcnn'   
 RNA_channel: 'ch5' #set only if you want to compute ScaleFex
 Mito_channel: 'ch2' #set only if you want to compute ScaleFex
-n_of_workers: 1
+n_of_workers: 40
 subnet_id: 'subnet-02c84612973fa10bf' #
 security_group_id: 'sg-0b8de5a2df4b409dc' #'
 
