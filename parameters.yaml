@@ -1,23 +1,23 @@
 # HCI PIPELINE PARAMETERS 
 
 # GENERAL PARAMETERS
-vector_type: 'embeddings' #'scalefex', 'embeddings', '' for QC only, 'coordinates' for coordinates of cells
+vector_type: 'scalefex' #'scalefex', 'embeddings', '' for QC only, 'coordinates' for coordinates of cells
 resource: 'local' #'local', 'AWS' # 'local' for local computation, 'AWS' for cloud computing
 n_of_workers: 1 # int, n of workers to use in parallel. LOWER FOR TESTING PURPOSES
 
-# location_parameters:
+# Parameters for file retrieval and saving:
 
-exp_folder: '/mnt/2e6952d2-a327-41fa-9451-7ce13129d27c/HTN0002' # Main folder with subfolders of plates (each with a subfolder of images)
+exp_folder: '/mnt/10b1e8d4-f3a8-46e5-9a1a-c197b4f39011/HTF0002/' # Main folder with subfolders of plates (each with a subfolder of images)
 experiment_name: 'HTN0002' # Experiment name used to identify the experiment
-saving_folder: '/home/biancamigliori/Documents/HCI_Projects/Neurons' # folder to save results (e.g., embeddings, scalefex, coordinates, QC)
+saving_folder: '/home/biancamigliori/Documents/HCI_Projects/Try' # folder to save results (e.g., embeddings, scalefex, coordinates, QC)
 plates: ['203'] # list of plates to be processed (each should be in one plate subdirectory name)
 max_file_size: 2000 # max file size in MB before a new file is created
 
 # image file parsing parameters:
-plate_identifier: '_CCU384_' #identifier for finding the plate number; should directly precede each plate in "plates" list '_CCU384_'
-fname_pattern: 'Images/<Well(6)><Site(3)><Plane(3)>-<Channel(3)>.<ext>' # Phenix default pattern (see the README for https://github.com/NYSCF/data_query for more details)
-fname_delimiters: ['-','.'] # character separators (delimiters) for information parsed from file_names (example: ('-','.') for 'r03c03f01p01-ch1sk1fk1fl1.tiff')
-file_extensions: ['tiff'] # possible extensions of images to be processed
+plate_identifiers: ['_C384W_','_'] #identifier for finding the plate number; should directly precede and follow the plate identifier 
+pattern: 'Images/<Well>f<Site>p<Plane(2)>-<Channel(3)>.<ext>' # pattern of the image file: specify all the characters that make up the filepath indicating the location and 
+  #delimiter of the images path and/or the length of each element if a delimiter is not present. Specify Well, Site, Channel, and Plane
+exts: ['tiff',] # possible extensions of images to be processed
 image_size: [2160,2160] # size of images to be processed in pixels (height, width)
 
 # COMPUTATION PARAMETERS
