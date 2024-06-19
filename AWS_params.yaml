@@ -2,7 +2,7 @@
 s3_bucket: 'nyscf-scalefex'
 nb_subsets: 1 #How many machines per plate
 experiment_name: 'HTS0019'
-plates: ['103']
+plates: ['101']
 channel: ['ch4','ch1','ch5','ch3','ch2']   
 region: 'us-east-1'
 
@@ -23,14 +23,14 @@ file_extensions: ['tiff']
 image_size: [2160,2160]
 ROI: 150
 max_file_size: 32 # GB
-instance_type: 'c5.12xlarge'
+instance_type: 'c5.18xlarge'
 amazon_image_id: 'ami-04e5276ebb8451442'
 segmenting_function: 'Nuclei_segmentation.nuclei_location_extraction' # 'MaskRCNN_Deployment.segmentation_mrcnn'   
 RNA_channel: 'ch5' #set only if you want to compute ScaleFex
 Mito_channel: 'ch2' #set only if you want to compute ScaleFex
-n_of_workers: 40
-subnet_id: 'subnet-02c84612973fa10bf' #
-security_group_id: 'sg-0b8de5a2df4b409dc' #'
+n_of_workers: 1
+subnet_id: 'subnet-091b4892ee52a8bb6' #
+security_group_id: 'sg-0d1a8ae858d3d59a6' #'
 
 #Fixed
 subset_index: 1
