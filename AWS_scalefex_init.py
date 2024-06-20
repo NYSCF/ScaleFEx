@@ -28,9 +28,8 @@ class Screen_Init:
         with open(yaml_path, 'rb') as f:
             self.AWS_params = yaml.load(f.read(), Loader=yaml.CLoader)
         files = dq.query_data(self.AWS_params['fname_pattern'],plate_identifier = self.AWS_params['plate_identifier'],
-                            delimiters = self.AWS_params['fname_delimiters'],exts=self.AWS_params['file_extensions'],
-                            experiment_name = self.AWS_params['experiment_name'],plates=self.AWS_params['plates'], 
-                            s3_bucket = self.AWS_params['s3_bucket'])
+                              exts=self.AWS_params['file_extensions'],experiment_name = self.AWS_params['experiment_name'],
+                              plates=self.AWS_params['plates'], s3_bucket = self.AWS_params['s3_bucket'])
         
         # Perform Flat Field Correction (FFC)
         self.flat_field_correction = {}
@@ -56,7 +55,8 @@ class Screen_Init:
                 self.AWS_params['amazon_image_id'], self.AWS_params['instance_type'], self.AWS_params['plates'], self.AWS_params['nb_subsets'],
                 self.AWS_params['csv_coordinates'],subnet_id = self.AWS_params['subnet_id'],security_group_id =self.AWS_params['security_group_id'])
             scheduler = sched.scheduler(time.time, time.sleep)
-            scheduler.enter(300, 1, dq.periodic_check, (scheduler, 360, dq.check_instance_metrics, (instance_ids,instance_tags,0.35,0)))
+            scheduler.enter(300, 1, dq.periodic_check, (scheduler, 360, dq.check_instance_metrics, (instance_ids,instance_tags,
+                                                                                                    self.AWS_params['region'],0.35,0)))
             scheduler.run()
         
         else  :
