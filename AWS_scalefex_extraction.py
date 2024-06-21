@@ -35,12 +35,10 @@ class Screen_Compute: #come up with a better name
         with open(yaml_path, 'rb') as f:
             self.AWS_params = yaml.load(f.read(), Loader=yaml.CLoader)
         self.files = dq.query_data(self.AWS_params['fname_pattern'],plate_identifier = self.AWS_params['plate_identifier'],
-                            delimiters = self.AWS_params['fname_delimiters'],exts=self.AWS_params['file_extensions'],
-                            experiment_name = self.AWS_params['experiment_name'],plates=self.AWS_params['plates'], 
-                            s3_bucket = self.AWS_params['s3_bucket'])
+                              exts=self.AWS_params['file_extensions'],experiment_name = self.AWS_params['experiment_name'],
+                              plates=self.AWS_params['plates'], s3_bucket = self.AWS_params['s3_bucket'])
 
         print(self.files.head())
-        print(self.files)
         
         self.vec_dir = 'scalefex'
         if not os.path.exists(self.vec_dir):
