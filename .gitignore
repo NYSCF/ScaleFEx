@@ -10,7 +10,7 @@ try_*
 parameters.yaml
 # C extensions
 *.so
-
+/scalefex
 # Distribution / packaging
 .Python
 build/
