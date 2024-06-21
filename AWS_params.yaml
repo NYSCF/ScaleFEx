@@ -2,7 +2,7 @@
 s3_bucket: 'nyscf-scalefex'
 nb_subsets: 1 #How many machines per plate
 experiment_name: 'HTS0019'
-plates: ['103']
+plates: ['101']
 channel: ['ch4','ch1','ch5','ch3','ch2']   
 region: 'us-east-1'
 
@@ -17,20 +17,20 @@ QC: True
 zstack: False
 neurite_tracing: ''
 plate_identifier: '_CV384W_' #identifier for finding the plate number
-fname_pattern: 'Images/<Well(6)><Site(3)><Plane(3)>-<Channel(3)>.<ext>' # Phenix pattern
+fname_pattern: 'Images/<Well>f<Site>p<Plane(2)>-<Channel(3)>.<ext>' #pattern: 'Images/<Well>f<Site>p<Plane(2)>-<Channel(3)>.<ext>' Phenix pattern
 fname_delimiters: ['-','.']
 file_extensions: ['tiff']
 image_size: [2160,2160]
 ROI: 150
-max_file_size: 32 # GB
+max_file_size: 40 # GB
 instance_type: 'c5.12xlarge'
-amazon_image_id: 'ami-04e5276ebb8451442'
+amazon_image_id: 'ami-08a0d1e16fc3f61ea'
 segmenting_function: 'Nuclei_segmentation.nuclei_location_extraction' # 'MaskRCNN_Deployment.segmentation_mrcnn'   
 RNA_channel: 'ch5' #set only if you want to compute ScaleFex
 Mito_channel: 'ch2' #set only if you want to compute ScaleFex
-n_of_workers: 40
-subnet_id: 'subnet-02c84612973fa10bf' #
-security_group_id: 'sg-0b8de5a2df4b409dc' #'
+n_of_workers: 2
+subnet_id: 'subnet-091b4892ee52a8bb6' 
+security_group_id: 'sg-0d1a8ae858d3d59a6'
 
 #Fixed
 subset_index: 1

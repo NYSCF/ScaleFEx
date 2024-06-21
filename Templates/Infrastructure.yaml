@@ -113,7 +113,6 @@ Resources:
       Roles:
         - !Ref ScaleFExIAMRole
 
-  # IAM Role Policy
   ScaleFExIAMPolicy:
     Type: 'AWS::IAM::Policy'
     Properties:
@@ -150,6 +149,11 @@ Resources:
           - Effect: Allow
             Action:
               - 'sts:DecodeAuthorizationMessage'
+            Resource: '*'
+          - Effect: Allow
+            Action:
+              - 'secretsmanager:GetSecretValue'
+              - 'secretsmanager:ListSecrets'
             Resource: '*'
 
 Outputs:
