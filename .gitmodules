@@ -7,12 +7,6 @@
 [submodule "Quality_control_HCI"]
 	path = Quality_control_HCI
 	url = https://github.com/NYSCF/Quality_control_HCI.git
-[submodule "Embeddings_extraction_from_image"]
-	path = Embeddings_extraction_from_image
-	url = https://github.com/NYSCF/Embeddings_extraction_from_image.git
-[submodule "MaskRCNN_Deployment"]
-	path = MaskRCNN_Deployment
-	url = https://github.com/NYSCF/MaskRCNN_Deployment.git
 [submodule "ScaleFEx_from_crop"]
 	path = ScaleFEx_from_crop
 	url = https://github.com/NYSCF/ScaleFEx_from_crop.git

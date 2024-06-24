@@ -30,10 +30,7 @@ class Screen_Compute: #come up with a better name
         # Read the yaml file
         with open(yaml_path, 'rb') as f:
             self.parameters = yaml.load(f.read(), Loader=yaml.CLoader)
-        if 'mbed' in self.parameters['vector_type']:
-            global Embeddings_extraction_from_image
-            import Embeddings_extraction_from_image.batch_compute_embeddings
-        else:
+        if 'cale' in self.parameters['vector_type']:
             global ScaleFEx_from_crop
             import ScaleFEx_from_crop.compute_ScaleFEx
         if self.parameters['QC']==True:
@@ -61,15 +58,7 @@ class Screen_Compute: #come up with a better name
         else:
             for channel in self.parameters['channel']:
                 self.flat_field_correction[channel] = 1
-        # Initialize segmentation weights if using AI models
-        if self.parameters['AI_cell_segmentation'] is True:
-            if self.parameters['segmenting_function'] == 'MaskRCNN_Deployment.segmentation_mrcnn':
-                from MaskRCNN_Deployment.segmentation_mrcnn import MaskRCNN
-                mrcnn_weights = os.path.join('/home/biancamigliori/Documents/random_projection','maskrcnn_weights.pt')
-                # mrcnn_weights = '/home/biancamigliori/Documents/random_projection/maskrcnn_weights.pt'
-                self.mrcnn = MaskRCNN(weights=mrcnn_weights,use_cpu=self.parameters['use_cpu_segmentation'],gpu_id=self.parameters['gpu_AI'])
-            elif self.parameters['segmenting_function'] == 'ADDIEs':
-                print("For Addie to implement")
+
 
         # Loop over plates and start computation
         # if self.parameters['plates'] != 'all' and isinstance(self.parameters['plates'],list):
@@ -79,12 +68,8 @@ class Screen_Compute: #come up with a better name
         plate_list = sorted(files.plate.unique().tolist())
         print('Computing plates: ', plate_list)
         
-        if 'mbed' in self.parameters['vector_type']:
-            import Embeddings_extraction_from_image.inception_set
-            
-            self.parser = Embeddings_extraction_from_image.inception_set.place_holder(channel=self.parameters['channel'],
-                                                                                      device=self.parameters['device'],weights=self.parameters['weights_location'])
         vec_dir = os.path.join(self.saving_folder,self.parameters['vector_type'])
+
         if not os.path.exists(vec_dir):
             os.makedirs(vec_dir)   
             
@@ -147,10 +132,9 @@ class Screen_Compute: #come up with a better name
                     if self.parameters['csv_coordinates']=='':
                         center_of_mass=self.segment_crop_images(np_images[0,:,:,0])
                         center_of_mass=[list(row) + [n] for n,row in enumerate(center_of_mass)]
-                        if self.parameters['compute_live_cells'] is False:
-                            live_cells=len(center_of_mass)
-                        else:
-                            print('to be implemented')
+                        
+                        live_cells=len(center_of_mass)
+                      
                     else:
                         
                         locations=self.locations
@@ -170,20 +154,6 @@ class Screen_Compute: #come up with a better name
                         QC_vector['file_path'] = current_file
                         
                         self.csv_fileQC = self.save_csv_file(QC_vector,self.csv_fileQC)
-
-                    if self.parameters['tile_computation'] is True:
-                        ind=0
-                        vector=pd.DataFrame(np.asarray([plate,well,site]).reshape(1,3),columns=['plate','well','site'],index=[ind])
-                        vector=pd.concat([vector,Embeddings_extraction_from_image.batch_compute_embeddings.Compute_embeddings(self.parser,np_images,ind,self.parameters['channel'],
-                                                                                            ).embeddings],axis=1)
-                        vector['file_path'] = current_file
-                        
-                        try: 
-                            tile_csv
-                        except NameError:
-                            tile_csv = self.csv_file[:-4]+'Tile.csv'
-
-                        tile_csv = self.save_csv_file(vector,tile_csv)
 
               
                     for x,y,n in center_of_mass:
@@ -218,16 +188,8 @@ class Screen_Compute: #come up with a better name
                             if self.parameters['save_coordinates']==True:
                                 self.csv_file_coordinates = self.save_csv_file(vector,self.csv_file_coordinates)
 
-                            if 'mbed' in self.parameters['vector_type']:
 
-                                vector=pd.concat([vector,Embeddings_extraction_from_image.batch_compute_embeddings.Compute_embeddings(self.parser,
-                                                                        crop,0,self.parameters['channel']).embeddings],axis=1)
-                                vector['file_path'] = current_file
-                                vector['ROI_size'] = self.parameters['ROI']
-                                vector['channel_order'] = str(self.parameters['channel'])
-                                self.csv_file = self.save_csv_file(vector,self.csv_file)
-                            
-                            elif 'scal' in self.parameters['vector_type']:
+                            if 'scal' in self.parameters['vector_type']:
                                 try:
                                     scalefex = ScaleFEx_from_crop.compute_ScaleFEx.ScaleFEx(
                                         crop,
@@ -244,7 +206,7 @@ class Screen_Compute: #come up with a better name
                                         vector = pd.concat([vector, scalefex], axis=1)
                                         vector['file_path'] = current_file
                                         vector['ROI_size'] = self.parameters['ROI']
-                                        vector['channel_order'] = self.parameters['channel']
+                                        vector['channel_order'] = str(self.parameters['channel'])
                                         vector['downsampling'] = self.parameters['downsampling']
                                         self.csv_file = self.save_csv_file(vector, self.csv_file)
 
@@ -286,26 +248,17 @@ class Screen_Compute: #come up with a better name
         # extraction of the location of the cells
         nls=import_module(self.parameters['segmenting_function'])
         
-        if self.parameters['AI_cell_segmentation'] is False:    
-            img_mask=nls.compute_DNA_mask(img_nuc)
-            center_of_mass = nls.retrieve_coordinates(img_mask,
-                        cell_size_min=self.parameters['min_cell_size']*self.parameters['downsampling'],
+        
+        img_mask=nls.compute_DNA_mask(img_nuc)
+        center_of_mass = nls.retrieve_coordinates(img_mask,
+                    cell_size_min=self.parameters['min_cell_size']*self.parameters['downsampling'],
                         cell_size_max=self.parameters['max_cell_size']/self.parameters['downsampling'])
-        else:
-            if img_nuc.max() > 1:
-                img_nuc = img_nuc/img_nuc.max()
-            img_mask,center_of_mass = self.mrcnn.generate_masks(img_nuc,ds_size=(540,540),score_thresh=0.8,
-                                                                min_area_thresh=self.parameters['min_cell_size'],
-                                                                max_area_thresh=self.parameters['max_cell_size'],
-                                                                ROI=self.parameters['ROI'],min_cells=1,bin_thresh=0.5,
-                                                                remove_edges=False,try_quadrants=True)
-            if center_of_mass is None:
-                center_of_mass = []
+
         if self.parameters['visualization'] is True:
             self.show_image(img_nuc,img_mask)
 
         try:
-            center_of_mass
+            #center_of_mass
             print('N of cells found: ',len(center_of_mass))
         except NameError:
             center_of_mass = []
@@ -348,13 +301,8 @@ def main():
     Screen_Compute()
 
 if __name__ == "__main__":
-    pr = cProfile.Profile()
-    pr.enable()
+    
 
     main()  # Your main execution block
 
-    pr.disable()
-    with open("profile_results.txt", "w") as f:  # Choose a file path/name
-        ps = pstats.Stats(pr, stream=f)
-        ps.sort_stats("cumulative")  # Sorting by cumulative time
-        ps.print_stats()
+    
