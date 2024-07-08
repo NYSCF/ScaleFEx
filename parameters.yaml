@@ -49,7 +49,6 @@ subset_index: 1 #Which subset is being computed
 region: 'us-east-1'
 instance_type: 'c5.12xlarge'
 amazon_image_id: 'ami-08a0d1e16fc3f61ea'
-n_of_workers: 2
 subnet_id: 'subnet-091b4892ee52a8bb6' 
 security_group_id: 'sg-0d1a8ae858d3d59a6'
 
