@@ -24,9 +24,9 @@ Metadata:
           - MaxCellSize
           - CsvCoordinates
           - QC
-          - zstack
+          - Zstack
           - PlateIdentifier
-          - FnamePattern
+          - Pattern
           - FileExtensions
           - ImageSize
           - ROI
@@ -63,7 +63,7 @@ Parameters:
   PlateIdentifier:
     Description: "Identifier for finding the plate number; should directly precede and follow the plate identifier"
     Type: String
-    Default: ['_CV384W_','_']
+    Default: "['_CV384W_','_']"
   Pattern:
     Description: "Pattern of the image file: specify all the characters that make up the filepath indicating the location and"
     Type: String
@@ -79,7 +79,7 @@ Parameters:
   ROI:
     Description: "Half the size of the cropped area around the cell (e.g., 150 for 300x300 ROI) 90"
     Type: Number
-    Default: 150
+    Default: '150'
   RNAChannel:
     Description: "Channel with RNA stain (if any)"
     Type: String
@@ -96,7 +96,7 @@ Parameters:
   Downsampling:
     Description: "Downsampling ratio"
     Type: Number
-    Default: 1
+    Default: '1'
   QC:
     Description: "If true, compute a Quality Control step"
     Type: String
@@ -110,15 +110,15 @@ Parameters:
   FFCNbImages:
     Description: "Number of images to be used to produce the background trend image for the Flat Field Correction"
     Type: Number
-    Default: 500
+    Default: '500'
   MinCellSize:
     Description: "Minimum cell size area"
     Type: Number
-    Default: 200
+    Default: '200'
   MaxCellSize:
     Description: "Maximum cell size area"
     Type: Number
-    Default: 100000
+    Default: '100000'
   CsvCoordinates:
     Description: "CSV file for coordinates | coord.csv"
     Type: String
@@ -130,11 +130,11 @@ Parameters:
   NbSubsets:
     Description: "How many machines per plate"
     Type: Number
-    Default: 1
+    Default: '1'
   NbWorkers:
     Description: "Number of workers to use in parallel. Fixed for this InstanceType"
     Type: Number
-    Default: 40
+    Default: '40'
   InstanceType:
     Description: "Instance type to use"
     Type: String
@@ -142,7 +142,7 @@ Parameters:
   MaxFileSize:
     Description: "Max file size in MB before a new file is created"
     Type: Number
-    Default: 32
+    Default: '32'
   NeuriteTracing:
     Description: "Channel with which to compute tracing (if any)"
     Type: String
@@ -209,13 +209,13 @@ Resources:
           sudo sed -i "s|^plates:.*|plates: ${Plates}|" parameters.yaml
           sudo sed -i "s|^plate_identifiers:.*|plate_identifiers: ${PlateIdentifier}|" parameters.yaml
           sudo sed -i "s|^pattern:.*|pattern: ${Pattern}|" parameters.yaml
-          sudo sed -i "s|^Extensions:.*|Extensions: ${exts}|" parameters.yaml
+          sudo sed -i "s|^exts:.*|exts: ${Extensions}|" parameters.yaml
           sudo sed -i "s|^image_size:.*|image_size: ${ImageSize}|" parameters.yaml
           sudo sed -i "s|^channel:.*|channel: ${Channels}|" parameters.yaml
           sudo sed -i "s|^ROI:.*|ROI: ${ROI}|" parameters.yaml
           sudo sed -i "s|^RNA_channel:.*|RNA_channel: ${RNAChannel}|" parameters.yaml
           sudo sed -i "s|^Mito_channel:.*|Mito_channel: ${MitoChannel}|" parameters.yaml
-          sudo sed -i "s|^zstack:.*|zstack: ${ZStack}|" parameters.yaml
+          sudo sed -i "s|^zstack:.*|zstack: ${Zstack}|" parameters.yaml
           sudo sed -i "s|^downsampling:.*|downsampling: ${Downsampling}|" parameters.yaml
           sudo sed -i "s|^QC:.*|QC: ${QC}|" parameters.yaml
           sudo sed -i "s|^FFC:.*|FFC: ${FFC}|" parameters.yaml
