@@ -35,17 +35,14 @@ class Screen_Init:
         self.flat_field_correction = {}
     
         if self.parameters['FFC'] is True:
+
             ffc_file = os.path.join(self.parameters['experiment_name'] + '_FFC.p')
-            if not os.path.exists(ffc_file):
+            if not dq.check_s3_file_exists_with_prefix(self.parameters['s3_bucket'], self.parameters['exp_folder'],self.parameters['experiment_name']):
                 print(ffc_file + ' Not found generating FFC now')
                 self.flat_field_correction = dq.flat_field_correction_AWS(files,ffc_file,
                 self.parameters['s3_bucket'],self.parameters['channel'],self.parameters['experiment_name'],n_images=self.parameters['FFC_n_images'])
             else:
-                print(ffc_file + ' Found, loading FFC')
-                self.flat_field_correction = pickle.load(open(ffc_file, "rb"))
-        else:
-            for channel in self.parameters['channel']:
-                self.flat_field_correction[channel] = 1
+                print(ffc_file + ' Found')
 
         dq.upload_ffc_to_s3(self.parameters['s3_bucket'],'parameters.yaml',self.parameters['experiment_name'])
 
