@@ -13,17 +13,41 @@ Resources:
         - Key: Name
           Value: ScaleFExVPC
 
-  # Subnet
-  ScaleFExSubnet:
+  # Subnet in the first AZ
+  ScaleFExSubnetA:
     Type: 'AWS::EC2::Subnet'
     Properties:
       VpcId: !Ref ScaleFExVPC
       CidrBlock: '10.0.1.0/24'
       MapPublicIpOnLaunch: true
-      AvailabilityZone: !Select [ 0, !GetAZs '' ]  # Select the first Availability Zone in the region
+      AvailabilityZone: !Select [ 0, !GetAZs '' ]  # First AZ
       Tags:
         - Key: Name
-          Value: ScaleFExSubnet
+          Value: ScaleFExSubnetA
+
+  # Subnet in the second AZ
+  ScaleFExSubnetB:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      VpcId: !Ref ScaleFExVPC
+      CidrBlock: '10.0.2.0/24'
+      MapPublicIpOnLaunch: true
+      AvailabilityZone: !Select [ 1, !GetAZs '' ]  # Second AZ
+      Tags:
+        - Key: Name
+          Value: ScaleFExSubnetB
+
+  # Subnet in the third AZ
+  ScaleFExSubnetC:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      VpcId: !Ref ScaleFExVPC
+      CidrBlock: '10.0.3.0/24'
+      MapPublicIpOnLaunch: true
+      AvailabilityZone: !Select [ 2, !GetAZs '' ]  # Third AZ
+      Tags:
+        - Key: Name
+          Value: ScaleFExSubnetC
 
   # Internet Gateway
   ScaleFExInternetGateway:
@@ -57,11 +81,25 @@ Resources:
       DestinationCidrBlock: '0.0.0.0/0'
       GatewayId: !Ref ScaleFExInternetGateway
 
-  # Associate Subnet with Route Table
-  ScaleFExSubnetRouteTableAssociation:
+  # Subnet Route Table Association for SubnetA
+  SubnetARouteTableAssociation:
     Type: 'AWS::EC2::SubnetRouteTableAssociation'
     Properties:
-      SubnetId: !Ref ScaleFExSubnet
+      SubnetId: !Ref ScaleFExSubnetA
+      RouteTableId: !Ref ScaleFExRouteTable
+
+  # Subnet Route Table Association for SubnetB
+  SubnetBRouteTableAssociation:
+    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+    Properties:
+      SubnetId: !Ref ScaleFExSubnetB
+      RouteTableId: !Ref ScaleFExRouteTable
+
+  # Subnet Route Table Association for SubnetC
+  SubnetCRouteTableAssociation:
+    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+    Properties:
+      SubnetId: !Ref ScaleFExSubnetC
       RouteTableId: !Ref ScaleFExRouteTable
 
   # S3 VPC Endpoint
@@ -163,11 +201,23 @@ Outputs:
     Export:
       Name: ScaleFExVPCId
 
-  SubnetId:
-    Description: 'Subnet Id'
-    Value: !Ref ScaleFExSubnet
+  SubnetIdA:
+    Description: 'Subnet A Id'
+    Value: !Ref ScaleFExSubnetA
     Export:
-      Name: ScaleFExSubnetId
+      Name: ScaleFExSubnetAId
+
+  SubnetIdB:
+    Description: 'Subnet B Id'
+    Value: !Ref ScaleFExSubnetB
+    Export:
+      Name: ScaleFExSubnetBId
+
+  SubnetIdC:
+    Description: 'Subnet C Id'
+    Value: !Ref ScaleFExSubnetC
+    Export:
+      Name: ScaleFExSubnetCId
 
   SecurityGroupId:
     Description: 'Security Group Id'

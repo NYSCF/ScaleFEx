@@ -49,7 +49,8 @@ class Screen_Init:
         if len(files) != 0:
             instance_ids,instance_tags = dq.launch_ec2_instances(self.parameters['experiment_name'],self.parameters['region'],self.parameters['s3_bucket'],
                 self.parameters['amazon_image_id'], self.parameters['instance_type'], plates, self.parameters['nb_subsets'],
-                self.parameters['csv_coordinates'],subnet_id = self.parameters['subnet_id'],security_group_id =self.parameters['security_group_id'])
+                self.parameters['csv_coordinates'],ScaleFExSubnetA = self.parameters['ScaleFExSubnetA'],ScaleFExSubnetB = self.parameters['ScaleFExSubnetB']
+                ,ScaleFExSubnetC = self.parameters['ScaleFExSubnetC'],security_group_id =self.parameters['security_group_id'])
             scheduler = sched.scheduler(time.time, time.sleep)
             scheduler.enter(300, 1, dq.periodic_check, (scheduler, 360, dq.check_instance_metrics, (instance_ids,instance_tags,
                                                                                                     self.parameters['region'],0.35,0)))
