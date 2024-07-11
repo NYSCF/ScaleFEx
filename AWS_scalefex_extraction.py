@@ -42,11 +42,12 @@ class Screen_Compute: #come up with a better name
         
         self.vec_dir = 'scalefex'
         if not os.path.exists(self.vec_dir):
-            os.makedirs(self.vec_dir)  
+            os.makedirs(self.vec_dir)
+              
         ffc_file = os.path.join(self.vec_dir,self.parameters['experiment_name'] + '_FFC.p')
         self.flat_field_correction = {}
         if self.parameters['FFC'] is True and os.path.exists(ffc_file):
-                print(ffc_file + ' Found generating FFC now')
+                print(ffc_file + ' Found')
         else:
             for channel in self.parameters['channel']:
                 self.flat_field_correction[channel] = 1
