@@ -11,7 +11,7 @@ ROOT_DIR = '/'.join(__file__.split('/')[:-1])
 
 class Screen_Init: 
     """
-    Class representing the initialisation of AWS screen.
+    Class representing the initialisation of AWS screen. #GAB can you add a little more description as of when to use it? Is this the one that must be used once?
 
     Methods:
         __init__(yaml_path='parameters.yaml'): 
