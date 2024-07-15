@@ -3,8 +3,30 @@ from multiprocessing import Manager, Semaphore, Process, Value, Lock, current_pr
 from datetime import datetime
 
 class parallelize:
-     #Parallelesation
+    """
+    A class to parallelize tasks using multiprocessing.
+    
+    Attributes:
+        function (callable): The function to apply to each task.
+        task_queue (multiprocessing.Queue): Queue to hold tasks for processing.
+        mode (str): Operation mode ('dev' or 'prod') for the class behavior.
+    
+    Methods:
+        __init__(tasks, function, max_processes=1, mode='dev'): Initializes the ParallelizeTasks object.
+        add_task_to_queue(task): Adds a task to the multiprocessing queue.
+        process_worker(semaphore): Worker for processing tasks in 'dev' mode.
+        process_worker_prod(semaphore, process_counter, task_count, task_queue, timeout=10000): Worker for processing tasks with timeout in 'prod' mode.
+    """
     def __init__(self,tasks,function,max_processes=1,mode='dev'):
+        """
+        Initialize the ParallelizeTasks with a set of tasks, a target function, and the maximum number of processes.
+        
+        Parameters:
+            tasks (list): List of tasks to be processed.
+            function (callable): Function to apply to each task.
+            max_processes (int): Maximum number of parallel processes.
+            mode (str): Operating mode, 'dev' for development and 'prod' for production.
+        """
         if mode =='dev':
             self.function=function
             # Create a multiprocessing Manager Queue to hold the tasks
@@ -64,8 +86,6 @@ class parallelize:
             print('All processes have completed their tasks.')
             print('Lenght =', datetime.now() - start1 )
 
-            # utils.push_all_files_embeddings(self.bucket,self.experiment_name,self.plate,self.subset)
-            # utils.terminate_current_instance(self.bucket,self.experiment_name,self.plate)
 
     # Function to add tasks to the queue
     def add_task_to_queue(self,task):
@@ -83,11 +103,13 @@ class parallelize:
 
     def process_worker_prod(self, semaphore, process_counter, task_count, task_queue, timeout=10000):
         """
-        Worker function to process each task with a timeout.
-        This function is designed to be run in a separate process for each worker.
-        It processes tasks from a shared queue, with each task being processed with a specified timeout.
-
+        Process tasks from the queue in development mode. This worker acquires a semaphore,
+        processes a task, and releases the semaphore.
+        
+        Parameters:
+            semaphore (multiprocessing.Semaphore): Semaphore to control access to task queue.
         """
+
         def task_wrapper(queue, task, *args):
             """
             Wrapper function to execute a task and put the result in a queue.
