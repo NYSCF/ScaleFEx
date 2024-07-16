@@ -1,11 +1,8 @@
-import yaml,os,pickle
-import pandas as pd
-import numpy as np
-from datetime import datetime
-import data_query.query_functions_AWS as dq
-import boto3
+import yaml,os
 import sched
 import time
+import data_query.query_functions_AWS as dq
+
 
 ROOT_DIR = '/'.join(__file__.split('/')[:-1])
 
@@ -67,20 +64,12 @@ def import_module(module_name):
         print(f"Module '{module_name}' not found.")
         return None
 
-import cProfile
-import pstats
 
 def main():
     Screen_Init()
 
 if __name__ == "__main__":
-    pr = cProfile.Profile()
-    pr.enable()
+
 
     main()  # Your main execution block
 
-    pr.disable()
-    with open("profile_results.txt", "w") as f:  # Choose a file path/name
-        ps = pstats.Stats(pr, stream=f)
-        ps.sort_stats("cumulative")  # Sorting by cumulative time
-        ps.print_stats()

@@ -7,7 +7,8 @@ import data_query.query_functions_local
 import time
 from scipy.spatial import KDTree
 import matplotlib.pyplot as plt
-
+global ScaleFEx_from_crop
+import ScaleFEx_from_crop.compute_ScaleFEx
 
 ROOT_DIR = '/'.join(__file__.split('/')[:-1])
 
@@ -31,9 +32,7 @@ class Process_HighContentImaging_screen:
         # Read the yaml file
         with open(yaml_path, 'rb') as f:
             self.parameters = yaml.load(f.read(), Loader=yaml.CLoader)
-        if 'cale' in self.parameters['vector_type']:
-            global ScaleFEx_from_crop
-            import ScaleFEx_from_crop.compute_ScaleFEx
+            
         if self.parameters['QC']==True:
             global Quality_control_HCI 
             import Quality_control_HCI.compute_global_values
@@ -284,7 +283,7 @@ def import_module(module_name):
     
 
 def main():
-    Screen_Compute()
+    Process_HighContentImaging_screen()
 
 if __name__ == "__main__":
     
