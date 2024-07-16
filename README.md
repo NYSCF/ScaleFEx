@@ -55,7 +55,7 @@ pip install -r requirements.txt
     - **visualize_crops**: False ; visualizes the crop of the cell. This helps setting the best ROI size, but we suggest to visualize the crop for testing, but to turn it off during the processing of large screens
     
    **AWS parameters**  GAB TO DESCRIBE BRIEFLY
-   - **s3_bucket**: 'nyscf-scalefex'
+   - **s3_bucket**: 'your-bucket'
    - **nb_subsets**: 6 #How many machines per plate
    - **subset_index**: 1 #Which subset is being computed
    - **region**: 'us-east-1'
