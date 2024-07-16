@@ -7,6 +7,4 @@
 [submodule "Quality_control_HCI"]
 	path = Quality_control_HCI
 	url = https://github.com/NYSCF/Quality_control_HCI.git
-[submodule "ScaleFEx_from_crop"]
-	path = ScaleFEx_from_crop
-	url = https://github.com/NYSCF/ScaleFEx_from_crop.git
+
