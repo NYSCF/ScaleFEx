@@ -11,13 +11,14 @@ import matplotlib.pyplot as plt
 
 ROOT_DIR = '/'.join(__file__.split('/')[:-1])
 
-class Screen_Compute: #come up with a better name
+class Process_HighContentImaging_screen: 
     """
-    Class representing the computation of screen data.
+    Class designed for processing high-content screening data, including feature extraction and quality control.
 
-    Methods:
-        __init__(yaml_path='parameters.yaml'): 
-            Initializes the Screen_Compute object with parameters from a YAML file.
+    Args:
+        yaml_path (str): Path to the YAML configuration file containing processing parameters.
+
+
     """
     def __init__(self, yaml_path='parameters.yaml'):
         """
@@ -61,10 +62,7 @@ class Screen_Compute: #come up with a better name
 
 
         # Loop over plates and start computation
-        # if self.parameters['plates'] != 'all' and isinstance(self.parameters['plates'],list):
-        #     plate_list = np.unique(files.plate)
-        # else:
-        #     plate_list = self.parameters['plates']
+
         plate_list = sorted(files.plate.unique().tolist())
         print('Computing plates: ', plate_list)
         
@@ -117,7 +115,7 @@ class Screen_Compute: #come up with a better name
             for site in sites:
 
                 print(site, well, plate, datetime.now())
-                #stime=time.perf_counter()
+
                 np_images, original_images, current_file = data_query.query_functions_local.load_and_preprocess(task_files,
                                     self.parameters['channel'],well,site,self.parameters['zstack'],
                                     self.parameters['image_size'],self.flat_field_correction,
@@ -126,9 +124,9 @@ class Screen_Compute: #come up with a better name
                     original_images.shape
                 except NameError:
                     print('Images corrupted')
-                #print('images load and process time ',time.perf_counter()-stime)
+
                 if np_images is not None:
-                    # stime = time.perf_counter()
+
                     if self.parameters['csv_coordinates']=='':
                         center_of_mass=self.segment_crop_images(np_images[0,:,:,0])
                         center_of_mass=[list(row) + [n] for n,row in enumerate(center_of_mass)]
@@ -144,7 +142,7 @@ class Screen_Compute: #come up with a better name
                         if self.parameters['compute_live_cells'] is False:
                             live_cells=len(center_of_mass)
                             
-                    # stime = time.perf_counter()
+
                     if self.parameters['QC']==True:
                         indQC=0
 
@@ -157,18 +155,16 @@ class Screen_Compute: #come up with a better name
 
               
                     for x,y,n in center_of_mass:
-                       
-                        # stime = time.perf_counter()
+       
                         crop=np_images[:,int(float(x)-self.parameters['ROI']):int(float(x)+self.parameters['ROI']),
                                            int(float(y)-self.parameters['ROI']):int(float(y)+self.parameters['ROI']),:]
-                        # if ((x-self.parameters['ROI']<0) or (x-self.parameters['ROI']>self.parameters['image_size'][0]) or
-                        #     (y-self.parameters['ROI']<0) or (y-self.parameters['ROI']>self.parameters['image_size'][1])):
+                
                         if crop.shape != (len(self.parameters['channel']),self.parameters['ROI']*2,self.parameters['ROI']*2,1):
                             print(crop.shape, "cell on the border")
                             continue
                         else:
                             if self.parameters['visualize_crops']==True:
-                                fig,axes = plt.subplots(nrows=1,ncols=len(crop),figsize=(len(crop)*3,3))
+                                _,axes = plt.subplots(nrows=1,ncols=len(crop),figsize=(len(crop)*3,3))
                                 for i,ax in enumerate(axes.flat):
                                     ax.imshow(crop[i],cmap='gray')
                                     ax.axis('off')
@@ -286,16 +282,6 @@ def import_module(module_name):
         print(f"Module '{module_name}' not found.")
         return None
     
-# total_time=time.perf_counter()
-
-# if __name__ == "__main__":
-    
-# 	Screen_Compute()
-
-# print('total time: ',time.perf_counter()-total_time)
-
-import cProfile
-import pstats
 
 def main():
     Screen_Compute()
@@ -303,6 +289,5 @@ def main():
 if __name__ == "__main__":
     
 
-    main()  # Your main execution block
-
+    main()  
     
