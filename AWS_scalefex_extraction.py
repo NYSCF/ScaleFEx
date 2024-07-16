@@ -15,7 +15,7 @@ import Quality_control_HCI.compute_global_values
 
 ROOT_DIR = '/'.join(__file__.split('/')[:-1])
 
-class Screen_Compute: #come up with a better name
+class Process_HighContentImaging_screen_on_AWS:
     """
     Class representing the computation of screen data.
 
@@ -169,7 +169,7 @@ class Screen_Compute: #come up with a better name
                     cell_size_min=self.parameters['min_cell_size']*self.parameters['downsampling'],
                     cell_size_max=self.parameters['max_cell_size']/self.parameters['downsampling'])
         try:
-            center_of_mass
+        
             print('N of cells found: ',len(center_of_mass))
         except NameError:
             center_of_mass = []
@@ -186,28 +186,12 @@ def import_module(module_name):
         print(f"Module '{module_name}' not found.")
         return None
     
-# total_time=time.perf_counter()
-
-# if __name__ == "__main__":
-    
-# 	Screen_Compute()
-
-# print('total time: ',time.perf_counter()-total_time)
-
-import cProfile
-import pstats
 
 def main():
-    Screen_Compute()
+    Process_HighContentImaging_screen_on_AWS()
 
 if __name__ == "__main__":
-    pr = cProfile.Profile()
-    pr.enable()
 
     main()  # Your main execution block
 
-    pr.disable()
-    with open("profile_results.txt", "w") as f:  # Choose a file path/name
-        ps = pstats.Stats(pr, stream=f)
-        ps.sort_stats("cumulative")  # Sorting by cumulative time
-        ps.print_stats()
+ 
