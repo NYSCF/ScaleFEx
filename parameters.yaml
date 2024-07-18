@@ -3,7 +3,7 @@
 # GENERAL PARAMETERS
 vector_type: 'scalefex' #'scalefex', 'embeddings', '' for QC only, 'coordinates' for coordinates of cells
 resource: 'local' #'local', 'AWS' # 'local' for local computation, 'AWS' for cloud computing
-n_of_workers: 1 # int, n of workers to use in parallel. Depends on the cores. SHOULD BE 1 FOR TESTING AND DEBUGGING
+n_of_workers: 1 # int, n of workers to use in parallel. Depends on the number of cores of your CPU. SHOULD BE 1 FOR TESTING AND DEBUGGING
 
 # Parameters for file retrieval and saving:
 exp_folder: 'data/' #'/mnt/10b1e8d4-f3a8-46e5-9a1a-c197b4f39011/HTF0002/' # Main folder with subfolders of plates (each with a subfolder of images)
@@ -42,17 +42,17 @@ neurite_tracing: '' # channel where to compute tracing (if any)'ch3'
 visualize_masks: True # visualize the segmentation mask from each channel. NOTE: we suggest to visualize the masks for testing, but to turn it off during the processing of large screens
 visualize_crops: True # visualizes the crop of the cell. This helps setting the best ROI size, but we suggest to visualize the crop for testing, but to turn it off during the processing of large screens
 
-## AWS Specific parameters GAB can you briefly describe?
-s3_bucket: 'nyscf-scalefex'
-nb_subsets: 6 #How many machines per plate
-subset_index: 1 #Which subset is being computed
-region: 'us-east-1'
-instance_type: 'c5.12xlarge' # Machine type 
+## AWS Specific parameters 
+s3_bucket: 'nyscf-scalefex' # name of the S3 Bucket storing your images
+nb_subsets: 6 # how many machines per plate you want to deploy
+subset_index: 1 # which subset is being computed
+region: 'us-east-1' # what region you want to deploy machines into
+instance_type: 'c5.12xlarge' # Machine type/size
 amazon_image_id: 'ami-06c68f701d8090592' # AMI linked to region
-ScaleFExSubnetA: 'subnet-0f55e119abeabb79d' 
-ScaleFExSubnetB: 'subnet-0f2fffa1123aba4e7'
-ScaleFExSubnetC: 'subnet-0811845bbe0f6b56e' 
-security_group_id: 'sg-0e85edf74867bae19' 
+ScaleFExSubnetA: 'subnet-0f55e119abeabb79d' # ARN of the subnet you want to use for machines deployment, empty string if you want to use the default one 
+ScaleFExSubnetB: 'subnet-0f2fffa1123aba4e7' # second subnet you want to use, if only one use the same
+ScaleFExSubnetC: 'subnet-0811845bbe0f6b56e' # third subnet you want to use, if only one use the same
+security_group_id: 'sg-0e85edf74867bae19' # security group you want to use, empty string if you want to use the default one
 
 
 
