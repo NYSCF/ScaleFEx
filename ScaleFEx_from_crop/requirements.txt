@@ -1,0 +1,8 @@
+scikit-image==0.20
+pandas
+numpy
+pytest
+opencv-python-headless
+scipy
+matplotlib
+mahotas
