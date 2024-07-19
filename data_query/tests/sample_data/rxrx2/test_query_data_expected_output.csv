@@ -1,0 +1,17 @@
+plate,well,site,channel,plane,filename,plate_folder,file_path,cell_id
+1,AB08,s1,w1,plane01,AB08_s1_w1.png,Plate1,/home/jeffdatasci/Documents/submodules/data_query/tests/sample_data/rxrx2/images/HUVEC-1/Plate1/AB08_s1_w1.png,0
+1,AB08,s2,w1,plane01,AB08_s2_w1.png,Plate1,/home/jeffdatasci/Documents/submodules/data_query/tests/sample_data/rxrx2/images/HUVEC-1/Plate1/AB08_s2_w1.png,0
+1,AB08,s3,w1,plane01,AB08_s3_w1.png,Plate1,/home/jeffdatasci/Documents/submodules/data_query/tests/sample_data/rxrx2/images/HUVEC-1/Plate1/AB08_s3_w1.png,0
+1,AB08,s4,w1,plane01,AB08_s4_w1.png,Plate1,/home/jeffdatasci/Documents/submodules/data_query/tests/sample_data/rxrx2/images/HUVEC-1/Plate1/AB08_s4_w1.png,0
+1,L18,s1,w1,plane01,L18_s1_w1.png,Plate1,/home/jeffdatasci/Documents/submodules/data_query/tests/sample_data/rxrx2/images/HUVEC-1/Plate1/L18_s1_w1.png,0
+1,L18,s2,w1,plane01,L18_s2_w1.png,Plate1,/home/jeffdatasci/Documents/submodules/data_query/tests/sample_data/rxrx2/images/HUVEC-1/Plate1/L18_s2_w1.png,0
+1,L18,s3,w1,plane01,L18_s3_w1.png,Plate1,/home/jeffdatasci/Documents/submodules/data_query/tests/sample_data/rxrx2/images/HUVEC-1/Plate1/L18_s3_w1.png,0
+1,L18,s4,w1,plane01,L18_s4_w1.png,Plate1,/home/jeffdatasci/Documents/submodules/data_query/tests/sample_data/rxrx2/images/HUVEC-1/Plate1/L18_s4_w1.png,0
+2,AB08,s1,w1,plane01,AB08_s1_w1.png,Plate2,/home/jeffdatasci/Documents/submodules/data_query/tests/sample_data/rxrx2/images/HUVEC-1/Plate2/AB08_s1_w1.png,0
+2,AB08,s2,w1,plane01,AB08_s2_w1.png,Plate2,/home/jeffdatasci/Documents/submodules/data_query/tests/sample_data/rxrx2/images/HUVEC-1/Plate2/AB08_s2_w1.png,0
+2,AB08,s3,w1,plane01,AB08_s3_w1.png,Plate2,/home/jeffdatasci/Documents/submodules/data_query/tests/sample_data/rxrx2/images/HUVEC-1/Plate2/AB08_s3_w1.png,0
+2,AB08,s4,w1,plane01,AB08_s4_w1.png,Plate2,/home/jeffdatasci/Documents/submodules/data_query/tests/sample_data/rxrx2/images/HUVEC-1/Plate2/AB08_s4_w1.png,0
+2,L18,s1,w1,plane01,L18_s1_w1.png,Plate2,/home/jeffdatasci/Documents/submodules/data_query/tests/sample_data/rxrx2/images/HUVEC-1/Plate2/L18_s1_w1.png,0
+2,L18,s2,w1,plane01,L18_s2_w1.png,Plate2,/home/jeffdatasci/Documents/submodules/data_query/tests/sample_data/rxrx2/images/HUVEC-1/Plate2/L18_s2_w1.png,0
+2,L18,s3,w1,plane01,L18_s3_w1.png,Plate2,/home/jeffdatasci/Documents/submodules/data_query/tests/sample_data/rxrx2/images/HUVEC-1/Plate2/L18_s3_w1.png,0
+2,L18,s4,w1,plane01,L18_s4_w1.png,Plate2,/home/jeffdatasci/Documents/submodules/data_query/tests/sample_data/rxrx2/images/HUVEC-1/Plate2/L18_s4_w1.png,0

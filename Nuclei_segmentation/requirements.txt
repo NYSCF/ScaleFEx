@@ -1,0 +1,5 @@
+scikit-image
+numpy
+scipy
+pytest
+opencv-python-headless
