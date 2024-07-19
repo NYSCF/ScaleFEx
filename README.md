@@ -14,7 +14,7 @@ Follow these steps to set up and run ScaleFEx:
 Ensure you have Conda installed, then create a new environment:
 
 ```
-conda create --name ScaleFEx python=3.8
+conda create --name ScaleFEx
 conda activate ScaleFEx
 ```
 ### 2. Clone the Repository
@@ -67,17 +67,17 @@ These steps will set up the environment with all necessary dependencies isolated
     - **visualize_masks**: False ; visualize the segmentation mask from each channel. NOTE: we suggest to visualize the masks for testing, but to turn it off during the processing of large screens
     - **visualize_crops**: False ; visualizes the crop of the cell. This helps setting the best ROI size, but we suggest to visualize the crop for testing, but to turn it off during the processing of large screens
     
-   **AWS parameters**  GAB TO DESCRIBE BRIEFLY
-   - **s3_bucket**: 'your-bucket'
-   - **nb_subsets**: 6 #How many machines per plate
-   - **subset_index**: 1 #Which subset is being computed
-   - **region**: 'us-east-1'
-   - **instance_type**: 'c5.12xlarge' # Machine type
-   - **amazon_image_id**: 'ami-06c68f701d8090592' # AMI linked to region
-   - **ScaleFExSubnetA**: 'subnet-0f55e119abeabb79d'
-   - **ScaleFExSubnetB**: 'subnet-0f2fffa1123aba4e7'
-   - **ScaleFExSubnetC**: 'subnet-0811845bbe0f6b56e' 
-   - **security_group_id**: 'sg-0e85edf74867bae19' 
+   **AWS parameters**  
+   - **s3_bucket**: 'your-bucket'; name of the S3 Bucket storing your images
+   - **nb_subsets**: 6; how many machines per plate you want to deploy
+   - **subset_index**: 1; which subset is being computed
+   - **region**: 'us-east-1'; what region you want to deploy machines into
+   - **instance_type**: 'c5.12xlarge' ; Machine type/size
+   - **amazon_image_id**: 'ami-06c68f701d8090592' ; AMI linked to region
+   - **ScaleFExSubnetA**: 'subnet-0f55e119abeabb79d'; ARN of the subnet you want to use for machines deployment, empty string if you want to use the default one
+   - **ScaleFExSubnetB**: 'subnet-0f2fffa1123aba4e7'; second subnet you want to use, if only one use the same
+   - **ScaleFExSubnetC**: 'subnet-0811845bbe0f6b56e' ; third subnet you want to use, if only one use the same
+   - **security_group_id**: 'sg-0e85edf74867bae19' ; security group you want to use, empty string if you want to use the default one
   
   
       
