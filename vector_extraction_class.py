@@ -9,6 +9,7 @@ from scipy.spatial import KDTree
 import matplotlib.pyplot as plt
 global ScaleFEx_from_crop
 import ScaleFEx_from_crop.compute_ScaleFEx
+import shutil
 
 ROOT_DIR = '/'.join(__file__.split('/')[:-1])
 
@@ -28,6 +29,8 @@ class Process_HighContentImaging_screen:
         Args:
             yaml_path (str): Path to the YAML file containing parameters. Default is 'parameters.yaml'.
         """
+        
+        start_time = datetime.now()
 
         # Read the yaml file
         with open(yaml_path, 'rb') as f:
@@ -69,7 +72,8 @@ class Process_HighContentImaging_screen:
 
         if not os.path.exists(vec_dir):
             os.makedirs(vec_dir)   
-            
+
+        plates_finished = 0
         for plate in plate_list:
              # QC
             if self.parameters['QC']==True:
@@ -80,8 +84,23 @@ class Process_HighContentImaging_screen:
                     
             if self.parameters['save_coordinates'] == True:
                 self.csv_file_coordinates = os.path.join(self.saving_folder,self.parameters['experiment_name'] + '_coordinates_'+str(plate)+'.csv')
- 
-            self.start_computation(plate, files)
+
+            is_finished = self.start_computation(plate, files)
+            if is_finished == True:
+                plates_finished += 1
+            
+
+        if plates_finished == len(plate_list):
+            if self.parameters['save_coordinates'] == True:
+                # concatenate coordinates files into time-stamped file
+                coordinate_csvs = [os.path.join(self.saving_folder,self.parameters['experiment_name'] + '_coordinates_'+str(plate)+'.csv') for plate in plate_list]
+                all_coords = pd.concat([pd.read_csv(file) for file in coordinate_csvs],ignore_index=True).reset_index(drop=True)
+                all_coords.to_csv(os.path.join(self.saving_folder,self.parameters['experiment_name'] + f'_{start_time}_coordinates.csv'),index=False)
+                # remove plate specific coordinate files
+                _ = [os.remove(file) for file in coordinate_csvs]
+            
+            # save time-stamped parameters file
+            shutil.copy2(yaml_path,os.path.join(self.saving_folder,self.parameters['experiment_name'] + f'_{start_time}_parameters.yaml'))
 
 ### Start computation
             
@@ -220,6 +239,7 @@ class Process_HighContentImaging_screen:
                 print('well time ',time.perf_counter()-stime)
             
         print('All processes have completed their tasks.')
+        return True
         
     def save_csv_file(self,vector,csv_file):
         '''
