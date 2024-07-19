@@ -1,0 +1,9 @@
+boto3
+matplotlib
+opencv-python-headless
+pandas
+pytest
+requests
+ec2-metadata==2.13.0
+pyarrow==15.0.0
+

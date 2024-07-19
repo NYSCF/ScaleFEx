@@ -1,0 +1,5 @@
+well,site,channel,file_path,plane
+r11c06,f23,ch1,tests/sample_data/zstack/r11c06f23p03-ch1sk1fk1fl1.tiff,p01
+r11c06,f23,ch1,tests/sample_data/zstack/r11c06f23p01-ch1sk1fk1fl1.tiff,p02
+r11c06,f23,ch1,tests/sample_data/zstack/r11c06f23p04-ch1sk1fk1fl1.tiff,p03
+r11c06,f23,ch1,tests/sample_data/zstack/r11c06f23p02-ch1sk1fk1fl1.tiff,p04
