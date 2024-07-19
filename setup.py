@@ -13,9 +13,10 @@ setup(
 
         'numpy','pytest','opencv-python-headless','matplotlib','scipy','tifffile',
         'pandas','scikit-image==0.20','utils',
-        'Quality_control_HCI==0.1.0', 
-        'data_query==0.1', 
-        'Nuclei_segmentation==0.1.0', 
+        'Quality_control_HCI', 
+        'data_query', 
+        'Nuclei_segmentation', 
+        'ScaleFEx_from_crop'
     ],
 
 )
