@@ -87,8 +87,9 @@ These steps will set up the environment with all necessary dependencies isolated
    From the terminal:
    After setting the parameters of the yaml file, navigate to the folder of your code and execute
    ```
-   python vector_extraction_class.py
+   python3 vector_extraction_class.py
    ```
+
    
 ### Example
 
