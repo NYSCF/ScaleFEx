@@ -6,17 +6,30 @@ ScaleFEx℠ (Scalable Feature Extraction ) is an open-source Python pipeline des
 - **Robust Feature Extraction**: Utilizes advanced algorithms to distill complex image data into critical features that drive insights into cellular phenotypes.
 - **High-Content Imaging Focus**: Tailored for large-scale HCI screens, addressing challenges of scale, variability, and high-dimensionality in biomedical imaging.
 
-### Installation [To be changed]
+# Installation Instructions
 
-Clone the repository:
-```
-git clone https://github.com/yourusername/ScaleFEx.git
-```
+Follow these steps to set up and run ScaleFEx:
 
-Install dependencies:
+### 1. Create and Activate a New Environment
+Ensure you have Conda installed, then create a new environment:
+
 ```
-pip install -r requirements.txt
+conda create --name ScaleFEx python=3.8
+conda activate ScaleFEx
 ```
+### 2. Clone the Repository
+Clone the repository and navigate into the main folder:
+```
+git clone https://github.com/NYSCF/ScaleFEx.git
+cd ScaleFEx
+```
+### 3. Install the Package
+Install the repository package:
+```
+pip install .
+```
+These steps will set up the environment with all necessary dependencies isolated to ensure everything works smoothly.
+
 
 ### Usage
 
