@@ -45,7 +45,7 @@ class Process_HighContentImaging_screen_on_AWS:
         ffc_file = os.path.join(self.vec_dir, self.parameters['experiment_name'] + '_FFC.p')
         self.flat_field_correction = {}
         if self.parameters['FFC'] is True and os.path.exists(ffc_file):
-            pass
+            print(ffc_file + ' Found')
         else:
             for channel in self.parameters['channel']:
                 self.flat_field_correction[channel] = 1
