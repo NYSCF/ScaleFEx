@@ -99,7 +99,8 @@ You should be able to visualize the detected single cells cells from the data pr
    
 ### Example
 
-To see the output of ScaleFEx, execute the Jupyter Notebook provided with the code: test_sample_dataset.ipynb
+To see the output of ScaleFEx, execute the Jupyter Notebook provided with the code: **test_sample_dataset.ipynb**
+
 If you leave the parameters.yaml file as it is, the notebook will automatically compute scalefex on the provided data. The notebook already dissplays that same output.
 
 ### Contributing
