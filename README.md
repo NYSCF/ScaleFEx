@@ -95,6 +95,9 @@ You should be able to visualize the detected single cells cells from the data pr
    ```
    python3 vector_extraction_class.py
    ```
+   If running the code on AWS:
+   Deploy the 'ScaleFEx_init.yaml' Cloudformation template available [here](https://github.com/NYSCF/ScaleFEx/blob/main/Templates/ScaleFEx_init.yaml) and set your parameters.
+   A detailed guide is available [here](https://github.com/NYSCF/ScaleFEx/wiki/ScaleFEx_on_AWS)
 
    
 ### Example
