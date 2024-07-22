@@ -6,7 +6,7 @@ ScaleFEx℠ (Scalable Feature Extraction ) is an open-source Python pipeline des
 - **Robust Feature Extraction**: Utilizes advanced algorithms to distill complex image data into critical features that drive insights into cellular phenotypes.
 - **High-Content Imaging Focus**: Tailored for large-scale HCI screens, addressing challenges of scale, variability, and high-dimensionality in biomedical imaging.
 
-# Installation Instructions
+## Installation Instructions
 
 Follow these steps to set up and run ScaleFEx:
 
@@ -30,8 +30,14 @@ pip install .
 ```
 These steps will set up the environment with all necessary dependencies isolated to ensure everything works smoothly.
 
+### 4. Test:
+To check if all the packages are correctly installed, run this command without modifying the parameters files:
+ ```
+python3 vector_extraction_class.py
+```
+You should be able to visualize the detected single cells cells from the data provided with the code
 
-### Usage
+## Usage
 
 1. **Set Parameters**: Configure `parameters.yaml` with your dataset paths and processing preferences.
     - **vector_type**: Write 'scalefex' for the feature vector, '' if you want only the preprocessing part (specified below)
@@ -93,7 +99,8 @@ These steps will set up the environment with all necessary dependencies isolated
    
 ### Example
 
-[TO BE DONE]: jupyter notebook with example of a site
+To see the output of ScaleFEx, execute the Jupyter Notebook provided with the code: test_sample_dataset.ipynb
+If you leave the parameters.yaml file as it is, the notebook will automatically compute scalefex on the provided data. The notebook already dissplays that same output.
 
 ### Contributing
 
