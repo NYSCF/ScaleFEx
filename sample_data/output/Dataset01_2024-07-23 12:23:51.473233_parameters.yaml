@@ -1,0 +1,59 @@
+# HCI PIPELINE PARAMETERS 
+
+# GENERAL PARAMETERS
+vector_type: 'scalefex' #'scalefex', 'embeddings', '' for QC only, 'coordinates' for coordinates of cells
+resource: 'local' #'local', 'AWS' # 'local' for local computation, 'AWS' for cloud computing
+n_of_workers: 1 # int, n of workers to use in parallel. Depends on the number of cores of your CPU. SHOULD BE 1 FOR TESTING AND DEBUGGING
+
+# Parameters for file retrieval and saving:
+exp_folder: 'sample_data/' #'/mnt/10b1e8d4-f3a8-46e5-9a1a-c197b4f39011/HTF0002/' # Main folder with subfolders of plates (each with a subfolder of images)
+experiment_name: 'Dataset01' # Experiment name used to identify the experiment
+saving_folder: 'sample_data/output/' # folder to save results (e.g., embeddings, scalefex, coordinates, QC)
+plates: ['Plate1'] # list of plates to be processed (each should be in one plate subdirectory name)
+max_file_size: 40 #2000 # max file size in MB before a new file is created
+
+# image file parsing parameters:
+plate_identifiers: ['_',''] #identifier for finding the plate number; should directly precede and follow the plate identifier 
+pattern: '<Well>f<Site>p<Plane(2)>-<Channel(3)>.<ext>' # pattern of the image file: specify all the characters that make up the filepath indicating the location
+exts: ['tiff',] # possible extensions of images to be processed
+image_size: [1080,1080] # size of images to be processed in pixels (height, width)
+
+# COMPUTATION PARAMETERS
+channel: ['ch4','ch1', 'ch5', 'ch3', 'ch2'] # channels in order to be processed. NOTE: the nuclear channel should be first ['ch1','ch2', 'ch3',  'ch4']#
+zstack: True # set to True if you have multi-plane images and you want to process max projections of the planes
+ROI: 90 # half the size of the cropped area around the cell (e.g., 150 for 300x300 ROI) 90
+downsampling: 1 # Downsampling ratio
+QC: False # if true, compute a Quality Control step
+FFC: False # if true, compute a flat field correction image to correct for non-uniform background illumination
+FFC_n_images: 500 # n of images to be used to produce the background trend image for the Flat Field Correction
+
+## NUCLEI SEGMENTATION PARAMETERS
+csv_coordinates: '' # '' if you don't want to use a pre-computed coordinates file
+segmenting_function: 'Nuclei_segmentation.nuclei_location_extraction' 
+save_coordinates: True # if true, saves a csv file with the coordinates for cells for each plate
+min_cell_size: 200 # min area threshold for mask (any object with smaller area will be removed)
+max_cell_size: 100000 # max area threshold for mask (any object with bigger area will be removed)
+visualization: False # if true, the segmentation masks of the entire field will be visualizaed (using matplotlib). NOTE: we suggest to visualize the masks for testing, but to turn it off during the processing of large screens
+
+## Scalefex settings
+RNA_channel: 'ch5' # channel with RNA stain (if any)
+Mito_channel: 'ch2' # channel with mitochondrial stain (if any)
+neurite_tracing: '' # channel where to compute tracing (if any)'ch3'
+visualize_masks: True # visualize the segmentation mask from each channel. NOTE: we suggest to visualize the masks for testing, but to turn it off during the processing of large screens
+visualize_crops: True # visualizes the crop of the cell. This helps setting the best ROI size, but we suggest to visualize the crop for testing, but to turn it off during the processing of large screens
+
+## AWS Specific parameters 
+s3_bucket: 'nyscf-scalefex' # name of the S3 Bucket storing your images
+nb_subsets: 6 # how many machines per plate you want to deploy
+subset_index: 1 # which subset is being computed
+region: 'us-east-1' # what region you want to deploy machines into
+instance_type: 'c5.12xlarge' # Machine type/size
+amazon_image_id: 'ami-06c68f701d8090592' # AMI linked to region
+ScaleFExSubnetA: 'subnet-0f55e119abeabb79d' # ARN of the subnet you want to use for machines deployment, empty string if you want to use the default one 
+ScaleFExSubnetB: 'subnet-0f2fffa1123aba4e7' # second subnet you want to use, if only one use the same
+ScaleFExSubnetC: 'subnet-0811845bbe0f6b56e' # third subnet you want to use, if only one use the same
+security_group_id: 'sg-0e85edf74867bae19' # security group you want to use, empty string if you want to use the default one
+
+
+
+
