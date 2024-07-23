@@ -33,7 +33,7 @@ These steps will set up the environment with all necessary dependencies isolated
 ### 4. Test:
 To check if all the packages are correctly installed, run this command without modifying the parameters files:
  ```
-python3 vector_extraction_class.py
+python3 scalefex_main.py
 ```
 You should be able to visualize the detected single cells cells from the data provided with the code
 
@@ -93,7 +93,7 @@ You should be able to visualize the detected single cells cells from the data pr
    From the terminal:
    After setting the parameters of the yaml file, navigate to the folder of your code and execute
    ```
-   python3 vector_extraction_class.py
+   python3 scalefex_main.py
    ```
    If running the code on AWS:
    Deploy the 'ScaleFEx_init.yaml' Cloudformation template available [here](https://github.com/NYSCF/ScaleFEx/blob/main/Templates/ScaleFEx_init.yaml) and set your parameters.
