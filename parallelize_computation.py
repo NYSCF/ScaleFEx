@@ -1,5 +1,5 @@
 import multiprocessing as mp
-from multiprocessing import Manager, Semaphore, Process, Value, Lock, current_process, Queue
+from multiprocessing import Manager, Semaphore, Process, Lock, current_process, Queue
 from datetime import datetime
 
 class parallelize:
