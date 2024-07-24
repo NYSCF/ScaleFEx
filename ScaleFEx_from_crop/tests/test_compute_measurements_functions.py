@@ -113,7 +113,7 @@ def test_mitochondria_measurement():
     channel = 'w5'
     test_img = np.load(os.path.join(TEST_IMG_DIR,IMG_FILES[IMG_ID]),allow_pickle=True).item()
     test_mask = np.load(os.path.join(TEST_MASK_DIR,MASK_FILES[IMG_ID]),allow_pickle=True).item()
-
+    
     df = mitochondria_measurement(test_mask[channel],test_img[channel],viz=False)
     expected_df = pd.read_csv(os.path.join(TEST_CSV_DIR,'mitochondria_measurement_output.csv'))
     df = df.astype(expected_df.dtypes.to_dict())
