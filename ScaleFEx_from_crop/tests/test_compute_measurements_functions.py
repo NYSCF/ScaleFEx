@@ -105,7 +105,7 @@ def test_zernike_measurements():
     # test_img = np.load(os.path.join(TEST_IMG_DIR,IMG_FILES[IMG_ID]),allow_pickle=True).item()
     test_mask = np.load(os.path.join(TEST_MASK_DIR,MASK_FILES[IMG_ID]),allow_pickle=True).item()
     df = zernike_measurements(test_mask[channel],roi=30,chan=channel)
-    expected_df = pd.read_csv(os.path.join(TEST_CSV_DIR,'concentric_measurements_output.csv'))
+    expected_df = pd.read_csv(os.path.join(TEST_CSV_DIR,'zernike_measurements_output.csv'))
     df = df.astype(expected_df.dtypes.to_dict())
     pd.testing.assert_frame_equal(df,expected_df)
 # @pytest.mark.skip(reason="skeletonize error!")
