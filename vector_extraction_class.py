@@ -10,6 +10,7 @@ import matplotlib.pyplot as plt
 global ScaleFEx_from_crop
 import ScaleFEx_from_crop.compute_ScaleFEx
 import shutil
+import argparse
 
 ROOT_DIR = '/'.join(__file__.split('/')[:-1])
 
@@ -303,10 +304,16 @@ def import_module(module_name):
     
 
 def main():
-    Process_HighContentImaging_screen()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-p", "--parameters", type=str, default='parameters.yaml', 
+                        required=False, help="Path to the parameters file")
+    args = parser.parse_args()
+    print(args.parameters)
+    # Process_HighContentImaging_screen()
 
 if __name__ == "__main__":
     
+
 
     main()  
     
