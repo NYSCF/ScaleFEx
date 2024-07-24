@@ -1,3 +1,4 @@
+'''Unit tests for compute_global_values.py'''
 import skimage
 import cv2
 import pandas as pd

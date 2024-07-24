@@ -1,3 +1,4 @@
+'''Tests for query_functions_local.py'''
 import pytest
 import numpy as np
 import pandas as pd
