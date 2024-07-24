@@ -395,7 +395,7 @@ def mitochondria_measurement(segmented_labels, simg, viz=False):
 
     mito_segmented = mito > skimage.filters.threshold_multiotsu(mito)[-1]
     mito_segmented = mito_segmented*segmented_labels
-    skel = skimage.morphology.skeletonize(mito_segmented.astype(int))
+    skel = skimage.morphology.skeletonize(mito_segmented)
     labeled_skeleton = skimage.morphology.label(skel)
     for u in range(1, np.max(labeled_skeleton)):
         if np.nansum(labeled_skeleton == u) < 5:
