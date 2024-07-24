@@ -308,8 +308,8 @@ def main():
     parser.add_argument("-p", "--parameters", type=str, default='parameters.yaml', 
                         required=False, help="Path to the parameters file")
     args = parser.parse_args()
-    print(args.parameters)
-    # Process_HighContentImaging_screen()
+    # print(args.parameters)
+    Process_HighContentImaging_screen()
 
 if __name__ == "__main__":
     
