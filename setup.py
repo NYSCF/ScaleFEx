@@ -2,20 +2,21 @@ from setuptools import setup, find_packages
 from setuptools.command.install import install
 import subprocess
 import os
+import sys
 
-class CustomInstall(install):
-    def run(self):
-        # Ensure the main installation happens first
-        install.run(self)
-        # Install each local package via pip
-        def install_local_package(path):
-            subprocess.call([sys.executable, '-m', 'pip', 'install', path])
+# class CustomInstall(install):
+    # def run(self):
+    #     # Ensure the main installation happens first
+    #     install.run(self)
+    #     # Install each local package via pip
+    #     def install_local_package(path):
+    #         subprocess.call([sys.executable, '-m', 'pip', 'install', path])
         
-        base_path = os.path.dirname(os.path.realpath(__file__))
-        install_local_package(os.path.join(base_path, 'Quality_control_HCI'))
-        install_local_package(os.path.join(base_path, 'data_query'))
-        install_local_package(os.path.join(base_path, 'Nuclei_segmentation'))
-        install_local_package(os.path.join(base_path, 'ScaleFEx_from_crop'))
+    #     base_path = os.path.dirname(os.path.realpath(__file__))
+    #     install_local_package(os.path.join(base_path, 'Quality_control_HCI'))
+    #     install_local_package(os.path.join(base_path, 'data_query'))
+    #     install_local_package(os.path.join(base_path, 'Nuclei_segmentation'))
+    #     install_local_package(os.path.join(base_path, 'ScaleFEx_from_crop'))
 
 setup(
     name='ScaleFEx',
@@ -27,12 +28,13 @@ setup(
     author='Bianca Migliori',
     author_email='bmigliori@nyscf.org',
     url='https://github.com/NYSCF/ScaleFEx',
-    cmdclass={
-        'install': CustomInstall
-    },
+    # cmdclass={
+    #     'install': CustomInstall
+    # },
     install_requires=[
-        'numpy', 'pytest', 'opencv-python-headless', 'matplotlib', 'scipy', 'tifffile',
-        'pandas', 'scikit-image==0.20', 'utils'
+        'numpy==1.26.4', 'pytest==8.2.0', 'opencv-python-headless==4.9.0.80', 'matplotlib==3.8.4', 'scipy==1.14.0', 'tifffile',
+        'pandas==2.2.2', 'scikit-image==0.20.0','PyYAML==6.0.1', 'utils','mahotas==1.4.15','Pillow==10.4.0','prettytable==3.10.2',
+        'setuptools==68.2.2'
     ]
 )
 
