@@ -249,8 +249,7 @@ Resources:
           sudo sed -i "s|^subnet_A_id:.*|subnet_A_id: ${ScaleFExSubnetA}|" AWS_params.yaml
           sudo sed -i "s|^subnet_B_id:.*|subnet_B_id: ${ScaleFExSubnetB}|" AWS_params.yaml
           sudo sed -i "s|^subnet_C_id:.*|subnet_C_id: ${ScaleFExSubnetC}|" AWS_params.yaml
-
-          python3 AWS_scalefex_init.py
+          python3 AWS_scalefex_main.py
 
 Outputs:
   InstanceId1:
