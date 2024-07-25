@@ -1,3 +1,4 @@
+'''Tests for query_functions_local.py'''
 import pytest
 import numpy as np
 import pandas as pd
@@ -45,10 +46,11 @@ def test_check_if_file_exists():
     assert wells == ['L18']
     _,coords = query_functions_local.check_if_file_exists(csv_file,wells= np.array(['L18']),
                                                        fields=np.array(['s1', 's2', 's3','s4']),
-                                                       coordinates=coords_file,plate='Plate1')
+                                                       coordinates=coords_file,plate=1)
+
     assert type(coords) is pd.DataFrame
     assert not coords.isna().values.all()
-    # assert len(coords) == 72
+    assert len(coords) == 72
 
 def test_load_image():
     img = query_functions_local.load_image(os.path.join('/'.join(__file__.split('/')[:-1]),'sample_data/rxrx2/images/HUVEC-1/Plate1/AB08_s1_w1.png'))

@@ -1,3 +1,7 @@
+'''
+Tests for compute_measurements_functions.py
+'''
+
 import skimage
 import numpy as np
 import pandas as pd
@@ -39,7 +43,6 @@ def test_compute_shape():
     
     df = compute_shape(channel,regions,ROI=30,segmented_labels=test_mask[channel])
     expected_df = pd.read_csv(os.path.join(TEST_CSV_DIR,'compute_shape_output.csv'))
-    df.to_csv('tests/csv_outputs/compute_shape_output.csv',index=False)
     pd.testing.assert_frame_equal(df,expected_df)
 
 # @pytest.mark.skip(reason="no features extracted from crop?")
@@ -51,7 +54,6 @@ def test_iter_text():
     df = iter_text(channel,test_img[channel],test_mask[channel],ndistance=5,nangles=4)
     # print(df)
     expected_df = pd.read_csv(os.path.join(TEST_CSV_DIR,'iter_text_output.csv'))
-    # df.to_csv('tests/csv_outputs/iter_text_output.csv',index=False)
     pd.testing.assert_frame_equal(df,expected_df)
 
 # @pytest.mark.skip(reason="not implemented yet")
@@ -63,7 +65,6 @@ def test_texture_single_values():
     df = texture_single_values(channel,test_mask[channel],test_img[channel])
     # print(df)
     expected_df = pd.read_csv(os.path.join(TEST_CSV_DIR,'texture_single_values_output.csv'))
-    # df.to_csv('tests/csv_outputs/texture_single_values_output.csv',index=False)
     pd.testing.assert_frame_equal(df,expected_df)
 
 # @pytest.mark.skip(reason="not implemented yet")
@@ -73,7 +74,6 @@ def test_granularity():
 
     df = granularity(channel,test_img[channel])
     expected_df = pd.read_csv(os.path.join(TEST_CSV_DIR,'granularity_output.csv'))
-    # df.to_csv('tests/csv_outputs/granularity_output.csv',index=False)
     pd.testing.assert_frame_equal(df,expected_df)
 
 def test_intensity():
@@ -84,7 +84,6 @@ def test_intensity():
     df = intensity(test_img[channel],test_mask[channel],channel,regions)
     expected_df = pd.read_csv(os.path.join(TEST_CSV_DIR,'intensity_output.csv'))
     pd.testing.assert_frame_equal(df,expected_df)
-    # df.to_csv('tests/csv_outputs/intensity_output.csv',index=False)
 
 @pytest.mark.skip(reason="helper function for concentric_measurements()")
 def test_create_concentric_areas():
@@ -110,18 +109,16 @@ def test_zernike_measurements():
     # test_img = np.load(os.path.join(TEST_IMG_DIR,IMG_FILES[IMG_ID]),allow_pickle=True).item()
     test_mask = np.load(os.path.join(TEST_MASK_DIR,MASK_FILES[IMG_ID]),allow_pickle=True).item()
     df = zernike_measurements(test_mask[channel],roi=30,chan=channel)
-    df.to_csv('tests/csv_outputs/zernike_measurements_output.csv',index=False)
-    # expected_df = pd.read_csv(os.path.join(TEST_CSV_DIR,'concentric_measurements_output.csv'))
-    # df = df.astype(expected_df.dtypes.to_dict())
-    # pd.testing.assert_frame_equal(df,expected_df)
+    expected_df = pd.read_csv(os.path.join(TEST_CSV_DIR,'zernike_measurements_output.csv'))
+    df = df.astype(expected_df.dtypes.to_dict())
+    pd.testing.assert_frame_equal(df,expected_df)
 # @pytest.mark.skip(reason="skeletonize error!")
 def test_mitochondria_measurement():
     channel = 'w5'
     test_img = np.load(os.path.join(TEST_IMG_DIR,IMG_FILES[IMG_ID]),allow_pickle=True).item()
     test_mask = np.load(os.path.join(TEST_MASK_DIR,MASK_FILES[IMG_ID]),allow_pickle=True).item()
-
+    
     df = mitochondria_measurement(test_mask[channel],test_img[channel],viz=False)
-    # df.to_csv('tests/csv_outputs/mitochondria_measurement_output.csv',index=False)
     expected_df = pd.read_csv(os.path.join(TEST_CSV_DIR,'mitochondria_measurement_output.csv'))
     df = df.astype(expected_df.dtypes.to_dict())
     pd.testing.assert_frame_equal(df,expected_df)
@@ -166,7 +163,6 @@ def test_single_cell_feature_extraction():
 
     expected_df = pd.read_csv(os.path.join(TEST_CSV_DIR,'single_cell_feature_extraction_output.csv'))
     df = df.astype(expected_df.dtypes.to_dict())
-    # df.to_csv('tests/csv_outputs/single_cell_feature_extraction_output.csv',index=False)
 
     assert df.isna().values.any() == False
     assert np.isinf(df).values.sum() == 0

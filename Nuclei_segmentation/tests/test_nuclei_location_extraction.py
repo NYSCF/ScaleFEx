@@ -1,3 +1,4 @@
+'''Unit tests for nuclei_location_extraction.py'''
 import skimage
 import numpy as np
 from scipy import ndimage as ndi

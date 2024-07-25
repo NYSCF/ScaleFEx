@@ -1,4 +1,4 @@
-'''Main class for the ScaleFEx computations'''
+'''Main class for the ScaleFEx feature computations'''
 
 import warnings
 import pandas as pd

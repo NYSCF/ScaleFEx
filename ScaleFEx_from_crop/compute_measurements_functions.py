@@ -1,4 +1,4 @@
-'''Functions that compute each feature'''
+'''Functions that compute each of the ScaleFEx pipeline's features'''
 
 import skimage
 import cv2

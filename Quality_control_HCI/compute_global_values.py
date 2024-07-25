@@ -1,3 +1,4 @@
+'''Functions for computing site-level image quality control metrics '''
 import skimage
 import cv2
 import pandas as pd
