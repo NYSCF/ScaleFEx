@@ -7,7 +7,6 @@ import data_query.query_functions_local
 import time
 from scipy.spatial import KDTree
 import matplotlib.pyplot as plt
-global ScaleFEx_from_crop
 import ScaleFEx_from_crop.compute_ScaleFEx
 import shutil
 import argparse
@@ -30,19 +29,23 @@ class Process_HighContentImaging_screen:
         Args:
             yaml_path (str): Path to the YAML file containing parameters. Default is 'parameters.yaml'.
         """
-        
-        start_time = datetime.now()
-
+        if not os.path.exists(yaml_path):
+            raise FileNotFoundError(f"YAML file '{yaml_path}' not found.")
+        self.yaml_path = yaml_path
         # Read the yaml file
         with open(yaml_path, 'rb') as f:
             self.parameters = yaml.load(f.read(), Loader=yaml.CLoader)
-            
-        if self.parameters['QC']==True:
-            global Quality_control_HCI 
-            import Quality_control_HCI.compute_global_values
         
         self.saving_folder = self.parameters['saving_folder']
         self.csv_file=self.parameters['csv_coordinates']
+        
+    
+
+    def run(self):
+
+        start_time = datetime.now()
+        
+
         files = data_query.query_functions_local.query_data(self.parameters['exp_folder'], self.parameters['pattern'],plate_identifiers=self.parameters['plate_identifiers'],
                                                             exts=self.parameters['exts'], plates=self.parameters['plates'],)
         print(files.head())
@@ -101,12 +104,13 @@ class Process_HighContentImaging_screen:
                 _ = [os.remove(file) for file in coordinate_csvs]
             
             # save time-stamped parameters file
-            shutil.copy2(yaml_path,os.path.join(self.saving_folder,self.parameters['experiment_name'] + f'_{start_time}_parameters.yaml'))
+            shutil.copy2(self.yaml_path,os.path.join(self.saving_folder,self.parameters['experiment_name'] + f'_{start_time}_parameters.yaml'))
 
 ### Start computation
             
     def start_computation(self,plate,files):
-        
+        if self.parameters['QC']==True:
+            import Quality_control_HCI.compute_global_values
         task_files=files.loc[files.plate==plate]
         vec_dir = os.path.join(self.saving_folder,self.parameters['vector_type'])
         if not os.path.exists(vec_dir):
@@ -241,26 +245,27 @@ class Process_HighContentImaging_screen:
             
         print('All processes have completed their tasks.')
         return True
-        
     def save_csv_file(self,vector,csv_file):
         '''
         Save the vector in a csv file'''
         if not os.path.exists(csv_file):
-            vector.to_csv(csv_file,header=True)
+            vector.to_csv(csv_file,header=True,index=False)
         else:
             if os.stat(csv_file).st_size < self.parameters['max_file_size']*10**6:
-                vector.to_csv(csv_file,mode='a',header=False)
+                vector.to_csv(csv_file,mode='a',header=False,index=False)
             else:
                 try: 
                     int(csv_file[-6:-4])
                     csv_file=csv_file[:-6]+str(int(csv_file[-6:-4])+1).zfill(2)+'.csv'
                 except ValueError:
                     csv_file=csv_file[:-4]+str(1).zfill(2)+'.csv'
-                vector.to_csv(csv_file,mode='a',header=True)
+                vector.to_csv(csv_file,mode='a',header=True,index=False)
         return csv_file
 
     def segment_crop_images(self,img_nuc):
-
+        '''
+        Extracting coordinates of cells using segmenting function specified in YAML file
+        '''
         # extraction of the location of the cells
         nls=import_module(self.parameters['segmenting_function'])
         
@@ -309,11 +314,10 @@ def main():
                         required=False, help="Path to the parameters file")
     args = parser.parse_args()
     # print(args.parameters)
-    Process_HighContentImaging_screen()
+
+    pipeline = Process_HighContentImaging_screen(yaml_path=args.parameters)
+    pipeline.run()
 
 if __name__ == "__main__":
-    
-
-
     main()  
     
