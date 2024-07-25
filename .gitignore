@@ -166,3 +166,6 @@ cython_debug/
 
 # VSCode pytest simulation
 .vscode/settings.json
+
+# temp testing files
+sample_data/test/output

@@ -10,7 +10,9 @@ import matplotlib.pyplot as plt
 import ScaleFEx_from_crop.compute_ScaleFEx
 import shutil
 import argparse
-
+# ignore performance warnings about dataframe fragmentation
+from warnings import simplefilter
+simplefilter(action="ignore", category=pd.errors.PerformanceWarning)
 ROOT_DIR = '/'.join(__file__.split('/')[:-1])
 
 class Process_HighContentImaging_screen: 

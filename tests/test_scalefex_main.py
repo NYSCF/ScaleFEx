@@ -2,7 +2,8 @@ import pytest
 import sys
 sys.path.append('/'.join(__file__.split('/')[:-2]))
 from scalefex_main import *
-
+from warnings import simplefilter
+simplefilter(action="ignore", category=pd.errors.PerformanceWarning)
 class TestProcess_HighContentImaging_screen():
     pipeline = Process_HighContentImaging_screen(yaml_path='tests/parameters_test.yaml')
     def test_init_goodyaml(self):
@@ -17,7 +18,19 @@ class TestProcess_HighContentImaging_screen():
             Process_HighContentImaging_screen(yaml_path='not_a_file.yaml')
 
     def test_run(self):
-        pass
+        output_dir = 'sample_data/test/output/'
+        for r,d,f in os.walk(output_dir):
+            for file in f:
+                os.remove(os.path.join(r,file))
+        self.pipeline.run()
+        assert os.path.exists(os.path.join(output_dir,'scalefex'))
+        assert os.path.exists(os.path.join(output_dir,'QC_analysis'))
+        assert len([f for f in os.listdir(output_dir) if f.endswith('coordinates.csv')]) > 0
+        assert len([f for f in os.listdir(output_dir) if f.endswith('parameters.yaml')]) > 0
+        assert len(os.listdir(os.path.join(output_dir,'QC_analysis'))) == 1
+        assert len(os.listdir(os.path.join(output_dir,'scalefex'))) == 1
+        assert len(os.listdir(output_dir)) > 0
+
 
     def test_save_csv_file(self):
         new_output_path = 'sample_data/test/sample_scalefex_vector/Dataset01_Plate1_scalefex_new.csv'
@@ -47,16 +60,10 @@ class TestProcess_HighContentImaging_screen():
         assert centroids is not None
         assert len(centroids)==0
 
-    # def show_image(self):
-    #     img = 
-    #     nuc = 
-    #     self.pipeline.show_image(img,nuc)
-    #     pass
 
 
 def test_import_module():
     good_import = import_module('pytest')
     bad_import = import_module('not_a_module')
-
     assert bad_import is None
     assert good_import is not None
