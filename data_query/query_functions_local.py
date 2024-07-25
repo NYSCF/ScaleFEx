@@ -193,7 +193,9 @@ def check_if_file_exists(csv_file, wells, fields,coordinates=None,plate=''):
         else:
             coords_df =pd.read_csv(coordinates,index_col=0)
             coords_df =coords_df.loc[coords_df.plate.astype(str)==str(plate)]
+            print(coords_df)
             vectors_with_coords_df =pd.merge(fixed_feature_vector,coords_df, on=['well','site','cell_id'],how = 'right',indicator=True)
+            print(vectors_with_coords_df)
             coords_df =vectors_with_coords_df[vectors_with_coords_df['_merge']=='right_only'].drop('_merge',axis=1)
 
             return  file,coords_df
