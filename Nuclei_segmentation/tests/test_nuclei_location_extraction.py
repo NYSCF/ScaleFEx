@@ -26,7 +26,6 @@ def test_compute_DNA_mask():
 def test_retrieve_coordinates():
     label = cv.imread(os.path.join(TEST_DIR,'sample_data/rxrx2_Plate1_G02_s2_w1_DNA_mask.tiff'),cv.IMREAD_UNCHANGED)
     coords = retrieve_coordinates(label,cell_size_min=50)
-
     expected_coords = np.load(os.path.join(TEST_DIR,'sample_data/expected_coords.npy'),allow_pickle=True)
     np.testing.assert_array_equal(coords,expected_coords)
     assert not np.isnan(np.min(coords))
