@@ -1,5 +1,5 @@
 import yaml,os,pickle
-import parallelize_computation
+import scalefex_utils
 import pandas as pd
 import numpy as np
 from datetime import datetime
@@ -37,7 +37,7 @@ class Process_HighContentImaging_screen:
         # Read the yaml file
         with open(yaml_path, 'rb') as f:
             self.parameters = yaml.load(f.read(), Loader=yaml.CLoader)
-        
+        self.PARAMS_VALID = scalefex_utils.check_YAML_parameter_validity(yaml_path)
         self.saving_folder = self.parameters['saving_folder']
         self.csv_file=self.parameters['csv_coordinates']
         
@@ -238,7 +238,7 @@ class Process_HighContentImaging_screen:
         
         if self.parameters['n_of_workers'] != 1:
             function = compute_vector
-            parallelize_computation.parallelize(wells,function,self.parameters['n_of_workers'],mode = 'prod')
+            scalefex_utils.parallelize(wells,function,self.parameters['n_of_workers'],mode = 'prod')
         else:
             for well in wells:
                 stime=time.perf_counter()
@@ -269,7 +269,7 @@ class Process_HighContentImaging_screen:
         Extracting coordinates of cells using segmenting function specified in YAML file
         '''
         # extraction of the location of the cells
-        nls=import_module(self.parameters['segmenting_function'])
+        nls=scalefex_utils.import_module(self.parameters['segmenting_function'])
         
         
         img_mask=nls.compute_DNA_mask(img_nuc)
@@ -301,14 +301,7 @@ class Process_HighContentImaging_screen:
         ax[1].axis('off')
         plt.show()                    
 
-def import_module(module_name):
-    try:
-        module = __import__(module_name)
-        return module
-    except ImportError:
-        print(f"Module '{module_name}' not found.")
-        return None
-    
+
 
 def main():
     parser = argparse.ArgumentParser()
@@ -316,9 +309,13 @@ def main():
                         required=False, help="Path to the parameters file")
     args = parser.parse_args()
     # print(args.parameters)
-
     pipeline = Process_HighContentImaging_screen(yaml_path=args.parameters)
-    pipeline.run()
+    if pipeline.PARAMS_VALID is False:
+        run = scalefex_utils.query_yes_no("Some parameters are not valid. Do you want to continue?",default='no')
+        if run is False:
+            return False
+    print('\n\nScaleFEx pipeline starting...')
+    # pipeline.run()
 
 if __name__ == "__main__":
     main()  

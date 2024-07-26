@@ -1,7 +1,7 @@
 # HCI PIPELINE PARAMETERS 
 
 # GENERAL PARAMETERS
-vector_type: 'scalefex' #'scalefex', 'embeddings', '' for QC only, 'coordinates' for coordinates of cells
+vector_type: 'scalefex' #'scalefex', '' for QC only, 'coordinates' for coordinates of cells
 resource: 'local' #'local', 'AWS' # 'local' for local computation, 'AWS' for cloud computing
 n_of_workers: 1 # int, n of workers to use in parallel. Depends on the number of cores of your CPU. SHOULD BE 1 FOR TESTING AND DEBUGGING
 

@@ -1,5 +1,5 @@
 import yaml, os, pickle
-import parallelize_computation
+import scalefex_utils
 import pandas as pd
 import numpy as np
 from datetime import datetime
@@ -145,7 +145,7 @@ class Process_HighContentImaging_screen_on_AWS:
             wells = np.unique(self.task_files.well)
 
         function = self.compute_vector
-        parallelize_computation.parallelize(wells, function, self.parameters['n_of_workers'], mode='dev')
+        scalefex_utils.parallelize(wells, function, self.parameters['n_of_workers'], mode='dev')
         
         dq.push_all_files(self.parameters['s3_bucket'], self.parameters['experiment_name'], plate, self.parameters['subset_index'], self.vec_dir)
         dq.terminate_current_instance()
