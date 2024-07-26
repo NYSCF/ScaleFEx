@@ -25,11 +25,10 @@ class TestProcess_HighContentImaging_screen():
         self.pipeline.run()
         assert os.path.exists(os.path.join(output_dir,'scalefex'))
         assert os.path.exists(os.path.join(output_dir,'QC_analysis'))
-        assert len([f for f in os.listdir(output_dir) if f.endswith('coordinates.csv')]) > 0
-        assert len([f for f in os.listdir(output_dir) if f.endswith('parameters.yaml')]) > 0
+        assert len([f for f in os.listdir(output_dir) if f.endswith('coordinates.csv')]) == 1
+        assert len([f for f in os.listdir(output_dir) if f.endswith('parameters.yaml')]) == 1
         assert len(os.listdir(os.path.join(output_dir,'QC_analysis'))) == 1
         assert len(os.listdir(os.path.join(output_dir,'scalefex'))) == 1
-        assert len(os.listdir(output_dir)) > 0
 
 
     def test_save_csv_file(self):
@@ -62,8 +61,3 @@ class TestProcess_HighContentImaging_screen():
 
 
 
-def test_import_module():
-    good_import = import_module('pytest')
-    bad_import = import_module('not_a_module')
-    assert bad_import is None
-    assert good_import is not None

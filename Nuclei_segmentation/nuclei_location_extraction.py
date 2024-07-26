@@ -57,4 +57,6 @@ def retrieve_coordinates(label, cell_size_min=1000, cell_size_max=50000):
     for num in np.arange(np.max(labels)):
         center_of_mass[num] = [ndi.center_of_mass(
             labels == num+1)[0], ndi.center_of_mass(labels == num+1)[1]]
+    # remove cells with areas outside of min-max range
+    center_of_mass = center_of_mass[~np.all(center_of_mass == 0, axis=1)]
     return center_of_mass
