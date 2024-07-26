@@ -194,7 +194,7 @@ def check_YAML_parameter_validity(yaml_path):
         PASS_CHECK = False
 
     # LOTS OF PARAMETER DTYPE VALIDATION
-    str_params = ('experiment_name','pattern',)
+    str_params = ('experiment_name','pattern','s3_bucket','region','instance_type','ScaleFExSubnetA','ScaleFExSubnetB','ScaleFExSubnetC','security_group_id')
     bool_params = ('zstack','QC','FFC','save_coordinates','visualization','visualize_masks','visualize_crops')
     dir_params = ('exp_folder','saving_folder')
     empty_or_file_params = ('csv_coordinates',)
