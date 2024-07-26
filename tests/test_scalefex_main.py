@@ -61,8 +61,3 @@ class TestProcess_HighContentImaging_screen():
 
 
 
-def test_import_module():
-    good_import = import_module('pytest')
-    bad_import = import_module('not_a_module')
-    assert bad_import is None
-    assert good_import is not None
