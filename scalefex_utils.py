@@ -219,7 +219,7 @@ def check_YAML_parameter_validity(yaml_path):
             print(f"- Parameter {param} ({parameters[param]}) must be a boolean.")
             PASS_CHECK = False
     for param in dir_params:
-        if param in parameters and (not isinstance(parameters[param], str) and not os.path.isdir(parameters[param])):
+        if param in parameters and (not isinstance(parameters[param], str) or not os.path.isdir(parameters[param])):
             print(f"- Parameter {param} ({parameters[param]}) must be a string and a valid directory.")
             PASS_CHECK = False
     for param in empty_or_file_params:
