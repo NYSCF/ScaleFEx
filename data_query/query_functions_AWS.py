@@ -414,8 +414,10 @@ def get_security_group_id(region):
     security_group_id = response['SecurityGroups'][0]['GroupId']
     return security_group_id
 
-def launch_ec2_instances(experiment_name,region, s3_bucket, linux_ami, instance_type, plate_list, nb_subsets,csv_coordinates,
-                          ScaleFExSubnetA=None,ScaleFExSubnetB=None,ScaleFExSubnetC=None,security_group_id=None):
+# from botocore.exceptions.ClientError
+
+def launch_ec2_instances(experiment_name, region, s3_bucket, linux_ami, instance_type, plate_list, nb_subsets, subset_index, csv_coordinates,
+                          ScaleFExSubnetA=None, ScaleFExSubnetB=None, ScaleFExSubnetC=None, security_group_id=None):
     ec2 = boto3.client('ec2', region_name=region)
     
     if ScaleFExSubnetA is None and security_group_id is None:
@@ -427,12 +429,17 @@ def launch_ec2_instances(experiment_name,region, s3_bucket, linux_ami, instance_
 
     instance_ids = []
     instance_tags = []
-  
+
+    # Determine the subset indices to launch based on the value of subset_index
+    if subset_index == 'all':
+        subset_indices = range(1, nb_subsets + 1)
+    else:
+        subset_indices = [int(subset_index)]
+
     for plate in plate_list:
         plate = str(plate)
-        
-        for subset_index in range(1, nb_subsets + 1): 
-            subset_index = str(subset_index)
+        for subset_idx in subset_indices:
+            subset_idx_str = str(subset_idx)
             # Create the UserData script with dynamically assigned variables
             user_data_script = f"""#!/bin/bash
             cd /home/ec2-user
@@ -460,7 +467,7 @@ def launch_ec2_instances(experiment_name,region, s3_bucket, linux_ami, instance_
             aws s3 sync s3://{s3_bucket}/resultfolder/{experiment_name}/ . --exclude '*' --include='parameters.yaml'
             pip install -r AWS_requirements.txt
             sed -i "s|^plates:.*|plates: ['{plate}']|" parameters.yaml
-            sed -i "s|^subset_index:.*|subset_index: {subset_index}|" parameters.yaml
+            sed -i "s|^subset_index:.*|subset_index: {subset_idx_str}|" parameters.yaml
             # Ensure the correct ownership and permissions
             cd ..
             sudo chown -R ec2-user:ec2-user ScaleFEx
@@ -494,7 +501,7 @@ def launch_ec2_instances(experiment_name,region, s3_bucket, linux_ami, instance_
                                 'ResourceType': 'instance',
                                 'Tags': [
                                     {'Key': 'Name',
-                                        'Value': f'{experiment_name}_{plate}_{subset_index}'
+                                        'Value': f'{experiment_name}_{plate}_{subset_idx_str}'
                                     }]}],
                         'IamInstanceProfile': {'Name': 'ScaleFExInstanceProfile'}
                     }
@@ -503,8 +510,8 @@ def launch_ec2_instances(experiment_name,region, s3_bucket, linux_ami, instance_
                     response = ec2.run_instances(**instance_params)
                     # Append the new instance ID to the list
                     instance_ids.append(response['Instances'][0]['InstanceId'])
-                    instance_tags.append(f'{experiment_name}_{plate}_{subset_index}')
-                    print(f'Instance {response["Instances"][0]["InstanceId"]} launched for {plate} - {subset_index} in subnet {subnet_id}')
+                    instance_tags.append(f'{experiment_name}_{plate}_{subset_idx_str}')
+                    print(f'Instance {response["Instances"][0]["InstanceId"]} launched for {plate} - {subset_idx_str} in subnet {subnet_id}')
                     launched = True
                     break
                 except ClientError as e:
@@ -514,6 +521,7 @@ def launch_ec2_instances(experiment_name,region, s3_bucket, linux_ami, instance_
                         raise
             if not launched:
                 print(f'Failed to launch instance for {plate} - {subset_index} in any subnet.')
+
 
     return instance_ids, instance_tags
 
