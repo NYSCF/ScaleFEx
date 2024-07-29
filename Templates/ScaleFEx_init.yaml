@@ -31,7 +31,6 @@ Metadata:
           - FileExtensions
           - ImageSize
           - ROI
-          - MaxFileSize
           - InstanceType
           - AmazonAMI
           - NbWorkers
@@ -39,6 +38,7 @@ Metadata:
           - NeuriteTracing
           - SecurityGroupID
           - SubnetID
+          - SubsetIndex
 
 Parameters:
   S3Bucket:
@@ -136,6 +136,10 @@ Parameters:
     Description: "How many machines per plate"
     Type: Number
     Default: 5
+  SubsetIndex:
+    Description: "Do you want to compute a specific subset?"
+    Type: String
+    Default: 'all'
   NbWorkers:
     Description: "How many workers per machine"
     Type: Number
@@ -144,10 +148,6 @@ Parameters:
     Description: "Instance type to use"
     Type: String
     Default: 'c5.12xlarge'
-  MaxFileSize:
-    Description: "Maximum file size"
-    Type: Number
-    Default: 32
   NeuriteTracing:
     Description: "NeuriteTracing"
     Type: String
@@ -165,7 +165,7 @@ Parameters:
     Type: String
     Default: ''
   ScaleFExSubnetC:
-    Description: "ScaleFExSubnetAId"
+    Description: "ScaleFExSubnetCId"
     Type: String
     Default: ''
   SecurityGroupID:
@@ -240,9 +240,10 @@ Resources:
           sudo sed -i "s|^max_cell_size:.*|max_cell_size: ${MaxCellSize}|" AWS_params.yaml
           sudo sed -i "s|^s3_bucket:.*|s3_bucket: ${S3Bucket}|" AWS_params.yaml
           sudo sed -i "s|^nb_subsets:.*|nb_subsets: ${NbSubsets}|" AWS_params.yaml
+          sudo sed -i "s|^subset_index:.*|subset_index: ${SubsetIndex}|" AWS_params.yaml
           sudo sed -i "s|^amazon_image_id:.*|amazon_image_id: ${AmazonAMI}|" AWS_params.yaml
           sudo sed -i "s|^instance_type:.*|instance_type: ${InstanceType}|" AWS_params.yaml
-          sudo sed -i "s|^max_file_size:.*|max_file_size: ${MaxFileSize}|" AWS_params.yaml
+          sudo sed -i "s|^max_file_size:.*|max_file_size: 150" AWS_params.yaml
           sudo sed -i "s|^neurite_tracing:.*|neurite_tracing: ${NeuriteTracing}|" AWS_params.yaml
           sudo sed -i "s|^region:.*|region: ${AWSRegion}|" AWS_params.yaml
           sudo sed -i "s|^security_group_id:.*|security_group_id: ${SecurityGroupID}|" AWS_params.yaml
