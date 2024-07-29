@@ -77,7 +77,7 @@ You should be able to visualize the detected single cells cells from the data pr
    **AWS parameters**  
    - **s3_bucket**: 'your-bucket'; name of the S3 Bucket storing your images
    - **nb_subsets**: 6; how many machines per plate you want to deploy
-   - **subset_index**: 1; which subset is being computed
+   - **subset_index**: 'all'; can use an int to compute a specific subset to compute (i.e:'2')
    - **region**: 'us-east-1'; what region you want to deploy machines into
    - **instance_type**: 'c5.12xlarge' ; Machine type/size
    - **amazon_image_id**: 'ami-06c68f701d8090592' ; AMI linked to region
