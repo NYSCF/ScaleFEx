@@ -156,7 +156,10 @@ class parallelize:
         print(f"{process_name} completed its tasks or timed out.")
 
 def check_YAML_parameter_validity(yaml_path):
-    
+    '''
+    Check if YAML parameters are valid
+    Returns True if all parameters are valid, False otherwise
+    '''
     with open(yaml_path, 'rb') as f:
         parameters = yaml.load(f.read(), Loader=yaml.CLoader)
     print(f"Checking parameters in {yaml_path}...")

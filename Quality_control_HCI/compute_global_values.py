@@ -133,38 +133,3 @@ def compute_axons(img):
     skel = skimage.morphology.thin(trace_segmented)
     skel=skel*somamask
     return skel 
-
-def extract_red_cells(img):
-    red_mask=img > skimage.filters.threshold_multiotsu(img)[0]
-    # disk=skimage.morphology.disk(4)
-    # red_mask=ndi.binary_closing(red_mask,structure=disk,iterations=2)
-    disk=skimage.morphology.disk(10)
-    red_mask=ndi.binary_opening(red_mask,structure=disk,iterations=2)
-    red_mask=ndi.binary_closing(red_mask,structure=disk,iterations=3)
-    return red_mask
-
-def retrieve_coordinates(label):
-    '''Given the labelled image label returns the coordinates of the centroids (center_of_mass) 
-       of the nuclei
-
-        Attributes:
-
-        label: image containing labelled segmented objects. Array 
-        
-        Returns:
-
-        center_of_mass: coordinates of the Center of Mass of the segmented objects, list. 
-             Length is the number of objets, width is 2 (X and Y coordinates)
-         '''
-    center_of_mass = []
-    if np.max(label)==1:
-        label=skimage.measure.label(label)
-    if label.size>0:
-        
-        for num in np.arange(1,np.max(label)+1):
-            if num in label:
-                
-                coordinates = ndi.measurements.center_of_mass(label == num) 
-                center_of_mass.append([coordinates[0], coordinates[1]])
-
-    return center_of_mass
