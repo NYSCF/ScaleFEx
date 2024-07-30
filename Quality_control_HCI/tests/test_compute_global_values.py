@@ -56,17 +56,16 @@ def test_calculateQC_OOF():
     assert not df.isna().any().any()
     assert not df.isin([np.inf,-np.inf]).any().any()
 
-@pytest.mark.skip(reason="neuron-related functions not yet implemented")
+# @pytest.mark.skip(reason="neuron-related functions not yet implemented")
 def test_compute_axons():
-    pass
+    img = cv2.imread(os.path.join(TEST_IMG_DIR,'neurite_test.tiff'),cv2.IMREAD_UNCHANGED)
+    neurite_mask = compute_axons(img)
+    assert neurite_mask is not None
+    assert neurite_mask.sum() > 30000
 
-@pytest.mark.skip(reason="neuron-related functions not yet implemented")
-def test_extract_red_cells():
-    pass
-
-@pytest.mark.skip(reason="not yet implemented (unused?)")
-def test_retrieve_coordinates():
-    # label = cv.imread()
-    # center_of_mass = retrieve_coordinates(label)
-    pass
+def test_compute_axons_empty():
+    img = cv2.imread(os.path.join(TEST_IMG_DIR,'empty_test.tiff'),cv2.IMREAD_UNCHANGED)
+    neurite_mask = compute_axons(img)
+    assert neurite_mask is not None
+    assert neurite_mask.sum() == 0
 
