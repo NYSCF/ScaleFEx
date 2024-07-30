@@ -7,26 +7,42 @@ from scipy import ndimage as ndi
 
 def calculateQC(tot_n,live_cells,experiment_name,img_raw,well,plate,site,channel,indQC,neural_tracing):
     '''
+    Computes site-level image quality control metrics
+
     Attributes:
         tot_n: int
+            total number of cells
 
         live_cells: int
+            total number of live cells
 
         experiment_name: str
+            name of the experiment
 
         img_raw: np.ndarray
+            raw image
 
         well: str
-
-        plate: str
-
+            well of the image
+        
         site: str
+            site of well of the image
+        
+        plate: str
+            plate of the image
 
         channel: list
+            list of channels
 
         indQC: int
+            index of row in QC dataframe to write computed metrics
 
         neural_tracing: str
+            name of channel to trace neurites (if any); if None, left empty
+
+    Returns:
+        Parameters_final: pd.DataFrame
+            dataframe with computed metrics
     '''
     Parameters_final=pd.DataFrame()
     for ch,img in enumerate(img_raw):
@@ -108,7 +124,7 @@ def calculateQC(tot_n,live_cells,experiment_name,img_raw,well,plate,site,channel
     return Parameters_final,indQC
 
 def compute_axons(img):
-    '''Compute the skeleton of an image with neuritis'''
+    '''Compute the skeleton of an image with neurites'''
     if np.max(img)<1.1:
         img=img*255
     img=img.astype('uint8')
