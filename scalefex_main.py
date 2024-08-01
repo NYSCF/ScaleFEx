@@ -156,24 +156,21 @@ class Process_HighContentImaging_screen:
                         center_of_mass=self.segment_crop_images(np_images[0,:,:,0])
                         center_of_mass=[list(row) + [n] for n,row in enumerate(center_of_mass)]
                         
-                        live_cells=len(center_of_mass)
+      
                       
                     else:
                         
                         locations=self.locations
                         locations=locations.loc[(locations.well==well)&(locations.site==site)&(locations.plate.astype(str)==str(plate))]
                         center_of_mass=np.asarray(locations[['coordX','coordY','cell_id']])
-                        
-                        if self.parameters['compute_live_cells'] is False:
-                            live_cells=len(center_of_mass)
-                            
+                                                   
 
                     if self.parameters['QC']==True:
                         indQC=0
 
-                        QC_vector,indQC = Quality_control_HCI.compute_global_values.calculateQC(len(center_of_mass),live_cells,
+                        QC_vector,indQC = Quality_control_HCI.compute_global_values.calculateQC(len(center_of_mass),
                                             self.parameters['vector_type'],original_images,well,plate,site,self.parameters['channel'],
-                                            indQC,self.parameters['neurite_tracing'])
+                                            indQC)
                         QC_vector['file_path'] = current_file
                         
                         self.csv_fileQC = self.save_csv_file(QC_vector,self.csv_fileQC)
@@ -217,7 +214,6 @@ class Process_HighContentImaging_screen:
                                         channel=self.parameters['channel'],
                                         mito_ch=self.parameters['Mito_channel'],
                                         rna_ch=self.parameters['RNA_channel'],
-                                        neuritis_ch=self.parameters['neurite_tracing'],
                                         downsampling=self.parameters['downsampling'],
                                         visualization=self.parameters['visualize_masks'],
                                         roi=int(self.parameters['ROI'])

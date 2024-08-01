@@ -23,7 +23,7 @@ channel: ['ch4','ch1', 'ch5', 'ch3', 'ch2'] # channels in order to be processed.
 zstack: True # set to True if you have multi-plane images and you want to process max projections of the planes
 ROI: 90 # half the size of the cropped area around the cell (e.g., 150 for 300x300 ROI) 90
 downsampling: 1 # Downsampling ratio
-QC: False # if true, compute a Quality Control step
+QC: True # if true, compute a Quality Control step
 FFC: False # if true, compute a flat field correction image to correct for non-uniform background illumination
 FFC_n_images: 500 # n of images to be used to produce the background trend image for the Flat Field Correction
 
@@ -38,7 +38,6 @@ visualization: False # if true, the segmentation masks of the entire field will 
 ## Scalefex settings
 RNA_channel: 'ch5' # channel with RNA stain (if any)
 Mito_channel: 'ch2' # channel with mitochondrial stain (if any)
-neurite_tracing: '' # channel where to compute tracing (if any)'ch3'
 visualize_masks: True # visualize the segmentation mask from each channel. NOTE: we suggest to visualize the masks for testing, but to turn it off during the processing of large screens
 visualize_crops: True # visualizes the crop of the cell. This helps setting the best ROI size, but we suggest to visualize the crop for testing, but to turn it off during the processing of large screens
 
