@@ -46,21 +46,6 @@ def compute_primary_mask(simg):
     labeled_image = skimage.measure.label(am)
     return labeled_image
 
-def compute_primary_mask_neuron(simg):
-    '''Identify the mask of the input channel image when the cell has protrusions'''
-
-    am = cv2.GaussianBlur(simg, (5, 5), 5)
-    filter_am = cv2.GaussianBlur(simg, (5, 5), 1)
-    alpha = 10
-    am = am + alpha * (am - filter_am)
-    am = am > skimage.filters.threshold_multiotsu(am)[0]#*0.85
-    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3,3))
-    am = cv2.morphologyEx(am, cv2.MORPH_OPEN, kernel,iterations=3)
-  
-
-    labeled_image = skimage.measure.label(am)
-    return labeled_image
-
 # ROI param is unneeded
 def compute_shape(chan, regions, ROI, segmented_labels):
     """
@@ -554,119 +539,6 @@ def RNA_measurement(segmented_labels, simg, viz=False):
 
     return df
 
-def neuritis_measurement( nucleus, simg, viz=False):
-    
-    df = pd.DataFrame([[]])
-    sigma = 1
-    ksize = int(6*sigma + 1)  # Ensure ksize is odd
-    neurite = cv2.GaussianBlur(simg, (ksize, ksize), sigmaX=sigma, sigmaY=sigma)
-    
-    sigma = 1
-    ksize = int(6*sigma + 1)  # Ensure ksize is odd
-    filter_neurite = cv2.GaussianBlur(neurite, (ksize, ksize), sigmaX=sigma, sigmaY=sigma)
-
-    alpha = 30
-    neurite = neurite + alpha * (neurite - filter_neurite)
-
-    neurite_segmented = neurite > skimage.filters.threshold_multiotsu(neurite)[0]
-    #neurite_segmented = neurite_segmented*segmented_labels
-    nucleus=cv2.dilate(nucleus.astype('uint8'), cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (15,15)))
-    neurite_segmented[nucleus>0]=0
-    skel = skimage.morphology.skeletonize(neurite_segmented)
-    labeled_skeleton = skimage.morphology.label(skel)
-    for u in range(1, np.max(labeled_skeleton)):
-        if np.nansum(labeled_skeleton == u) < 5:
-            labeled_skeleton[labeled_skeleton == u] = 0
-    labeled_skeleton = skimage.morphology.label(labeled_skeleton)
-    if np.count_nonzero(labeled_skeleton) < 1:
-        df['neuriteCount'] = 0
-        df['neuriteVolumeMean'] = 0
-        df['neuriteVolumeTot'] = 0
-        df['neuriteVolumeSkel'] = 0
-        branch = []
-        aspect_ratio = []
-        end_points = []
-    else:
-        df['neuriteCount'] = np.max(labeled_skeleton)
-        df['neuriteVolumeMean'] = np.count_nonzero(neurite_segmented) / np.max(labeled_skeleton)+ 1e-8
-        df['neuriteVolumeTot'] = np.count_nonzero(neurite_segmented)
-        df['neuriteVolumeSkel'] = np.count_nonzero(labeled_skeleton)
-
-        k_diag_upslope = np.array([[0, 0, 0], [0, 0, 1], [0, 1, 0]])
-        K_diag_downslope = np.array([[0, 0, 0], [1, 0, 0], [0, 1, 0]])
-        structure1 = np.array([[0, 1, 0],
-                               [1, 1, 1],
-                               [0, 1, 0]], dtype=np.uint8)
-        branch = []
-        aspect_ratio = []
-        end_points = []
-
-        for ii in range(1, np.max(labeled_skeleton)):
-            SS = labeled_skeleton == ii
-            reg = skimage.measure.regionprops(SS * 1)
-            if reg[0].minor_axis_length > 0:
-                aspect_ratio.append(
-                    reg[0].major_axis_length / reg[0].minor_axis_length)
-            else:
-                aspect_ratio.append(reg[0].major_axis_length / 1)
-            SS=SS.astype(np.uint8)
-            a_orthog = SS.copy()
-
-            B = cv2.filter2D(SS, -1, k_diag_upslope, borderType=cv2.BORDER_CONSTANT)
-            a_orthog[B == 2] = 1
-            B = cv2.filter2D(SS, -1, K_diag_downslope, borderType=cv2.BORDER_CONSTANT)
-            a_orthog[B == 2] = 1
-            B = cv2.filter2D(a_orthog, -1, structure1, borderType=cv2.BORDER_CONSTANT)
-            image_of_branch_points = B >= 4
-            branch.append(skimage.morphology.label(
-                image_of_branch_points).max())
-            B = np.zeros_like(SS)
-            for k in range(9):
-                K = np.zeros((9))
-                K[4] = 1
-                K[k] = 1
-                B = B + cv2.filter2D(SS.astype(np.float32), -1, K.reshape(3, 3).astype(np.float32), borderType=cv2.BORDER_CONSTANT)
-            end_points.append(np.count_nonzero(B == 10))
-
-    if branch:
-        df['neuriteMeanBranch'] = np.nanmean(branch)
-        df['neuriteStdBranchN'] = np.nanstd(branch)
-        df['neuriteUquanBranchN'] = np.nanquantile(branch, 0.75)
-        df['neuriteLQuanBranchN'] = np.nanquantile(branch, 0.25)
-        df['neuriteMedianBranchN'] = np.nanmedian(branch)
-    else:
-        df['neuriteMeanBranch'] = 0
-        df['neuriteStdBranchN'] = 0
-        df['neuriteUquanBranchN'] = 0
-        df['neuriteLQuanBranchN'] = 0
-        df['neuriteMedianBranchN'] = 0
-
-    if aspect_ratio or end_points:
-        df['neuriteMeanAspectRatio'] = np.nanmean(aspect_ratio)
-        df['neuriteStdAspectRatio'] = np.nanstd(aspect_ratio)
-        df['neuriteUquanAspectRatio'] = np.nanquantile(aspect_ratio, 0.75)
-        df['neuriteLQuanAspectRatio'] = np.nanquantile(aspect_ratio, 0.25)
-        df['neuriteMedianAspectRatio'] = np.nanmedian(aspect_ratio)
-        df['neuriteMeanEndPoints'] = np.nanmean(end_points)
-        df['neuriteStdEndPointsN'] = np.nanstd(end_points)
-        df['neuriteUquanEndPointsN'] = np.nanquantile(end_points, 0.75)
-        df['neuriteLQuanEndPointsN'] = np.nanquantile(end_points, 0.25)
-        df['neuriteMedianEndPointsN'] = np.nanmedian(end_points)
-        if viz is True:
-            show_cells([neurite_segmented, skel], title=['neurite', 'skeleton'])
-    else:
-
-        df['neuriteMeanAspectRatio'] = 0
-        df['neuriteStdAspectRatio'] = 0
-        df['neuriteUquanAspectRatio'] = 0
-        df['neuriteLQuanAspectRatio'] = 0
-        df['neuriteMedianAspectRatio'] = 0
-        df['neuriteMeanEndPoints'] = 0
-        df['neuriteStdEndPointsN'] = 0
-        df['neuriteUquanEndPointsN'] = 0
-        df['neuriteLQuanEndPointsN'] = 0
-        df['neuriteMedianEndPointsN'] = 0
-    return df
 
 def correlation_measurements(simgi, simgj, chan, chanj, Labi, Labj):
     '''Measure correlation between channels'''
@@ -694,7 +566,7 @@ def correlation_measurements(simgi, simgj, chan, chanj, Labi, Labj):
 
     return df
 
-def single_cell_feature_extraction(simg, channels,roi,mito_ch,rna_ch,neuritis_ch,downsampling,viz):
+def single_cell_feature_extraction(simg, channels,roi,mito_ch,rna_ch,downsampling,viz):
     '''Computes the features and appends them into a single line vector'''
 
     simg = simg.squeeze().transpose(1, 2, 0)
@@ -788,12 +660,6 @@ def single_cell_feature_extraction(simg, channels,roi,mito_ch,rna_ch,neuritis_ch
         if chan == rna_ch:
             measurements = pd.concat([measurements, RNA_measurement(
                 segmented_labels[0], simg[:, :, i], viz=viz)], axis=1)
-   
-        # Neuritis measurements
-
-        if chan == neuritis_ch:
-            measurements = pd.concat([measurements, neuritis_measurement(
-                orig_nuclei, simg[:, :, i], viz=viz)], axis=1)
             
 
     # Colocalization

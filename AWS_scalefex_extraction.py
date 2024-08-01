@@ -53,6 +53,7 @@ class Process_HighContentImaging_screen_on_AWS:
         self.plate = plates[0]
         
         if self.parameters['QC'] == True:
+
             self.csv_fileQC = os.path.join(self.vec_dir, 'QC_' + self.parameters['experiment_name'] + '_' + str(self.plate) + '_' 
                                            + str(self.parameters['subset_index']) + '.csv')
         self.start_computation(self.plate, self.files)
@@ -67,7 +68,7 @@ class Process_HighContentImaging_screen_on_AWS:
         sites.sort()
 
         for site in sites:
-            np_images, original_images = dq.load_and_preprocess(self.task_files, self.parameters['channel'], well, site, 
+            np_images, original_images,current_file = dq.load_and_preprocess(self.task_files, self.parameters['channel'], well, site, 
                                                                 self.parameters['zstack'], self.parameters['image_size'], 
                                                                 self.flat_field_correction, self.parameters['downsampling'], 
                                                                 return_original=self.parameters['QC'], 
@@ -86,15 +87,16 @@ class Process_HighContentImaging_screen_on_AWS:
                     locations = locations.loc[(locations.well == well) & (locations.site == site_str)]
                     center_of_mass = np.asarray(locations[['coordX', 'coordY', 'cell_id']])
                 
-                live_cells = len(center_of_mass)  
-                print(f"Site: {site}, Well: {well}, Plate: {self.plate}, Cells found: {live_cells}")
+               
+                print(f"Site: {site}, Well: {well}, Plate: {self.plate}, Cells found: {len(center_of_mass)}")
 
                 if self.parameters['QC'] == True:
                     indQC = 0
-                    QC_vector, indQC = Quality_control_HCI.compute_global_values.calculateQC(len(center_of_mass), live_cells, 
+                    QC_vector, indQC = Quality_control_HCI.compute_global_values.calculateQC(len(center_of_mass), 
                                                                                             'scalefex', original_images, well, 
                                                                                             self.plate, site, self.parameters['channel'], 
-                                                                                            indQC, self.parameters['neurite_tracing'])
+                                                                                            indQC)
+                    QC_vector['file_path'] = current_file
                     self.csv_fileQC = dq.save_qc_file(QC_vector, self.csv_fileQC)
             
                 for x, y, n in center_of_mass:
@@ -123,6 +125,10 @@ class Process_HighContentImaging_screen_on_AWS:
 
                             if isinstance(scalefex, pd.DataFrame):
                                 vector = pd.concat([vector, scalefex], axis=1)
+                                vector['file_path'] = current_file
+                                vector['ROI_size'] = self.parameters['ROI']
+                                vector['channel_order'] = str(self.parameters['channel'])
+                                vector['downsampling'] = self.parameters['downsampling']
                                 csv_file = dq.save_csv_file(vector, csv_file, self.parameters['max_file_size'], 
                                                             self.parameters['s3_bucket'], self.parameters['experiment_name'], 
                                                             self.plate, self.parameters['subset_index'])
