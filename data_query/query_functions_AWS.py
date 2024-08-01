@@ -112,7 +112,7 @@ def load_and_preprocess(task_files,channels,well,site,zstack,img_size,flat_field
     np_images = np.array(np_images)
     np_images = np.expand_dims(np_images, axis=3)
 
-    return np_images, np.array(original_images)
+    return np_images, np.array(original_images), image_fnames[0]
 
 def save_qc_file(QC_vector, csv_fileQC):
     if not os.path.exists(csv_fileQC):

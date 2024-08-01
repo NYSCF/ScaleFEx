@@ -5,12 +5,10 @@ import pandas as pd
 import numpy as np
 from scipy import ndimage as ndi
 
-def calculateQC(tot_n,live_cells,experiment_name,img_raw,well,plate,site,channel,indQC,neural_tracing):
+def calculateQC(tot_n,experiment_name,img_raw,well,plate,site,channel,indQC):
     '''
     Attributes:
         tot_n: int
-
-        live_cells: int
 
         experiment_name: str
 
@@ -26,7 +24,6 @@ def calculateQC(tot_n,live_cells,experiment_name,img_raw,well,plate,site,channel
 
         indQC: int
 
-        neural_tracing: str
     '''
     Parameters_final=pd.DataFrame()
     for ch,img in enumerate(img_raw):
@@ -39,14 +36,8 @@ def calculateQC(tot_n,live_cells,experiment_name,img_raw,well,plate,site,channel
         #ax[n].imshow(img)
         #ax[n].set_title(chan)
         Parameters.loc[indQC,'Empty']=False
-        Parameters.loc[indQC,'Usable']=True
-        if live_cells==0:
-            Parameters.loc[indQC,'Empty']=True
-            Parameters.loc[indQC,'Usable']=False
-            #plt.imshow(img)
-        
+        Parameters.loc[indQC,'Usable']=True      
         Parameters.loc[indQC,'tot_cell_num']=tot_n
-        Parameters.loc[indQC,'Cell_num']=live_cells
         Parameters.loc[indQC,'Max_Intensity']=np.max(img)
         Parameters.loc[indQC,'Min_Intensity']=np.min(img)
         Parameters.loc[indQC,'Mean_Intensity']=np.mean(img)
@@ -89,14 +80,6 @@ def calculateQC(tot_n,live_cells,experiment_name,img_raw,well,plate,site,channel
             Parameters.loc[indQC,'Mean_Background_Intensity']=np.nan
 
             Parameters.loc[indQC,'SNR']=np.nan
-        if ch==0:
-            Parameters.loc[indQC,'neural_len']=0
-        if neural_tracing==channel[ch]:
-            Parameters.loc[indQC,'neural_len']=compute_axons(img).sum()
-        else:
-            
-            Parameters.loc[indQC,'neural_len']=0
-
 
         indQC+=1
         # #clear_output(wait=True)
@@ -107,41 +90,6 @@ def calculateQC(tot_n,live_cells,experiment_name,img_raw,well,plate,site,channel
 
     return Parameters_final,indQC
 
-def compute_axons(img):
-    '''Compute the skeleton of an image with neuritis'''
-    if np.max(img)<1.1:
-        img=img*255
-    img=img.astype('uint8')
-    trace = ndi.gaussian_filter((img), 1)
-    somamask=img > skimage.filters.threshold_multiotsu(img)[-1]
-    somamask=ndi.binary_opening(somamask,iterations=3)
-    somamask=1-somamask
-    filter_trace = ndi.gaussian_filter(trace, 1)
-    alpha = 50
-    trace = trace + alpha * (trace - filter_trace)
-
-    trace_segmented = trace > skimage.filters.threshold_multiotsu(img)[0]
-    trace_segmented=ndi.binary_opening(trace_segmented,structure=skimage.morphology.disk(1),iterations=1)
-    # trace_segmented=ndi.binary_closing(trace_segmented,structure=skimage.morphology.disk(1),iterations=1)
-    
-    #skel2=ndi.binary_closing(skel2,iterations=2)
-    #skel2=ndi.binary_dilation(skel2,iterations=2)
-    #skel2 = skimage.morphology.skeletonize(skel2)
-    trace_segmented=skimage.feature.canny(ndi.gaussian_filter((img), 1))
-    trace_segmented=ndi.binary_closing(trace_segmented,structure=skimage.morphology.disk(1),iterations=2)
-    #trace_segmented=ndi.binary_fill_holes(trace_segmented)
-    skel = skimage.morphology.thin(trace_segmented)
-    skel=skel*somamask
-    return skel 
-
-def extract_red_cells(img):
-    red_mask=img > skimage.filters.threshold_multiotsu(img)[0]
-    # disk=skimage.morphology.disk(4)
-    # red_mask=ndi.binary_closing(red_mask,structure=disk,iterations=2)
-    disk=skimage.morphology.disk(10)
-    red_mask=ndi.binary_opening(red_mask,structure=disk,iterations=2)
-    red_mask=ndi.binary_closing(red_mask,structure=disk,iterations=3)
-    return red_mask
 
 def retrieve_coordinates(label):
     '''Given the labelled image label returns the coordinates of the centroids (center_of_mass) 
