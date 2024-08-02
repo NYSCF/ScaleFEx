@@ -77,7 +77,7 @@ You should be able to visualize the detected single cells cells from the data pr
    **AWS parameters**  
    - **s3_bucket**: 'your-bucket'; name of the S3 Bucket storing your images
    - **nb_subsets**: 6; how many machines per plate you want to deploy
-   - **subset_index**: 1; which subset is being computed
+   - **subset_index**: 'all'; can use an int to compute a specific subset to compute (i.e:'2')
    - **region**: 'us-east-1'; what region you want to deploy machines into
    - **instance_type**: 'c5.12xlarge' ; Machine type/size
    - **amazon_image_id**: 'ami-06c68f701d8090592' ; AMI linked to region
@@ -92,12 +92,20 @@ You should be able to visualize the detected single cells cells from the data pr
     
    If running the code locally:  
    From the terminal:
-   After setting the parameters of the yaml file, navigate to the folder of your code and execute
+   After setting the parameters of the yaml file and updating the parameter.yaml file name and location within the scalefex_main.py file, navigate to the folder of your code and execute
    ```
    python3 scalefex_main.py
    ```
+
+   Alternatively, you can specify the parameter file location calling the code this way:
+   ```
+   python scalefex_main.py -p parameters_test.yaml
+   ```
+   If you want to deploy ScaleFExSM on a notebook, look at the example described in the **Example** section
+
+   
    If running the code on AWS:
-   Deploy the 'ScaleFEx_init.yaml' Cloudformation template available [here](https://github.com/NYSCF/ScaleFEx/blob/main/Templates/ScaleFEx_init.yaml) and set your parameters.
+   Deploy the 'ScaleFEx_main.yaml' Cloudformation template available [here](https://github.com/NYSCF/ScaleFEx/blob/main/Templates/ScaleFEx_main.yaml) and set your parameters.
    A detailed guide is available [here](https://github.com/NYSCF/ScaleFEx/wiki/ScaleFEx_on_AWS)
 
    
@@ -105,16 +113,11 @@ You should be able to visualize the detected single cells cells from the data pr
 
 To see the output of ScaleFEx, execute the Jupyter Notebook provided with the code: **test_sample_dataset.ipynb**
 
-If you leave the parameters.yaml file as it is, the notebook will automatically compute scalefex on the provided data. The notebook already dissplays that same output.
+If you leave the parameters.yaml file as it is, the notebook will automatically compute scalefex on the provided data. The notebook already displays that same output.
 
-### Contributing
 
-We welcome contributions to ScaleFEx℠. ? Please read `CONTRIBUTING.md` for guidance on submitting pull requests.
 
 ### License
 
-ScaleFEx℠ is released under the MIT License. [To be updated] See [LICENSE.md](LICENSE.md) for more details.
+ScaleFEx℠ is released under the BSD-3-Clause Clear license. For more details read the LICENSE file.
 
-### Acknowledgements
-??? maybe
-This project is supported by researchers dedicated to advancing drug discovery and understanding disease mechanisms through image-based cellular profiling.
