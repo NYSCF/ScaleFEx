@@ -40,17 +40,18 @@ class Process_HighContentImaging_screen:
         self.PARAMS_VALID = scalefex_utils.check_YAML_parameter_validity(yaml_path)
         self.saving_folder = self.parameters['saving_folder']
         self.csv_file=self.parameters['csv_coordinates']
-        
-    
+        self.fields_computed_file = os.path.join(self.saving_folder,self.parameters['experiment_name'] + '_fields-computed.csv')
 
     def run(self):
 
         start_time = datetime.now()
         
-
+        
         files = data_query.query_functions_local.query_data(self.parameters['exp_folder'], self.parameters['pattern'],plate_identifiers=self.parameters['plate_identifiers'],
                                                             exts=self.parameters['exts'], plates=self.parameters['plates'],)
-        print(files.head())
+        
+        pd.DataFrame(columns=['plate','well','site','file_path',
+                              'cell_count','fail_count','computed_ids','skipped_ids']).to_csv(self.fields_computed_file,index=False)
         
         # Perform Flat Field Correction (FFC)
         self.flat_field_correction = {}
@@ -77,8 +78,11 @@ class Process_HighContentImaging_screen:
         vec_dir = os.path.join(self.saving_folder,self.parameters['vector_type'])
 
         if not os.path.exists(vec_dir):
-            os.makedirs(vec_dir)   
+            os.makedirs(vec_dir)
 
+        # save time-stamped parameters file
+        shutil.copy2(self.yaml_path,os.path.join(self.saving_folder,self.parameters['experiment_name'] + f'_{start_time}_parameters.yaml'))
+        
         plates_finished = 0
         for plate in plate_list:
              # QC
@@ -96,7 +100,7 @@ class Process_HighContentImaging_screen:
                 plates_finished += 1
             
 
-        if plates_finished == len(plate_list):
+        if plates_finished == len(plate_list) and plates_finished>0:
             if self.parameters['save_coordinates'] == True:
                 # concatenate coordinates files into time-stamped file
                 coordinate_csvs = [os.path.join(self.saving_folder,self.parameters['experiment_name'] + '_coordinates_'+str(plate)+'.csv') for plate in plate_list]
@@ -105,8 +109,7 @@ class Process_HighContentImaging_screen:
                 # remove plate specific coordinate files
                 _ = [os.remove(file) for file in coordinate_csvs]
             
-            # save time-stamped parameters file
-            shutil.copy2(self.yaml_path,os.path.join(self.saving_folder,self.parameters['experiment_name'] + f'_{start_time}_parameters.yaml'))
+            
 
 ### Start computation
             
@@ -117,7 +120,9 @@ class Process_HighContentImaging_screen:
         vec_dir = os.path.join(self.saving_folder,self.parameters['vector_type'])
         if not os.path.exists(vec_dir):
             os.makedirs(vec_dir)
-
+        
+        fields_computed_df = pd.read_csv(self.fields_computed_file,converters={'plate':str,'well':str,'site':str,
+                                                                               'computed_ids':str,'skipped_ids':str})
         wells, sites = data_query.query_functions_local.make_well_and_field_list(task_files)
 
         if os.path.exists(self.parameters['csv_coordinates']):
@@ -166,7 +171,6 @@ class Process_HighContentImaging_screen:
                         
                         if self.parameters['compute_live_cells'] is False:
                             live_cells=len(center_of_mass)
-                            
 
                     if self.parameters['QC']==True:
                         indQC=0
@@ -178,7 +182,7 @@ class Process_HighContentImaging_screen:
                         
                         self.csv_fileQC = self.save_csv_file(QC_vector,self.csv_fileQC)
 
-              
+                    is_computed = np.ones(len(center_of_mass))*-1
                     for x,y,n in center_of_mass:
        
                         crop=np_images[:,int(float(x)-self.parameters['ROI']):int(float(x)+self.parameters['ROI']),
@@ -186,6 +190,7 @@ class Process_HighContentImaging_screen:
                 
                         if crop.shape != (len(self.parameters['channel']),self.parameters['ROI']*2,self.parameters['ROI']*2,1):
                             print(crop.shape, "cell on the border")
+                            is_computed[n] = 0
                             continue
                         else:
                             if self.parameters['visualize_crops']==True:
@@ -230,12 +235,24 @@ class Process_HighContentImaging_screen:
                                         vector['channel_order'] = str(self.parameters['channel'])
                                         vector['downsampling'] = self.parameters['downsampling']
                                         self.csv_file = self.save_csv_file(vector, self.csv_file)
+                                        # if self.parameters['write_computed_sites']:
+                                        is_computed[n] = 1
 
                                 except Exception as e:
                                     print("An error occurred during ScaleFEx computation:", e)
                             else:
                                 print('Not a valid vector type entry')
-        
+                    
+                    computed_ids = tuple(np.argwhere(is_computed==1).flatten())
+                    skipped_ids = tuple(np.argwhere(is_computed==0).flatten())
+                    file_path = files[(files['plate']==plate)&(files['well']==well)&(files['site']==site)&
+                                    (files['channel']==self.parameters['channel'][0])]['file_path'].iloc[0]
+                    compute_vec = [[plate,well,site,file_path,
+                                    len(center_of_mass),np.count_nonzero(is_computed==-1),str(computed_ids),str(skipped_ids)]]
+                    site_row = pd.DataFrame(data=compute_vec,columns=fields_computed_df.columns)
+                    
+                    site_row.to_csv(self.fields_computed_file,mode='a',header=False,index=False)
+
         if self.parameters['n_of_workers'] != 1:
             function = compute_vector
             scalefex_utils.parallelize(wells,function,self.parameters['n_of_workers'],mode = 'prod')
@@ -315,7 +332,7 @@ def main():
         if run is False:
             return False
     print('\n\nScaleFEx pipeline starting...')
-    # pipeline.run()
+    pipeline.run()
 
 if __name__ == "__main__":
     main()  
