@@ -7,22 +7,39 @@ from scipy import ndimage as ndi
 
 def calculateQC(tot_n,experiment_name,img_raw,well,plate,site,channel,indQC):
     '''
+    Computes site-level image quality control metrics
+
     Attributes:
         tot_n: int
+            total number of cells
 
         experiment_name: str
+            name of the experiment
 
         img_raw: np.ndarray
+            raw image
 
         well: str
-
-        plate: str
-
+            well of the image
+        
         site: str
+            site of well of the image
+        
+        plate: str
+            plate of the image
 
         channel: list
+            list of channels
 
         indQC: int
+            index of row in QC dataframe to write computed metrics
+
+
+
+
+    Returns:
+        Parameters_final: pd.DataFrame
+            dataframe with computed metrics
 
     '''
     Parameters_final=pd.DataFrame()
@@ -91,6 +108,7 @@ def calculateQC(tot_n,experiment_name,img_raw,well,plate,site,channel,indQC):
     return Parameters_final,indQC
 
 
+
 def retrieve_coordinates(label):
     '''Given the labelled image label returns the coordinates of the centroids (center_of_mass) 
        of the nuclei
@@ -116,3 +134,4 @@ def retrieve_coordinates(label):
                 center_of_mass.append([coordinates[0], coordinates[1]])
 
     return center_of_mass
+

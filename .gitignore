@@ -169,3 +169,4 @@ cython_debug/
 
 # temp testing files
 sample_data/test/output
+tests/parameters_test_realdata.yaml
