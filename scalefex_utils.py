@@ -87,7 +87,7 @@ class parallelize:
                 p.close()
 
             print('All processes have completed their tasks.')
-            print('Lenght =', datetime.now() - start1 )
+            print('Length =', datetime.now() - start1 )
 
 
     # Function to add tasks to the queue
@@ -203,7 +203,7 @@ def check_YAML_parameter_validity(yaml_path):
     empty_or_file_params = ('csv_coordinates',)
     list_of_str_params = ('plate_identifiers','exts','channel','plates')
     valid_channel_params = ('RNA_channel','Mito_channel','neurite_tracing')
-    int_params = ('n_of_workers','max_file_size','ROI','FFC_n_images','min_cell_size','max_cell_size','nb_subsets','subset_index')
+    int_params = ('n_of_workers','max_file_size','ROI','FFC_n_images','min_cell_size','max_cell_size','nb_subsets')
     float_params = ('downsampling',)
     module_params = ('segmenting_function',)
     list_of_int_params = ('image_size',)
@@ -212,6 +212,9 @@ def check_YAML_parameter_validity(yaml_path):
         PASS_CHECK = False
     if parameters['resource'] not in ('local','AWS'):
         print(f"- Parameter resource ({parameters['resource']}) must be in ['local', 'AWS'].")
+        PASS_CHECK = False
+    if not (isinstance(parameters['subset_index'],int) and parameters['subset_index']<1) and parameters['subset_index']!='all':
+        print(f"- Parameter subset_index ({parameters['subset_index']}) must be a positive integer or 'all'.")
         PASS_CHECK = False
     for param in str_params:
         if param in parameters and not isinstance(parameters[param], str):
