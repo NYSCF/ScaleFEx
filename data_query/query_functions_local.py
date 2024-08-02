@@ -150,7 +150,7 @@ def query_data(exp_folder,pattern,plate_identifiers=('_CCU384_','_'),exts=('tiff
     for col, default_val in default_vals.items():
         if col not in files_df.columns:
             
-            files_df[col] = default_val
+            files_df[col] = str(default_val)
     
     files_df = files_df[default_cols]
 
@@ -158,9 +158,9 @@ def query_data(exp_folder,pattern,plate_identifiers=('_CCU384_','_'),exts=('tiff
 
 def make_well_and_field_list(files):
     ''' inspects the image file name and extracts the unique fields and wells to loop over'''
-    wells = np.unique(files.well)
+    wells = np.unique(files.well.astype(str))
     wells.sort()
-    fields = np.unique(files.site)
+    fields = np.unique(files.site.astype(str))
     fields.sort()
     return wells, fields
 

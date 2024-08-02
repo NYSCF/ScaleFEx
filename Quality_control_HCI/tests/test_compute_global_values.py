@@ -55,18 +55,3 @@ def test_calculateQC_OOF():
     df, indQC = calculateQC(**PARAMS)
     assert not df.isna().any().any()
     assert not df.isin([np.inf,-np.inf]).any().any()
-
-@pytest.mark.skip(reason="neuron-related functions not yet implemented")
-def test_compute_axons():
-    pass
-
-@pytest.mark.skip(reason="neuron-related functions not yet implemented")
-def test_extract_red_cells():
-    pass
-
-@pytest.mark.skip(reason="not yet implemented (unused?)")
-def test_retrieve_coordinates():
-    # label = cv.imread()
-    # center_of_mass = retrieve_coordinates(label)
-    pass
-
