@@ -243,6 +243,7 @@ class Process_HighContentImaging_screen:
                             else:
                                 print('Not a valid vector type entry')
                     
+                    # tracking cells computed/skipped/failed
                     computed_ids = tuple(np.argwhere(is_computed==1).flatten())
                     skipped_ids = tuple(np.argwhere(is_computed==0).flatten())
                     file_path = files[(files['plate']==plate)&(files['well']==well)&(files['site']==site)&
