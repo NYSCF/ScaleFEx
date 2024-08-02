@@ -79,40 +79,40 @@ def query_data(pattern,plate_identifiers='',exts=('tiff',), exp_folder = ''
 
     return files_df.convert_dtypes(),plate_list
     
-def load_and_preprocess(task_files,channels,well,site,zstack,img_size,flat_field_correction,
-                        downsampling,return_original=False,s3_bucket = ''):
+def load_and_preprocess(task_files, channels, well, site, zstack, img_size, flat_field_correction,
+                        downsampling, return_original=False, s3_bucket=''):
     np_images = []
-    original_images= []
+    original_images = []
     for ch in channels:
-        image_fnames = task_files.loc[(task_files.well == well) & (
-                task_files.site == site) & (task_files.channel == ch), 'file_path'].values
-    
-        if zstack is not True:
-            img = read_image_from_s3(s3_bucket,image_fnames[0])
+        image_fnames = task_files.loc[(task_files.well == well) & (task_files.site == site) & (task_files.channel == ch), 'file_path'].values
+
+        if not zstack:
+            img = read_image_from_s3(s3_bucket, image_fnames[0])
         else:
-            img = process_zstack_s3(s3_bucket,image_fnames)
-            
+            img = process_zstack_s3(s3_bucket, image_fnames)
+
         # Check that the image is of the right format
         if (img is not None) and (img.shape[0] == img_size[0]) and (img.shape[1] == img_size[1]):
 
-            if return_original is True:
+            if return_original:
                 original_images.append(img)
 
-            img = img/(flat_field_correction[ch] * 1e-8)
-            if downsampling!=1:
-                img,img_size=scale_images(downsampling, img, img_size)
+            img = img / (flat_field_correction[ch] * 1e-8)
+            if downsampling != 1:
+                img, img_size = scale_images(downsampling, img, img_size)
 
-            img = (img/(np.max(img))) * 255
+            img = (img / (np.max(img))) * 255
             np_images.append(img.astype('uint8'))
-            
+
         else:
             print('Img corrupted')
-            return None, None
-        
+            return None, None, None
+
     np_images = np.array(np_images)
     np_images = np.expand_dims(np_images, axis=3)
 
     return np_images, np.array(original_images), image_fnames[0]
+
 
 def save_qc_file(QC_vector, csv_fileQC):
     if not os.path.exists(csv_fileQC):
@@ -135,7 +135,7 @@ def save_csv_file(vector, csv_file, max_file_size, bucket, experiment_name, plat
             print(f"Creating new file {csv_file}")
             vector.to_csv(csv_file, header=True)
         else:
-            if os.stat(csv_file).st_size < max_file_size * 10**6:
+            if os.stat(csv_file).st_size < max_file_size * 10 ** 6:
                 # print(f"Appending to existing file {csv_file}")
                 vector.to_csv(csv_file, mode='a', header=False)
             else:
@@ -146,8 +146,9 @@ def save_csv_file(vector, csv_file, max_file_size, bucket, experiment_name, plat
                 return new_csv_file
     except Exception as e:
         print(f"Failed to save : {e}")
-    
+
     return csv_file
+
 
 def increment_filename(csv_file):
     pos = csv_file.find('.csv')
@@ -199,9 +200,32 @@ def upload_to_s3(bucket_name, file, experiment_name, plate, index_subset):
     s3 = boto3.client('s3')
     cleaned_filename = os.path.basename(file).replace("/", "_").replace("_home_ec2-user_project_scalefex_", "")
     s3_path = f'resultfolder/{experiment_name}/{plate}/{index_subset}/' + cleaned_filename
+
+    # Check if file already exists in S3
+    if check_s3_file_exists(s3, bucket_name, s3_path):
+        # Add a unique character or timestamp to the filename to avoid overwriting
+        cleaned_filename = add_unique_suffix(cleaned_filename)
+        s3_path = f'resultfolder/{experiment_name}/{plate}/{index_subset}/' + cleaned_filename
+
     s3.upload_file(file, bucket_name, s3_path)
     print(f"Uploaded {file} to s3://{bucket_name}/{s3_path}")
     
+def check_s3_file_exists(s3, bucket_name, s3_path):
+    try:
+        s3.head_object(Bucket=bucket_name, Key=s3_path)
+        return True
+    except s3.exceptions.ClientError as e:
+        if e.response['Error']['Code'] == '404':
+            return False
+        else:
+            raise
+
+def add_unique_suffix(filename):
+    import time
+    unique_suffix = time.strftime("%Y%m%d-%H%M%S")
+    base, ext = os.path.splitext(filename)
+    return f"{base}_{unique_suffix}{ext}"
+
 def scan_s3(plates, plate_identifiers, exp_folder, exts, experiment_name, s3_bucket):
     """
     Queries files from an S3 bucket.
@@ -222,18 +246,18 @@ def scan_s3(plates, plate_identifiers, exp_folder, exts, experiment_name, s3_buc
     print('Querying plates', plates)
     print('Querying extensions', exts)
     print('Querying folder', exp_folder)
-    
+
     s3 = boto3.client('s3')
     paginator = s3.get_paginator('list_objects_v2')
     prefix = exp_folder
-    
+
     # Step 1: List all folders inside the experiment folder
     folders = []
     for page in paginator.paginate(Bucket=s3_bucket, Prefix=prefix, Delimiter='/'):
         folders.extend([content.get('Prefix') for content in page.get('CommonPrefixes', [])])
-    
+
     print(f'Found {len(folders)} folders inside the experiment folder')
-    
+
     # Step 2: Extract and print plate names from folder names
     matching_plates = []
     for folder in folders:
@@ -262,11 +286,11 @@ def scan_s3(plates, plate_identifiers, exp_folder, exts, experiment_name, s3_buc
                     full_plate_identifier = f"{plate_identifiers[0]}{plate}{plate_identifiers[1]}"
                     if full_plate_identifier in key:
                         data.append((key, plate))
-    
+
     for folder, _ in matching_plates:
         for page in paginator.paginate(Bucket=s3_bucket, Prefix=folder):
             filter_keys(page)
-    
+
     print(len(data), 'files found in prod mode')
 
     data.sort()
@@ -275,6 +299,7 @@ def scan_s3(plates, plate_identifiers, exp_folder, exts, experiment_name, s3_buc
     print('Unique plates:', unique_plates)
 
     return files_df, unique_plates
+
 
 def read_image_from_s3(bucket, object_name):
     s3 = boto3.client('s3')
@@ -326,21 +351,25 @@ def upload_ffc_to_s3(bucket_name,file,experiment_name):
     s3.upload_file(file,bucket_name,f'resultfolder/{experiment_name}/'+ str(file).replace("/","_").replace("_home_ec2-user_project_",""))
     print(file + ' uploaded')
 
-def push_all_files(bucket, experiment_name, plate, index_subset,folder_path):
-    files = [os.path.join(folder_path, file) for file in os.listdir(folder_path) if file.endswith('.csv')]
+def push_all_files(bucket, experiment_name, plate, index_subset, folder_path):
+    files = [os.path.join(folder_path, file) for file in os.listdir(folder_path) if file.endswith('.csv') or file.endswith('.txt')]
     for file in files:
-            try:
-            # Read the CSV file
+        try:
+            if file.endswith('.csv'):
+                # Read the CSV file
                 df = pd.read_csv(file)
                 df = df.applymap(lambda x: str(x).encode('utf-8') if isinstance(x, str) else x)
-            # Create the Parquet file name from the CSV file name
+                # Create the Parquet file name from the CSV file name
                 file_name = os.path.splitext(file)[0]
                 output_parquet = file_name + '.parquet'
                 pq.write_table(pa.Table.from_pandas(df), output_parquet)
                 upload_to_s3(bucket, output_parquet, experiment_name, plate, index_subset)
+            elif file.endswith('.txt'):
+                # Directly upload the log file
+                upload_to_s3(bucket, file, experiment_name, plate, index_subset)
+        except Exception as e:
+            print(f"Failed to process {file}: {e}")
 
-            except Exception as e:
-                print(f"Failed to process {file}: {e}")
 
 def terminate_current_instance():
 
@@ -353,7 +382,10 @@ def terminate_current_instance():
         instance_id,
     ],)
 
-def filter_task_files(task_files,subset_index, nb_subsets):
+def filter_task_files(task_files, subset_index, nb_subsets):
+    # Convert subset_index to integer
+    subset_index = int(subset_index)
+
     if nb_subsets > 1:
         # Count unique well numbers
         unique_wells = task_files['well'].unique()
@@ -363,21 +395,22 @@ def filter_task_files(task_files,subset_index, nb_subsets):
         subset_size = total_wells // nb_subsets
         remaining_wells = total_wells % nb_subsets
 
-        subset_wells = [unique_wells[i:i+subset_size].tolist() for i in range(0, total_wells, subset_size)]
+        subset_wells = [unique_wells[i:i + subset_size].tolist() for i in range(0, total_wells, subset_size)]
 
         # Distribute remaining wells among subsets
         for i in range(remaining_wells):
-            subset_wells[i].append(unique_wells[-(i+1)])
+            subset_wells[i].append(unique_wells[-(i + 1)])
 
         subset_index = subset_index - 1  # Adjust for zero-based indexing
 
         selected_subset_wells = subset_wells[subset_index]
         filtered_task_files = task_files[task_files['well'].isin(selected_subset_wells)]
 
-    else :
+    else:
         filtered_task_files = task_files
 
     return filtered_task_files
+
 
 def check_s3_file_exists_with_prefix(bucket, exp_folder, experiment_name):
     s3 = boto3.client('s3')
