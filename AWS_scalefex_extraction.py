@@ -39,14 +39,16 @@ class Process_HighContentImaging_screen_on_AWS:
                                            experiment_name=self.parameters['experiment_name'], plates=self.parameters['plates'], 
                                            s3_bucket=self.parameters['s3_bucket'])
         
-        self.fields_computed_file = os.path.join(self.saving_folder,self.parameters['experiment_name'] + self.parameters['experiment_name'] +
+        
+
+        self.vec_dir = 'outputs'
+        if not os.path.exists(self.vec_dir):
+            os.makedirs(self.vec_dir)
+
+        self.fields_computed_file = os.path.join(self.vec_dir,self.parameters['experiment_name'] + self.parameters['experiment_name'] +
                                                 self.parameters['subset_index'] + '_fields-computed.csv')
         pd.DataFrame(columns=['plate','well','site','subset','file_path',
                     'cell_count','fail_count','computed_ids','skipped_ids']).to_csv(self.fields_computed_file,index=False)
-
-        self.vec_dir = 'scalefex'
-        if not os.path.exists(self.vec_dir):
-            os.makedirs(self.vec_dir)
               
         ffc_file = os.path.join(self.vec_dir, self.parameters['experiment_name'] + '_FFC.p')
         self.flat_field_correction = {}

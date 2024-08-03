@@ -90,56 +90,20 @@ def compute_shape(chan, regions, ROI, segmented_labels):
 
 
 def iter_text(chan, simg, segmented_labels, ndistance=5, nangles=4):
-    """Computes texture over the specified numbers of pixel distances (ndistance)
-       and angles (nangles)
-
-    This function computes the texture of the segmented area of interest (AOI)
-    over the specified numbers of pixel distances (ndistance) and angles
-    (nangles). The resulting features are ASM (Gray Level Co-occurrence Matrix),
-    Contrast, Correlation, Dissimilarity, Homogeneity and Energy for each
-    combination of distance and angle. The final result is a data frame with
-    the computed features.
-
-    Parameters
-    ----------
-    chan : str
-        Channel name, used as suffix in the resulting data frame.
-    simg : 2D array
-        Single channel image.
-    segmented_labels : 2D array
-        Segmented labels of the area of interest.
-    ndistance : int, optional
-        Number of pixel distances to consider in the computation of the texture
-        features. The default is 5.
-    nangles : int, optional
-        Number of angles to consider in the computation of the texture features.
-        The default is 4.
-
-    Returns
-    -------
-    df : DataFrame
-        DataFrame with the computed texture features.
-    """
-    df = pd.DataFrame([[]])
+    print(f"Computing texture features for channel {chan}")
+    df = pd.DataFrame([{}])
     angles = np.linspace(0, np.pi, num=nangles)
     distances = np.linspace(5, 5*ndistance, num=ndistance).astype(int)
     for dcount, dis in enumerate(distances):
         for angle in angles:
-
-            texture_props = skimage.feature.texture.graycomatrix(
-                np.uint8(simg * segmented_labels) * 255, [dis], [angle])
-            df['Texture_dist_' + str(dcount) + 'angle' + str(round(angle, 2)) + chan] = np.nanmean(
-                skimage.feature.texture.graycoprops(texture_props, prop='ASM'))
-            df['TextContrast_dist_' + str(dcount) + 'angle' + str(round(angle, 2)) + chan] = np.nanmean(
-                skimage.feature.texture.graycoprops(texture_props, prop='contrast'))
-            df['TextCorrelation_dist_' + str(dcount) + 'angle' + str(round(angle, 2)) + chan] = np.nanmean(
-                skimage.feature.texture.graycoprops(texture_props, prop='correlation'))
-            df['TextDissimilarity_dist_' + str(dcount) + 'angle' + str(round(angle, 2)) + chan] = np.nanmean(
-                skimage.feature.texture.graycoprops(texture_props, prop='dissimilarity'))
-            df['TextHomo_dist_' + str(dcount) + 'angle' + str(round(angle, 2)) + chan] = np.nanmean(
-                skimage.feature.texture.graycoprops(texture_props, prop='homogeneity'))
-            df['TextEnergy_dist_' + str(dcount) + 'angle' + str(round(angle, 2)) + chan] = np.nanmean(
-                skimage.feature.texture.graycoprops(texture_props, prop='energy'))
+            texture_props = skimage.feature.texture.graycomatrix(np.uint8(simg * segmented_labels) * 255, [dis], [angle])
+            df['Texture_dist_' + str(dcount) + 'angle' + str(round(angle, 2)) + chan] = np.nanmean(skimage.feature.texture.graycoprops(texture_props, prop='ASM'))
+            df['TextContrast_dist_' + str(dcount) + 'angle' + str(round(angle, 2)) + chan] = np.nanmean(skimage.feature.texture.graycoprops(texture_props, prop='contrast'))
+            df['TextCorrelation_dist_' + str(dcount) + 'angle' + str(round(angle, 2)) + chan] = np.nanmean(skimage.feature.texture.graycoprops(texture_props, prop='correlation'))
+            df['TextDissimilarity_dist_' + str(dcount) + 'angle' + str(round(angle, 2)) + chan] = np.nanmean(skimage.feature.texture.graycoprops(texture_props, prop='dissimilarity'))
+            df['TextHomo_dist_' + str(dcount) + 'angle' + str(round(angle, 2)) + chan] = np.nanmean(skimage.feature.texture.graycoprops(texture_props, prop='homogeneity'))
+            df['TextEnergy_dist_' + str(dcount) + 'angle' + str(round(angle, 2)) + chan] = np.nanmean(skimage.feature.texture.graycoprops(texture_props, prop='energy'))
+    print(f"Texture features for channel {chan} computed")
     return df
 
 
@@ -566,40 +530,35 @@ def correlation_measurements(simgi, simgj, chan, chanj, Labi, Labj):
 
     return df
 
-def single_cell_feature_extraction(simg, channels,roi,mito_ch,rna_ch,downsampling,viz):
+def single_cell_feature_extraction(simg, channels, roi, mito_ch, rna_ch, downsampling, viz):
     '''Computes the features and appends them into a single line vector'''
-
+    print("Starting single cell feature extraction")
     simg = simg.squeeze().transpose(1, 2, 0)
     segmented_labels = {}
     regions = {}
-    measurements = pd.DataFrame([[]])
+    measurements = pd.DataFrame([{}])
 
-    for i,chan in enumerate(channels):
-
+    for i, chan in enumerate(channels):
+        print(f"Processing channel {chan}")
         segmented_labels[i] = compute_primary_mask(simg[:, :, i])
 
         if i == 0:
             orig_nuclei = segmented_labels[i]
             nn = segmented_labels[i][roi, roi]
             segmented_labels[i] = segmented_labels[i] == nn
-
         else:
-            nn = segmented_labels[i][int(roi/2):int(roi*(3/2)),
-                        int(roi/2):int(roi*(3/2))]
-
+            nn = segmented_labels[i][int(roi/2):int(roi*(3/2)), int(roi/2):int(roi*(3/2))]
             try:
                 nn = np.bincount(nn[nn > 0]).argmax()
             except ValueError:
                 print('out except for size inconsistency')
                 return False, False
-
             segmented_labels[i] = segmented_labels[i] == nn
 
         invMask = segmented_labels[i] < 1
 
-        if viz is True:
-            show_cells([simg[:, :, i], segmented_labels[i]], title=[
-                                chan + '_'+str(i), 'mask'])
+        if viz:
+            show_cells([simg[:, :, i], segmented_labels[i]], title=[chan + '_'+str(i), 'mask'])
 
         if np.count_nonzero(segmented_labels[i]) <= 50/downsampling:
             print('out size')
@@ -607,9 +566,7 @@ def single_cell_feature_extraction(simg, channels,roi,mito_ch,rna_ch,downsamplin
 
         a = simg[:, :, i]*segmented_labels[i]
         b = a[a > 0]
-
         a = simg[:, :, i]*invMask
-
         c = a[a > 0]
 
         SNR = np.mean(b)/(np.std(c)+1e-8)
@@ -617,62 +574,65 @@ def single_cell_feature_extraction(simg, channels,roi,mito_ch,rna_ch,downsamplin
         regions[i] = skimage.measure.regionprops(segmented_labels[i].astype(int))
 
         # Shape
-
-        measurements = pd.concat([measurements, compute_shape(
-            chan, regions[i], roi, segmented_labels[i])], axis=1)
+        shape_df = compute_shape(chan, regions[i], roi, segmented_labels[i])
+        print(f"Shape features for channel {chan}: {shape_df}")
+        measurements = pd.concat([measurements, shape_df], axis=1)
 
         # Texture
-        measurements = pd.concat([measurements, iter_text(
-            chan, simg[:, :, i], segmented_labels[i], ndistance=5, nangles=4)], axis=1)
-        measurements = pd.concat([measurements, texture_single_values(
-            chan, segmented_labels[i], simg[:, :, i])], axis=1)
+        texture_df = iter_text(chan, simg[:, :, i], segmented_labels[i], ndistance=5, nangles=4)
+        print(f"Texture features for channel {chan}: {texture_df}")
+        measurements = pd.concat([measurements, texture_df], axis=1)
 
         # Granularity
-
-        measurements = pd.concat([measurements, granularity(
-            chan, simg[:, :, i], n_convolutions=16)], axis=1)
+        granularity_df = granularity(chan, simg[:, :, i], n_convolutions=16)
+        print(f"Granularity features for channel {chan}: {granularity_df}")
+        measurements = pd.concat([measurements, granularity_df], axis=1)
 
         # Intensity
-        measurements = pd.concat([measurements, intensity(
-            simg[:, :, i], segmented_labels[i], chan, regions[i])], axis=1)
+        intensity_df = intensity(simg[:, :, i], segmented_labels[i], chan, regions[i])
+        print(f"Intensity features for channel {chan}: {intensity_df}")
+        measurements = pd.concat([measurements, intensity_df], axis=1)
 
         # Concentric measurements
-
         scale = 8
         if chan == channels[0]:
             nuc = measurements['MaxRadius_shape'+channels[0]].values[0] * 0.1
         else:
             nuc = 0
-        measurements = pd.concat([measurements, concentric_measurements(
-            scale, roi, simg[:, :, i], segmented_labels[i], chan, DAPI=nuc)], axis=1)
-        
-        # Zernike measurements
-        measurements = pd.concat([measurements, zernike_measurements(
-            segmented_labels[i], roi, chan)], axis=1)
-        # mito_chondria measurements
+        concentric_df = concentric_measurements(scale, roi, simg[:, :, i], segmented_labels[i], chan, DAPI=nuc)
+        print(f"Concentric features for channel {chan}: {concentric_df}")
+        measurements = pd.concat([measurements, concentric_df], axis=1)
 
+        # Zernike measurements
+        zernike_df = zernike_measurements(segmented_labels[i], roi, chan)
+        print(f"Zernike features for channel {chan}: {zernike_df}")
+        measurements = pd.concat([measurements, zernike_df], axis=1)
+
+        # Mitochondria measurements
         if chan == mito_ch:
-            measurements = pd.concat([measurements, mitochondria_measurement(
-                segmented_labels[i], simg[:, :, i], viz=viz)], axis=1)
+            mitochondria_df = mitochondria_measurement(segmented_labels[i], simg[:, :, i], viz=viz)
+            print(f"Mitochondria features for channel {chan}: {mitochondria_df}")
+            measurements = pd.concat([measurements, mitochondria_df], axis=1)
 
         # RNA measurements
-        
         if chan == rna_ch:
-            measurements = pd.concat([measurements, RNA_measurement(
-                segmented_labels[0], simg[:, :, i], viz=viz)], axis=1)
-            
+            rna_df = RNA_measurement(segmented_labels[0], simg[:, :, i], viz=viz)
+            print(f"RNA features for channel {chan}: {rna_df}")
+            measurements = pd.concat([measurements, rna_df], axis=1)
 
     # Colocalization
+    for i, chan in enumerate(channels):
+        for j in range(i + 1, len(channels)):
+            colocalization_df = correlation_measurements(
+                simg[:, :, i], simg[:, :, j], chan, channels[j], segmented_labels[i], segmented_labels[j]
+            )
+            print(f"Colocalization features for channels {chan} and {channels[j]}: {colocalization_df}")
+            measurements = pd.concat([measurements, colocalization_df], axis=1)
 
-    for i,chan in enumerate(channels):
-        chan = channels[i]
-        for j in range(i + 1, len(channels) - 1):
-            measurements = pd.concat([measurements, correlation_measurements(
-                simg[:, :, i], simg[:, :, j], chan, channels[j], segmented_labels[i],
-                segmented_labels[j])], axis=1)
-  
-    #print(measurements.head())
     quality_flag = True
+    print("Single cell feature extraction complete")
     return quality_flag, measurements
+
+# Define additional functions with print statements similarly, if needed.
 
 

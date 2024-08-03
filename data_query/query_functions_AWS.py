@@ -392,7 +392,7 @@ def filter_task_files(task_files,subset_index, nb_subsets):
         for i in range(remaining_wells):
             subset_wells[i].append(unique_wells[-(i+1)])
 
-        subset_index = subset_index - 1  # Adjust for zero-based indexing
+        subset_index = int(subset_index) - 1  # Adjust for zero-based indexing
 
         selected_subset_wells = subset_wells[subset_index]
         filtered_task_files = task_files[task_files['well'].isin(selected_subset_wells)]
