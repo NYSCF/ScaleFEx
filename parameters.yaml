@@ -3,7 +3,7 @@
 # GENERAL PARAMETERS
 vector_type: 'scalefex' #'scalefex', '' for QC only, 'coordinates' for coordinates of cells
 resource: 'local' #'local', 'AWS' # 'local' for local computation, 'AWS' for cloud computing
-n_of_workers: 1 # int, n of workers to use in parallel. Depends on the number of cores of your CPU. SHOULD BE 1 FOR TESTING AND DEBUGGING
+n_of_workers: 2 # int, n of workers to use in parallel. Depends on the number of cores of your CPU. SHOULD BE 1 FOR TESTING AND DEBUGGING
 
 # Parameters for file retrieval and saving:
 exp_folder: 'HTF0003/' #'/mnt/10b1e8d4-f3a8-46e5-9a1a-c197b4f39011/HTF0002/' # Main folder with subfolders of plates (each with a subfolder of images)

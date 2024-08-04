@@ -90,7 +90,6 @@ def compute_shape(chan, regions, ROI, segmented_labels):
 
 
 def iter_text(chan, simg, segmented_labels, ndistance=5, nangles=4):
-    print(f"Computing texture features for channel {chan}")
     df = pd.DataFrame([{}])
     angles = np.linspace(0, np.pi, num=nangles)
     distances = np.linspace(5, 5*ndistance, num=ndistance).astype(int)
@@ -103,7 +102,6 @@ def iter_text(chan, simg, segmented_labels, ndistance=5, nangles=4):
             df['TextDissimilarity_dist_' + str(dcount) + 'angle' + str(round(angle, 2)) + chan] = np.nanmean(skimage.feature.texture.graycoprops(texture_props, prop='dissimilarity'))
             df['TextHomo_dist_' + str(dcount) + 'angle' + str(round(angle, 2)) + chan] = np.nanmean(skimage.feature.texture.graycoprops(texture_props, prop='homogeneity'))
             df['TextEnergy_dist_' + str(dcount) + 'angle' + str(round(angle, 2)) + chan] = np.nanmean(skimage.feature.texture.graycoprops(texture_props, prop='energy'))
-    print(f"Texture features for channel {chan} computed")
     return df
 
 
@@ -532,14 +530,12 @@ def correlation_measurements(simgi, simgj, chan, chanj, Labi, Labj):
 
 def single_cell_feature_extraction(simg, channels, roi, mito_ch, rna_ch, downsampling, viz):
     '''Computes the features and appends them into a single line vector'''
-    print("Starting single cell feature extraction")
     simg = simg.squeeze().transpose(1, 2, 0)
     segmented_labels = {}
     regions = {}
     measurements = pd.DataFrame([{}])
 
     for i, chan in enumerate(channels):
-        print(f"Processing channel {chan}")
         segmented_labels[i] = compute_primary_mask(simg[:, :, i])
 
         if i == 0:
@@ -575,22 +571,18 @@ def single_cell_feature_extraction(simg, channels, roi, mito_ch, rna_ch, downsam
 
         # Shape
         shape_df = compute_shape(chan, regions[i], roi, segmented_labels[i])
-        print(f"Shape features for channel {chan}: {shape_df}")
         measurements = pd.concat([measurements, shape_df], axis=1)
 
         # Texture
         texture_df = iter_text(chan, simg[:, :, i], segmented_labels[i], ndistance=5, nangles=4)
-        print(f"Texture features for channel {chan}: {texture_df}")
         measurements = pd.concat([measurements, texture_df], axis=1)
 
         # Granularity
         granularity_df = granularity(chan, simg[:, :, i], n_convolutions=16)
-        print(f"Granularity features for channel {chan}: {granularity_df}")
         measurements = pd.concat([measurements, granularity_df], axis=1)
 
         # Intensity
         intensity_df = intensity(simg[:, :, i], segmented_labels[i], chan, regions[i])
-        print(f"Intensity features for channel {chan}: {intensity_df}")
         measurements = pd.concat([measurements, intensity_df], axis=1)
 
         # Concentric measurements
@@ -600,24 +592,20 @@ def single_cell_feature_extraction(simg, channels, roi, mito_ch, rna_ch, downsam
         else:
             nuc = 0
         concentric_df = concentric_measurements(scale, roi, simg[:, :, i], segmented_labels[i], chan, DAPI=nuc)
-        print(f"Concentric features for channel {chan}: {concentric_df}")
         measurements = pd.concat([measurements, concentric_df], axis=1)
 
         # Zernike measurements
         zernike_df = zernike_measurements(segmented_labels[i], roi, chan)
-        print(f"Zernike features for channel {chan}: {zernike_df}")
         measurements = pd.concat([measurements, zernike_df], axis=1)
 
         # Mitochondria measurements
         if chan == mito_ch:
             mitochondria_df = mitochondria_measurement(segmented_labels[i], simg[:, :, i], viz=viz)
-            print(f"Mitochondria features for channel {chan}: {mitochondria_df}")
             measurements = pd.concat([measurements, mitochondria_df], axis=1)
 
         # RNA measurements
         if chan == rna_ch:
             rna_df = RNA_measurement(segmented_labels[0], simg[:, :, i], viz=viz)
-            print(f"RNA features for channel {chan}: {rna_df}")
             measurements = pd.concat([measurements, rna_df], axis=1)
 
     # Colocalization
@@ -626,11 +614,9 @@ def single_cell_feature_extraction(simg, channels, roi, mito_ch, rna_ch, downsam
             colocalization_df = correlation_measurements(
                 simg[:, :, i], simg[:, :, j], chan, channels[j], segmented_labels[i], segmented_labels[j]
             )
-            print(f"Colocalization features for channels {chan} and {channels[j]}: {colocalization_df}")
             measurements = pd.concat([measurements, colocalization_df], axis=1)
 
     quality_flag = True
-    print("Single cell feature extraction complete")
     return quality_flag, measurements
 
 # Define additional functions with print statements similarly, if needed.
