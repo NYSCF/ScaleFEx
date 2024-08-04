@@ -90,18 +90,53 @@ def compute_shape(chan, regions, ROI, segmented_labels):
 
 
 def iter_text(chan, simg, segmented_labels, ndistance=5, nangles=4):
-    df = pd.DataFrame([{}])
+    """Computes texture over the specified numbers of pixel distances (ndistance)
+    and angles (nangles)
+    This function computes the texture of the segmented area of interest (AOI)
+    over the specified numbers of pixel distances (ndistance) and angles
+    (nangles). The resulting features are ASM (Gray Level Co-occurrence Matrix),
+    Contrast, Correlation, Dissimilarity, Homogeneity and Energy for each
+    combination of distance and angle. The final result is a data frame with
+    the computed features.
+    Parameters
+    ----------
+    chan : str
+        Channel name, used as suffix in the resulting data frame.
+    simg : 2D array
+        Single channel image.
+    segmented_labels : 2D array
+        Segmented labels of the area of interest.
+    ndistance : int, optional
+        Number of pixel distances to consider in the computation of the texture
+        features. The default is 5.
+    nangles : int, optional
+        Number of angles to consider in the computation of the texture features.
+        The default is 4.
+    Returns
+    -------
+    df : DataFrame
+        DataFrame with the computed texture features.
+    """
+    df = pd.DataFrame([[]])
     angles = np.linspace(0, np.pi, num=nangles)
     distances = np.linspace(5, 5*ndistance, num=ndistance).astype(int)
     for dcount, dis in enumerate(distances):
         for angle in angles:
-            texture_props = skimage.feature.texture.graycomatrix(np.uint8(simg * segmented_labels) * 255, [dis], [angle])
-            df['Texture_dist_' + str(dcount) + 'angle' + str(round(angle, 2)) + chan] = np.nanmean(skimage.feature.texture.graycoprops(texture_props, prop='ASM'))
-            df['TextContrast_dist_' + str(dcount) + 'angle' + str(round(angle, 2)) + chan] = np.nanmean(skimage.feature.texture.graycoprops(texture_props, prop='contrast'))
-            df['TextCorrelation_dist_' + str(dcount) + 'angle' + str(round(angle, 2)) + chan] = np.nanmean(skimage.feature.texture.graycoprops(texture_props, prop='correlation'))
-            df['TextDissimilarity_dist_' + str(dcount) + 'angle' + str(round(angle, 2)) + chan] = np.nanmean(skimage.feature.texture.graycoprops(texture_props, prop='dissimilarity'))
-            df['TextHomo_dist_' + str(dcount) + 'angle' + str(round(angle, 2)) + chan] = np.nanmean(skimage.feature.texture.graycoprops(texture_props, prop='homogeneity'))
-            df['TextEnergy_dist_' + str(dcount) + 'angle' + str(round(angle, 2)) + chan] = np.nanmean(skimage.feature.texture.graycoprops(texture_props, prop='energy'))
+
+            texture_props = skimage.feature.texture.graycomatrix(
+                np.uint8(simg * segmented_labels) * 255, [dis], [angle])
+            df['Texture_dist_' + str(dcount) + 'angle' + str(round(angle, 2)) + chan] = np.nanmean(
+                skimage.feature.texture.graycoprops(texture_props, prop='ASM'))
+            df['TextContrast_dist_' + str(dcount) + 'angle' + str(round(angle, 2)) + chan] = np.nanmean(
+                skimage.feature.texture.graycoprops(texture_props, prop='contrast'))
+            df['TextCorrelation_dist_' + str(dcount) + 'angle' + str(round(angle, 2)) + chan] = np.nanmean(
+                skimage.feature.texture.graycoprops(texture_props, prop='correlation'))
+            df['TextDissimilarity_dist_' + str(dcount) + 'angle' + str(round(angle, 2)) + chan] = np.nanmean(
+                skimage.feature.texture.graycoprops(texture_props, prop='dissimilarity'))
+            df['TextHomo_dist_' + str(dcount) + 'angle' + str(round(angle, 2)) + chan] = np.nanmean(
+                skimage.feature.texture.graycoprops(texture_props, prop='homogeneity'))
+            df['TextEnergy_dist_' + str(dcount) + 'angle' + str(round(angle, 2)) + chan] = np.nanmean(
+                skimage.feature.texture.graycoprops(texture_props, prop='energy'))
     return df
 
 
