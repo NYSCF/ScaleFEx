@@ -38,17 +38,14 @@ class Process_HighContentImaging_screen_on_AWS:
                                            exp_folder=self.parameters['exp_folder'], exts=self.parameters['exts'], 
                                            experiment_name=self.parameters['experiment_name'], plates=self.parameters['plates'], 
                                            s3_bucket=self.parameters['s3_bucket'])
-        
-        
-
+        self.plate = plates[0]
         self.vec_dir = 'outputs'
         if not os.path.exists(self.vec_dir):
             os.makedirs(self.vec_dir)
 
-        self.fields_computed_file = os.path.join(self.vec_dir,self.parameters['experiment_name'] + self.parameters['experiment_name'] +
-                                                self.parameters['subset_index'] + '_fields-computed.csv')
+        self.fields_computed_file = os.path.join(self.vec_dir,self.parameters['experiment_name']+ '_' + self.plate + '_' + self.parameters['subset_index']+'_fields-computed.csv')
         pd.DataFrame(columns=['plate','well','site','subset','file_path',
-                    'cell_count','fail_count','computed_ids','skipped_ids']).to_csv(self.fields_computed_file,index=False)
+                    'cell_count','fail_count','computed_ids','crop_issue_ids','other_ids']).to_csv(self.fields_computed_file,index=False)
               
         ffc_file = os.path.join(self.vec_dir, self.parameters['experiment_name'] + '_FFC.p')
         self.flat_field_correction = {}
@@ -57,8 +54,6 @@ class Process_HighContentImaging_screen_on_AWS:
         else:
             for channel in self.parameters['channel']:
                 self.flat_field_correction[channel] = 1
-
-        self.plate = plates[0]
         
         if self.parameters['QC'] == True:
 
@@ -76,11 +71,11 @@ class Process_HighContentImaging_screen_on_AWS:
         sites.sort()
 
         for site in sites:
-            np_images, original_images,current_file = dq.load_and_preprocess(self.task_files, self.parameters['channel'], well, site, 
-                                                                self.parameters['zstack'], self.parameters['image_size'], 
-                                                                self.flat_field_correction, self.parameters['downsampling'], 
-                                                                return_original=self.parameters['QC'], 
-                                                                s3_bucket=self.parameters['s3_bucket'])
+            np_images, original_images, current_file = dq.load_and_preprocess(self.task_files, self.parameters['channel'], well, site, 
+                                                                            self.parameters['zstack'], self.parameters['image_size'], 
+                                                                            self.flat_field_correction, self.parameters['downsampling'], 
+                                                                            return_original=self.parameters['QC'], 
+                                                                            s3_bucket=self.parameters['s3_bucket'])
             
             if np_images is not None:
                 if self.parameters['csv_coordinates'] == '' or self.parameters['csv_coordinates'] is None:
@@ -95,7 +90,6 @@ class Process_HighContentImaging_screen_on_AWS:
                     locations = locations.loc[(locations.well == well) & (locations.site == site_str)]
                     center_of_mass = np.asarray(locations[['coordX', 'coordY', 'cell_id']])
                 
-               
                 print(f"Site: {site}, Well: {well}, Plate: {self.plate}, Cells found: {len(center_of_mass)}")
 
                 if self.parameters['QC'] == True:
@@ -107,33 +101,38 @@ class Process_HighContentImaging_screen_on_AWS:
                     QC_vector['file_path'] = current_file
                     self.csv_fileQC = dq.save_qc_file(QC_vector, self.csv_fileQC)
 
-                is_computed = np.ones(len(center_of_mass))*-1
-                for x, y, n in center_of_mass:
+                is_computed = np.ones(len(center_of_mass)) * -1
+                for index, (x, y, n) in enumerate(center_of_mass):
                     crop = np_images[:, int(float(x) - self.parameters['ROI']):int(float(x) + self.parameters['ROI']), 
-                                     int(float(y) - self.parameters['ROI']):int(float(y) + self.parameters['ROI']), :]
+                                    int(float(y) - self.parameters['ROI']):int(float(y) + self.parameters['ROI']), :]
                     if crop.shape != (len(self.parameters['channel']), self.parameters['ROI'] * 2, self.parameters['ROI'] * 2, 1):
-                        print(crop.shape, "cell on the border")
-                        is_computed[n] = 0
+                        print(f"Crop shape {crop.shape} does not match expected shape, cell on the border")
+                        is_computed[index] = 0
                         continue
 
                     else:
                         ind = 0
-                        vector = pd.DataFrame(np.asarray([self.plate, well, site, x, y, n]).reshape(1, 6), 
-                                              columns=['plate', 'well', 'site', 'coordX', 'coordY', 'cell_id'], index=[ind])
+                        vector = pd.DataFrame(np.asarray([self.plate, well, site, x, y, index, n]).reshape(1, 7), 
+                                            columns=['plate', 'well', 'site', 'coordX', 'coordY', 'cell_num', 'coord_cell_id'], index=[ind])
                         if self.parameters['csv_coordinates'] == '' or self.parameters['csv_coordinates'] is None:
                             tree = KDTree([row[:2] for row in center_of_mass])
                             # Query the nearest distance and the index of the nearest point
                             distance, _ = tree.query([x, y], k=2)    
                             vector['distance'] = distance[1] 
                         else:
-                            vector['distance'] = locations.loc[(locations.coordX == str(x)) & (locations.coordY == str(y)), 'distance'].values[0]
+                            distance_values = locations.loc[(locations.coordX == str(x)) & (locations.coordY == str(y)), 'distance'].values
+                            if len(distance_values) > 0:
+                                vector['distance'] = distance_values[0]
+                            else:
+                                print(f"No matching distance found for coordinates ({x}, {y})")
+                                vector['distance'] = np.nan
 
                         try:
                             scalefex = ScaleFEx_from_crop.compute_ScaleFEx.ScaleFEx(crop, channel=self.parameters['channel'], 
-                                                                                   mito_ch=self.parameters['Mito_channel'], 
-                                                                                   rna_ch=self.parameters['RNA_channel'], 
-                                                                                   downsampling=self.parameters['downsampling'], 
-                                                                                   roi=int(self.parameters['ROI'])).single_cell_vector
+                                                                                mito_ch=self.parameters['Mito_channel'], 
+                                                                                rna_ch=self.parameters['RNA_channel'], 
+                                                                                downsampling=self.parameters['downsampling'], 
+                                                                                roi=int(self.parameters['ROI'])).single_cell_vector
 
                             if isinstance(scalefex, pd.DataFrame):
                                 vector = pd.concat([vector, scalefex], axis=1)
@@ -144,27 +143,31 @@ class Process_HighContentImaging_screen_on_AWS:
                                 csv_file = dq.save_csv_file(vector, csv_file, self.parameters['max_file_size'], 
                                                             self.parameters['s3_bucket'], self.parameters['experiment_name'], 
                                                             self.plate, self.parameters['subset_index'])
-                                is_computed[n] = 1
+                                is_computed[index] = 1
                                                 
                         except Exception as e:
                             print("An error occurred during ScaleFEx computation:", e)
+                            is_computed[index] = -1 
+
+                # Tracking cells computed/skipped/failed np.count_nonzero(is_computed == -1)
+                computed_ids = tuple(np.argwhere(is_computed == 1).flatten())
+                crop_issue_ids = tuple(np.argwhere(is_computed == 0).flatten())
+                other_ids = tuple(np.argwhere(is_computed == -1).flatten())
+                file_path = self.task_files[(self.task_files['plate'] == self.plate) & (self.task_files['well'] == well) & (self.task_files['site'] == site) &
+                                            (self.task_files['channel'] == self.parameters['channel'][0])]['file_path'].iloc[0]
+                compute_vec = [[self.plate, well, site, self.parameters['subset_index'], file_path,
+                                len(center_of_mass), len(crop_issue_ids) + len(other_ids), str(computed_ids), str(crop_issue_ids), str(other_ids)]]
+                site_row = pd.DataFrame(data=compute_vec, columns=self.fields_computed_df.columns)
                 
-                # tracking cells computed/skipped/failed
-                computed_ids = tuple(np.argwhere(is_computed==1).flatten())
-                skipped_ids = tuple(np.argwhere(is_computed==0).flatten())
-                file_path = self.task_files[(self.task_files['plate']==self.plate)&(self.task_files['well']==well)&(self.task_files['site']==site)&
-                                (self.task_files['channel']==self.parameters['channel'][0])]['file_path'].iloc[0]
-                compute_vec = [[self.plate,well,site,self.parameters['subset_index'],file_path,
-                                len(center_of_mass),np.count_nonzero(is_computed==-1),str(computed_ids),str(skipped_ids)]]
-                site_row = pd.DataFrame(data=compute_vec,columns=self.fields_computed_df.columns)
-                
-                site_row.to_csv(self.fields_computed_file,mode='a',header=False,index=False)
+                site_row.to_csv(self.fields_computed_file, mode='a', header=False, index=False)
+
+
 
     def start_computation(self, plate, files):
         self.task_files = dq.filter_task_files(files, self.parameters['subset_index'], self.parameters['nb_subsets']) 
 
         self.fields_computed_df = pd.read_csv(self.fields_computed_file,converters={'plate':str,'well':str,'site':str,
-                                                                               'computed_ids':str,'skipped_ids':str})
+                                                                               'computed_ids':str,'crop_issue_ids':str})
 
         if self.parameters['csv_coordinates'] is not None and os.path.exists(self.parameters['csv_coordinates']):
             self.locations = pd.read_csv(self.parameters['csv_coordinates'])
