@@ -163,7 +163,6 @@ class Process_HighContentImaging_screen:
                         
       
                         center_of_mass=np.array([list(row) + [n] for n,row in enumerate(center_of_mass)])
-                        live_cells=len(center_of_mass)
                       
                     else:
                         
