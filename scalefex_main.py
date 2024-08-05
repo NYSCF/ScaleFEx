@@ -162,6 +162,8 @@ class Process_HighContentImaging_screen:
                         center_of_mass=[list(row) + [n] for n,row in enumerate(center_of_mass)]
                         
       
+                        center_of_mass=np.array([list(row) + [n] for n,row in enumerate(center_of_mass)])
+                        live_cells=len(center_of_mass)
                       
                     else:
                         
@@ -180,15 +182,15 @@ class Process_HighContentImaging_screen:
                         
                         self.csv_fileQC = self.save_csv_file(QC_vector,self.csv_fileQC)
 
-                    is_computed = np.ones(len(center_of_mass))*-1
-                    for x,y,n in center_of_mass:
+                    is_computed = (np.ones(len(center_of_mass))*-1).astype(int)
+                    for index,(x,y,n) in enumerate(center_of_mass):
        
                         crop=np_images[:,int(float(x)-self.parameters['ROI']):int(float(x)+self.parameters['ROI']),
                                            int(float(y)-self.parameters['ROI']):int(float(y)+self.parameters['ROI']),:]
                 
                         if crop.shape != (len(self.parameters['channel']),self.parameters['ROI']*2,self.parameters['ROI']*2,1):
                             print(crop.shape, "cell on the border")
-                            is_computed[n] = 0
+                            is_computed[index] = 0
                             continue
                         else:
                             if self.parameters['visualize_crops']==True:
@@ -233,7 +235,7 @@ class Process_HighContentImaging_screen:
                                         vector['downsampling'] = self.parameters['downsampling']
                                         self.csv_file = self.save_csv_file(vector, self.csv_file)
                                         # if self.parameters['write_computed_sites']:
-                                        is_computed[n] = 1
+                                        is_computed[index] = 1
 
                                 except Exception as e:
                                     print("An error occurred during ScaleFEx computation:", e)
@@ -241,12 +243,12 @@ class Process_HighContentImaging_screen:
                                 print('Not a valid vector type entry')
                     
                     # tracking cells computed/skipped/failed
-                    computed_ids = tuple(np.argwhere(is_computed==1).flatten())
-                    skipped_ids = tuple(np.argwhere(is_computed==0).flatten())
+                    computed_cell_ids = tuple(center_of_mass[np.nonzero(is_computed==1)[0],2].astype(int))
+                    skipped_cell_ids = tuple(center_of_mass[np.nonzero(is_computed==0)[0],2].astype(int))
                     file_path = files[(files['plate']==plate)&(files['well']==well)&(files['site']==site)&
                                     (files['channel']==self.parameters['channel'][0])]['file_path'].iloc[0]
                     compute_vec = [[plate,well,site,file_path,
-                                    len(center_of_mass),np.count_nonzero(is_computed==-1),str(computed_ids),str(skipped_ids)]]
+                                    len(center_of_mass),np.count_nonzero(is_computed==-1),str(computed_cell_ids),str(skipped_cell_ids)]]
                     site_row = pd.DataFrame(data=compute_vec,columns=fields_computed_df.columns)
                     
                     site_row.to_csv(self.fields_computed_file,mode='a',header=False,index=False)
