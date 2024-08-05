@@ -150,7 +150,8 @@ class Process_HighContentImaging_screen_on_AWS:
                             is_computed[index] = -1 
 
                 # Tracking cells computed/skipped/failed np.count_nonzero(is_computed == -1)
-                computed_ids = tuple(np.argwhere(is_computed == 1).flatten())
+                # computed_ids = tuple(np.argwhere(is_computed == 1).flatten())
+                computed_ids = tuple(center_of_mass[np.argwhere(is_computed == 1).flatten(),2])
                 crop_issue_ids = tuple(np.argwhere(is_computed == 0).flatten())
                 other_ids = tuple(np.argwhere(is_computed == -1).flatten())
                 file_path = self.task_files[(self.task_files['plate'] == self.plate) & (self.task_files['well'] == well) & (self.task_files['site'] == site) &
