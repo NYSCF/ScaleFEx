@@ -55,7 +55,7 @@ class ScaleFEx:
     def load_preprocess_and_compute_feature(self, cell_crop):
         ''' Function that imports the images and extracts the location of cells'''
         qc_flag, sc_vec = single_cell_feature_extraction(cell_crop, self.channel,self.roi,
-                                    self.mito_ch,self.rna_ch,self.neuritis_ch,self.downsampling,self.viz)
+                                    self.mito_ch,self.rna_ch,self.downsampling,self.viz)
         self.single_cell_vector = pd.DataFrame(sc_vec)
 
         

@@ -159,9 +159,6 @@ class Process_HighContentImaging_screen:
 
                     if self.parameters['csv_coordinates']=='':
                         center_of_mass=self.segment_crop_images(np_images[0,:,:,0])
-                        center_of_mass=[list(row) + [n] for n,row in enumerate(center_of_mass)]
-                        
-      
                         center_of_mass=np.array([list(row) + [n] for n,row in enumerate(center_of_mass)])
                       
                     else:
