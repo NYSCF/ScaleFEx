@@ -199,8 +199,31 @@ def upload_to_s3(bucket_name, file, experiment_name, plate, index_subset):
     s3 = boto3.client('s3')
     cleaned_filename = os.path.basename(file).replace("/", "_").replace("_home_ec2-user_project_scalefex_", "")
     s3_path = f'resultfolder/{experiment_name}/{plate}/{index_subset}/' + cleaned_filename
+
+    # Check if file already exists in S3
+    if check_s3_file_exists(s3, bucket_name, s3_path):
+        # Add a unique character or timestamp to the filename to avoid overwriting
+        cleaned_filename = add_unique_suffix(cleaned_filename)
+        s3_path = f'resultfolder/{experiment_name}/{plate}/{index_subset}/' + cleaned_filename
+
     s3.upload_file(file, bucket_name, s3_path)
     print(f"Uploaded {file} to s3://{bucket_name}/{s3_path}")
+
+def check_s3_file_exists(s3, bucket_name, s3_path):
+    try:
+        s3.head_object(Bucket=bucket_name, Key=s3_path)
+        return True
+    except s3.exceptions.ClientError as e:
+        if e.response['Error']['Code'] == '404':
+            return False
+        else:
+            raise
+
+def add_unique_suffix(filename):
+    import time
+    unique_suffix = time.strftime("%Y%m%d-%H%M%S")
+    base, ext = os.path.splitext(filename)
+    return f"{base}_{unique_suffix}{ext}"
     
 def scan_s3(plates, plate_identifiers, exp_folder, exts, experiment_name, s3_bucket):
     """
@@ -369,7 +392,7 @@ def filter_task_files(task_files,subset_index, nb_subsets):
         for i in range(remaining_wells):
             subset_wells[i].append(unique_wells[-(i+1)])
 
-        subset_index = subset_index - 1  # Adjust for zero-based indexing
+        subset_index = int(subset_index) - 1  # Adjust for zero-based indexing
 
         selected_subset_wells = subset_wells[subset_index]
         filtered_task_files = task_files[task_files['well'].isin(selected_subset_wells)]
