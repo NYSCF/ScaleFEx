@@ -174,10 +174,20 @@ def create_marker_file(marker_file):
     with open(marker_file, 'w') as f:
         f.write('')
 
+def push_fields_computed_files(bucket, experiment_name, plate, index_subset, folder_path):
+    files = [os.path.join(folder_path, file) for file in os.listdir(folder_path) 
+             if file.endswith('.csv') and 'fields-computed' in file]
+    for file in files:
+        try:
+            # Push the CSV directly to S3
+            upload_to_s3(bucket, file, experiment_name, plate, index_subset)
+            print(f"Successfully pushed {file} to S3")
+        except Exception as e:
+            print(f"Failed to push {file}: {e}")
+
 def push_and_delete(csv_file, bucket, experiment_name, plate, index_subset):
     try:
         marker_file = get_marker_file(csv_file)
-
         # Create a marker file to indicate the file is being processed
         create_marker_file(marker_file)
 
@@ -189,6 +199,8 @@ def push_and_delete(csv_file, bucket, experiment_name, plate, index_subset):
         output_parquet = file_name + '.parquet'
         pq.write_table(pa.Table.from_pandas(df), output_parquet)
         upload_to_s3(bucket, output_parquet, experiment_name, plate, index_subset)
+        push_fields_computed_files(bucket, experiment_name, plate, index_subset, 'outputs')
+
         os.remove(csv_file)
         os.remove(output_parquet)
         
@@ -349,21 +361,23 @@ def upload_ffc_to_s3(bucket_name,file,experiment_name):
     s3.upload_file(file,bucket_name,f'resultfolder/{experiment_name}/'+ str(file).replace("/","_").replace("_home_ec2-user_project_",""))
     print(file + ' uploaded')
 
-def push_all_files(bucket, experiment_name, plate, index_subset,folder_path):
+def push_all_files(bucket, experiment_name, plate, index_subset, folder_path):
     files = [os.path.join(folder_path, file) for file in os.listdir(folder_path) if file.endswith('.csv')]
     for file in files:
-            try:
-            # Read the CSV file
+        try:
+            # Check if the filename contains 'fields-computed'
+            if 'fields-computed' in os.path.basename(file):
+                upload_to_s3(bucket, file, experiment_name, plate, index_subset)
+            else:
                 df = pd.read_csv(file)
                 df = df.applymap(lambda x: str(x).encode('utf-8') if isinstance(x, str) else x)
-            # Create the Parquet file name from the CSV file name
                 file_name = os.path.splitext(file)[0]
                 output_parquet = file_name + '.parquet'
                 pq.write_table(pa.Table.from_pandas(df), output_parquet)
                 upload_to_s3(bucket, output_parquet, experiment_name, plate, index_subset)
 
-            except Exception as e:
-                print(f"Failed to process {file}: {e}")
+        except Exception as e:
+            print(f"Failed to process {file}: {e}")
 
 def terminate_current_instance():
 
@@ -544,7 +558,6 @@ def launch_ec2_instances(experiment_name, region, s3_bucket, linux_ami, instance
                         raise
             if not launched:
                 print(f'Failed to launch instance for {plate} - {subset_index} in any subnet.')
-
 
     return instance_ids, instance_tags
 
