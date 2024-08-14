@@ -10,32 +10,30 @@ Metadata:
           - S3Bucket
           - NbSubsets
           - ExperimentName
-          - plates
-          - channel
+          - ExperimentFolder
+          - Plates
+          - Channel
           - AWSRegion
 
       - Label:
           default: "Advanced"
         Parameters:
-          - downsampling
+          - Downsampling
           - FFC
           - FFCNbImages
           - MinCellSize
           - MaxCellSize
           - CsvCoordinates
           - QC
-          - zstack
+          - Zstack
           - PlateIdentifier
           - FnamePattern
-          - FnameDelimiters
           - FileExtensions
           - ImageSize
           - ROI
           - InstanceType
           - AmazonAMI
-          - NbWorkers
           - SegmentingFunction
-          - NeuriteTracing
           - SecurityGroupID
           - SubnetID
           - SubsetIndex
@@ -45,34 +43,36 @@ Parameters:
     Description: Name of the S3 bucket to sync data from
     Type: String
     Default: 'nyscf-scalefex'
-  channel:
+  Channel:
     Description: List of channels to be computed in order
     Type: String
     Default: "['ch4','ch1','ch5','ch3','ch2']"
   ExperimentName:
     Description: "Experiment name -> Must be in the image's key"
     Type: String
-    Default: 'HTS0019'
+    Default: 'experiment1'
+  ExperimentFolder:
+    Description: "S3 folder containing images | ExperimentName followed by /"
+    Type: String
+    Default: 'experiment1/'
+
   AmazonAMI:
     Description: "Up to date Amazon Linux Machine ID"
     Type: String
-    Default: 'ami-04e5276ebb8451442'
-  plates:
+    Default: 'ami-0ae8f15ae66fe8cda'
+  Plates:
     Description: "List of plates to compute, formatted as a Python list"
     Type: String
-    Default: "['101', '102']"
+
+    Default: "['1', '2']"
   PlateIdentifier:
     Description: "Identifier for finding the plate number"
     Type: String
-    Default: '_CV384W_'
+    Default: ['Plate','']
   FnamePattern:
     Description: "Phenix pattern for filename"
     Type: String
-    Default: 'Images/<Well(6)><Site(3)><Plane(3)>-<Channel(3)>.<ext>'
-  FnameDelimiters:
-    Description: "Delimiters used in filename pattern, formatted as a Python list"
-    Type: String
-    Default: "['-', '.']"
+    Default: '<Well>f<Site>p<Plane(2)>-<Channel(3)>.<ext>'
   FileExtensions:
     Description: "List of file extensions to consider, formatted as a Python list"
     Type: String
@@ -93,12 +93,12 @@ Parameters:
     Description: "Channel for mitochondria, set only if you want to compute ScaleFex"
     Type: String
     Default: 'ch2'
-  zstack:
+  Zstack:
     Description: "Enable or disable z-stack computation"
     Type: String
     AllowedValues: ['true', 'false']
     Default: 'false'
-  downsampling:
+  Downsampling:
     Description: "Level of image downsampling"
     Type: Number
     Default: 1
@@ -140,18 +140,10 @@ Parameters:
     Description: "Do you want to compute a specific subset?"
     Type: String
     Default: 'all'
-  NbWorkers:
-    Description: "How many workers per machine"
-    Type: Number
-    Default: 40
   InstanceType:
     Description: "Instance type to use"
     Type: String
     Default: 'c5.12xlarge'
-  NeuriteTracing:
-    Description: "NeuriteTracing"
-    Type: String
-    Default: ''
   AWSRegion:
     Description: "AWSRegion"
     Type: String
@@ -206,51 +198,54 @@ Resources:
           TOKEN=$(echo "$SECRET" | jq -r '.[keys[]]')
           echo -e "machine github.com\nlogin $USERNAME\npassword $TOKEN" > ~/.netrc 
           chmod 600 ~/.netrc
-          MAIN_REPO_URL="https://github.com/NYSCF/NYSCF_HCI_image_processing.git"
+          MAIN_REPO_URL="https://github.com/NYSCF/ScaleFEx.git"
           git clone $MAIN_REPO_URL
-          cd NYSCF_HCI_image_processing
+          cd ScaleFEx
+          echo "OK" > a.txt
           git submodule update --init --recursive
-          mv ../NYSCF_HCI_image_processing project
+          mv ../ScaleFEx project
+          echo "OK" > B.txt
           python3 -m pip install --user virtualenv
           python3 -m virtualenv venv
           source venv/bin/activate
           sudo yum install libglvnd-glx -y
           cd project
+          echo "C" > C.txt
           pip install -r AWS_requirements.txt
-          sudo sed -i "s|^n_of_workers:.*|n_of_workers: ${NbWorkers}|" AWS_params.yaml
-          sudo sed -i "s|^experiment_name:.*|experiment_name: ${ExperimentName}|" AWS_params.yaml
-          sudo sed -i "s|^plates:.*|plates: ${Plates}|" AWS_params.yaml
-          sudo sed -i "s|^plate_identifier:.*|plate_identifier: ${PlateIdentifier}|" AWS_params.yaml
-          sudo sed -i "s|^fname_pattern:.*|fname_pattern: ${FnamePattern}|" AWS_params.yaml
-          sudo sed -i "s|^fname_delimiters:.*|fname_delimiters: ${FnameDelimiters}|" AWS_params.yaml
-          sudo sed -i "s|^file_extensions:.*|file_extensions: ${FileExtensions}|" AWS_params.yaml
-          sudo sed -i "s|^image_size:.*|image_size: ${ImageSize}|" AWS_params.yaml
-          sudo sed -i "s|^channel:.*|channel: ${Channel}|" AWS_params.yaml
-          sudo sed -i "s|^ROI:.*|ROI: ${ROI}|" AWS_params.yaml
-          sudo sed -i "s|^RNA_channel:.*|RNA_channel: ${RNAChannel}|" AWS_params.yaml
-          sudo sed -i "s|^Mito_channel:.*|Mito_channel: ${MitoChannel}|" AWS_params.yaml
-          sudo sed -i "s|^zstack:.*|zstack: ${ZStack}|" AWS_params.yaml
-          sudo sed -i "s|^downsampling:.*|downsampling: ${Downsampling}|" AWS_params.yaml
-          sudo sed -i "s|^QC:.*|QC: ${QC}|" AWS_params.yaml
-          sudo sed -i "s|^FFC:.*|FFC: ${FFC}|" AWS_params.yaml
-          sudo sed -i "s|^FFC_n_images:.*|FFC_n_images: ${FFCNbImages}|" AWS_params.yaml
-          sudo sed -i "s|^csv_coordinates:.*|csv_coordinates: ${CsvCoordinates}|" AWS_params.yaml
-          sudo sed -i "s|^segmenting_function:.*|segmenting_function: ${SegmentingFunction}|" AWS_params.yaml
-          sudo sed -i "s|^min_cell_size:.*|min_cell_size: ${MinCellSize}|" AWS_params.yaml
-          sudo sed -i "s|^max_cell_size:.*|max_cell_size: ${MaxCellSize}|" AWS_params.yaml
-          sudo sed -i "s|^s3_bucket:.*|s3_bucket: ${S3Bucket}|" AWS_params.yaml
-          sudo sed -i "s|^nb_subsets:.*|nb_subsets: ${NbSubsets}|" AWS_params.yaml
-          sudo sed -i "s|^subset_index:.*|subset_index: ${SubsetIndex}|" AWS_params.yaml
-          sudo sed -i "s|^amazon_image_id:.*|amazon_image_id: ${AmazonAMI}|" AWS_params.yaml
-          sudo sed -i "s|^instance_type:.*|instance_type: ${InstanceType}|" AWS_params.yaml
-          sudo sed -i "s|^max_file_size:.*|max_file_size: 150" AWS_params.yaml
-          sudo sed -i "s|^neurite_tracing:.*|neurite_tracing: ${NeuriteTracing}|" AWS_params.yaml
-          sudo sed -i "s|^region:.*|region: ${AWSRegion}|" AWS_params.yaml
-          sudo sed -i "s|^security_group_id:.*|security_group_id: ${SecurityGroupID}|" AWS_params.yaml
-          sudo sed -i "s|^subnet_A_id:.*|subnet_A_id: ${ScaleFExSubnetA}|" AWS_params.yaml
-          sudo sed -i "s|^subnet_B_id:.*|subnet_B_id: ${ScaleFExSubnetB}|" AWS_params.yaml
-          sudo sed -i "s|^subnet_C_id:.*|subnet_C_id: ${ScaleFExSubnetC}|" AWS_params.yaml
-          python3 AWS_scalefex_main.py
+          sudo sed -i "s|^experiment_name:.*|experiment_name: ${ExperimentName}|" parameters.yaml
+          sudo sed -i "s|^exp_folder:.*|exp_folder: ${ExperimentFolder}|" parameters.yaml
+          sudo sed -i "s|^plates:.*|plates: ${Plates}|" parameters.yaml
+          sudo sed -i "s|^plate_identifiers:.*|plate_identifiers: ${PlateIdentifier}|" parameters.yaml
+          sudo sed -i "s|^fname_pattern:.*|fname_pattern: ${FnamePattern}|" parameters.yaml
+          sudo sed -i "s|^file_extensions:.*|file_extensions: ${FileExtensions}|" parameters.yaml
+          sudo sed -i "s|^image_size:.*|image_size: ${ImageSize}|" parameters.yaml
+          sudo sed -i "s|^channel:.*|channel: ${Channel}|" parameters.yaml
+          sudo sed -i "s|^ROI:.*|ROI: ${ROI}|" parameters.yaml
+          sudo sed -i "s|^RNA_channel:.*|RNA_channel: ${RNAChannel}|" parameters.yaml
+          sudo sed -i "s|^Mito_channel:.*|Mito_channel: ${MitoChannel}|" parameters.yaml
+          sudo sed -i "s|^zstack:.*|zstack: ${Zstack}|" parameters.yaml
+          sudo sed -i "s|^Downsampling:.*|downsampling: ${Downsampling}|" parameters.yaml
+          sudo sed -i "s|^QC:.*|QC: ${QC}|" parameters.yaml
+          sudo sed -i "s|^FFC:.*|FFC: ${FFC}|" parameters.yaml
+          sudo sed -i "s|^FFC_n_images:.*|FFC_n_images: ${FFCNbImages}|" parameters.yaml
+          sudo sed -i "s|^csv_coordinates:.*|csv_coordinates: ${CsvCoordinates}|" parameters.yaml
+          sudo sed -i "s|^segmenting_function:.*|segmenting_function: ${SegmentingFunction}|" parameters.yaml
+          sudo sed -i "s|^min_cell_size:.*|min_cell_size: ${MinCellSize}|" parameters.yaml
+          sudo sed -i "s|^max_cell_size:.*|max_cell_size: ${MaxCellSize}|" parameters.yaml
+          sudo sed -i "s|^s3_bucket:.*|s3_bucket: ${S3Bucket}|" parameters.yaml
+          sudo sed -i "s|^nb_subsets:.*|nb_subsets: ${NbSubsets}|" parameters.yaml
+          sudo sed -i "s|^subset_index:.*|subset_index: ${SubsetIndex}|" parameters.yaml
+          sudo sed -i "s|^amazon_image_id:.*|amazon_image_id: ${AmazonAMI}|" parameters.yaml
+          sudo sed -i "s|^instance_type:.*|instance_type: ${InstanceType}|" parameters.yaml
+          sudo sed -i "s|^max_file_size:.*|max_file_size: 150" parameters.yaml
+          sudo sed -i "s|^region:.*|region: ${AWSRegion}|" parameters.yaml
+          sudo sed -i "s|^n_of_workers:.*|n_of_workers: 40|" parameters.yaml
+          sudo sed -i "s|^security_group_id:.*|security_group_id: ${SecurityGroupID}|" parameters.yaml
+          sudo sed -i "s|^ScaleFExSubnetA:.*|ScaleFExSubnetA: ${ScaleFExSubnetA}|" parameters.yaml
+          sudo sed -i "s|^ScaleFExSubnetB:.*|ScaleFExSubnetB: ${ScaleFExSubnetB}|" parameters.yaml
+          sudo sed -i "s|^ScaleFExSubnetC:.*|ScaleFExSubnetC: ${ScaleFExSubnetC}|" parameters.yaml
+          echo "OK" > Ok.txt
+          
 
 Outputs:
   InstanceId1:
