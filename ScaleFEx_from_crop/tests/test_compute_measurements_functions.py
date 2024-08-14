@@ -162,6 +162,7 @@ def test_single_cell_feature_extraction():
                                                 downsampling=1,viz=False)
 
     expected_df = pd.read_csv(os.path.join(TEST_CSV_DIR,'single_cell_feature_extraction_output.csv'))
+    
     df = df.astype(expected_df.dtypes.to_dict())
 
     assert df.isna().values.any() == False
