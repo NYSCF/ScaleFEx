@@ -457,7 +457,7 @@ def launch_ec2_instances(experiment_name, region, s3_bucket, linux_ami, instance
                           ScaleFExSubnetA=None, ScaleFExSubnetB=None, ScaleFExSubnetC=None, security_group_id=None):
     ec2 = boto3.client('ec2', region_name=region)
     
-    if ScaleFExSubnetA is None and security_group_id is None:
+    if ScaleFExSubnetA == None and security_group_id == None:
         subnet_ids = get_subnet_ids(region)
         security_group_id = get_security_group_id(region)
         print('Security closed')
@@ -505,11 +505,9 @@ def launch_ec2_instances(experiment_name, region, s3_bucket, linux_ami, instance
             pip install -r AWS_requirements.txt
             sed -i "s|^plates:.*|plates: ['{plate}']|" parameters.yaml
             sed -i "s|^subset_index:.*|subset_index: {subset_idx_str}|" parameters.yaml
-            # Ensure the correct ownership and permissions
             cd ..
             sudo chown -R ec2-user:ec2-user ScaleFEx
             sudo chmod -R 755 ScaleFEx
-            # Navigate back to the repository and run the Python script
             cd ScaleFEx
             echo "OK" > Ok.txt
             python3 AWS_scalefex_extraction.py
