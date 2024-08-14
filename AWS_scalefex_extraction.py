@@ -43,7 +43,7 @@ class Process_HighContentImaging_screen_on_AWS:
         if not os.path.exists(self.vec_dir):
             os.makedirs(self.vec_dir)
 
-        self.fields_computed_file = os.path.join(self.vec_dir,self.parameters['experiment_name']+ '_' + self.plate + '_' + self.parameters['subset_index']+'_fields-computed.csv')
+        self.fields_computed_file = os.path.join(self.vec_dir,str(self.parameters['experiment_name'])+ '_' + str(self.plate) + '_' + str(self.parameters['subset_index']) +'_fields-computed.csv')
         pd.DataFrame(columns=['plate','well','site','subset','file_path',
                     'cell_count','fail_count','computed_ids','cells_on_edge','cells_not_found','other_errors']).to_csv(self.fields_computed_file,index=False)
               
