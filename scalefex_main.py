@@ -162,7 +162,7 @@ class Process_HighContentImaging_screen:
                         center_of_mass=[list(row) + [n] for n,row in enumerate(center_of_mass)]
                         
       
-                        center_of_mass=np.array([list(row) + [n] for n,row in enumerate(center_of_mass)])
+                        #center_of_mass=np.array([list(row) + [n] for n,row in enumerate(center_of_mass)])
                       
                     else:
                         
@@ -242,8 +242,8 @@ class Process_HighContentImaging_screen:
                                 print('Not a valid vector type entry')
                     
                     # tracking cells computed/skipped/failed
-                    computed_cell_ids = tuple(center_of_mass[np.nonzero(is_computed==1)[0],2].astype(int))
-                    skipped_cell_ids = tuple(center_of_mass[np.nonzero(is_computed==0)[0],2].astype(int))
+                    computed_cell_ids = tuple(np.asarray(center_of_mass)[np.nonzero(is_computed==1)[0],2].astype(int))
+                    skipped_cell_ids = tuple(np.asarray(center_of_mass)[np.nonzero(is_computed==0)[0],2].astype(int))
                     file_path = files[(files['plate']==plate)&(files['well']==well)&(files['site']==site)&
                                     (files['channel']==self.parameters['channel'][0])]['file_path'].iloc[0]
                     compute_vec = [[plate,well,site,file_path,

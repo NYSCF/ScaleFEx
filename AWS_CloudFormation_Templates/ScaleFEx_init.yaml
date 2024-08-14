@@ -50,11 +50,12 @@ Parameters:
   ExperimentName:
     Description: "Experiment name -> Must be in the image's key"
     Type: String
-    Default: 'HTF0003'
+    Default: 'experiment1'
   ExperimentFolder:
     Description: "S3 folder containing images | ExperimentName followed by /"
     Type: String
-    Default: 'HTF0003/'
+    Default: 'experiment1/'
+
   AmazonAMI:
     Description: "Up to date Amazon Linux Machine ID"
     Type: String
@@ -62,11 +63,12 @@ Parameters:
   Plates:
     Description: "List of plates to compute, formatted as a Python list"
     Type: String
-    Default: "['101', '203']"
+
+    Default: "['1', '2']"
   PlateIdentifier:
     Description: "Identifier for finding the plate number"
     Type: String
-    Default: "['CV384W_','_']"
+    Default: ['Plate','']
   FnamePattern:
     Description: "Phenix pattern for filename"
     Type: String
