@@ -37,13 +37,11 @@ class ScaleFEx:
     """
 
     def __init__(self, cell_crop, channel=['ch4', 'ch1', 'ch2', 'ch3', 'ch5'],
-                 mito_ch='ch2', rna_ch='ch5',neuritis_ch='',
-                 downsampling=1, visualization=False, roi=150):
+                 mito_ch='ch2', rna_ch='ch5', downsampling=1, visualization=False, roi=150):
         
         self.channel = channel
         self.mito_ch = mito_ch
         self.rna_ch = rna_ch
-        self.neuritis_ch = neuritis_ch
         self.downsampling = downsampling
         self.viz = visualization
         self.roi = int(roi)
