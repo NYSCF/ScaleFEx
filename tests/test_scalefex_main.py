@@ -7,6 +7,8 @@ ROOT_DIR = '/'.join(__file__.split('/')[:-2])
 simplefilter(action="ignore", category=pd.errors.PerformanceWarning)
 class TestProcess_HighContentImaging_screen():
     pipeline = Process_HighContentImaging_screen(yaml_path=os.path.join(ROOT_DIR,'tests/parameters_test.yaml'))
+    if not os.path.exists(pipeline.parameters['saving_folder']):
+        os.makedirs(pipeline.parameters['saving_folder'])
     def test_init_goodyaml(self):
         test_pipeline = Process_HighContentImaging_screen(yaml_path=os.path.join(ROOT_DIR,'tests/parameters_test.yaml'))
         assert test_pipeline is not None
