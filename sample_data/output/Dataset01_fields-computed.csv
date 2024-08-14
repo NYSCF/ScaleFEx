@@ -1,0 +1,2 @@
+plate,well,site,file_path,cell_count,fail_count,computed_ids,skipped_ids
+Plate1,r03c03,01,sample_data/ScaleFEx_Dataset01_Plate1/r03c03f01p01-ch4sk1fk1fl1.tiff,9,0,"(0, 3, 5, 6)","(1, 2, 4, 7, 8)"
