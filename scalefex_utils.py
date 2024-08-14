@@ -168,7 +168,7 @@ def check_YAML_parameter_validity(yaml_path):
                        'max_file_size','plate_identifiers','pattern','exts','image_size','channel',
                        'zstack','ROI','downsampling','QC','FFC','FFC_n_images','csv_coordinates','segmenting_function',
                        'save_coordinates','min_cell_size','max_cell_size','visualization','RNA_channel','Mito_channel',
-                       'neurite_tracing','visualize_masks','visualize_crops')
+                       'neurite_tracing','visualize_masks','visualize_crops','overwrite')
     PASS_CHECK = True
     channels_valid = True
     if not set(REQUIRED_PARAMS).issubset(parameters.keys()):
@@ -198,7 +198,7 @@ def check_YAML_parameter_validity(yaml_path):
 
     # LOTS OF PARAMETER DTYPE VALIDATION
     str_params = ('experiment_name','pattern','s3_bucket','region','instance_type','ScaleFExSubnetA','ScaleFExSubnetB','ScaleFExSubnetC','security_group_id')
-    bool_params = ('zstack','QC','FFC','save_coordinates','visualization','visualize_masks','visualize_crops')
+    bool_params = ('zstack','QC','FFC','save_coordinates','visualization','visualize_masks','visualize_crops','overwrite')
     dir_params = ('exp_folder','saving_folder')
     empty_or_file_params = ('csv_coordinates',)
     list_of_str_params = ('plate_identifiers','exts','channel','plates')
