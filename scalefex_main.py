@@ -49,7 +49,6 @@ class Process_HighContentImaging_screen:
         
         files = data_query.query_functions_local.query_data(self.parameters['exp_folder'], self.parameters['pattern'],plate_identifiers=self.parameters['plate_identifiers'],
                                                             exts=self.parameters['exts'], plates=self.parameters['plates'],)
-        
         if self.parameters['overwrite'] or not os.path.exists(self.fields_computed_file):
             pd.DataFrame(columns=['plate','well','site','file_path',
                                 'cell_count','fail_count','computed_ids','skipped_ids']).to_csv(self.fields_computed_file,index=False)
@@ -140,8 +139,9 @@ class Process_HighContentImaging_screen:
         
         fields_computed_df = pd.read_csv(self.fields_computed_file,converters={'plate':str,'well':str,'site':str,
                                                                                'computed_ids':str,'skipped_ids':str})
-        wells, sites = data_query.query_functions_local.make_well_and_field_list(task_files)
 
+        wells, sites = data_query.query_functions_local.make_well_and_field_list(task_files)
+        
         if os.path.exists(self.parameters['csv_coordinates']):
             self.locations=pd.read_csv(self.parameters['csv_coordinates'])
             self.locations=self.locations.loc[self.locations.plate.astype(str)==str(plate)]
@@ -188,9 +188,10 @@ class Process_HighContentImaging_screen:
                     if self.parameters['QC']==True:
                         indQC=0
 
-                        QC_vector,indQC = Quality_control_HCI.compute_global_values.calculateQC(len(center_of_mass),
-                                            self.parameters['vector_type'],original_images,well,plate,site,self.parameters['channel'],
-                                            indQC)
+                        QC_vector,indQC = Quality_control_HCI.compute_global_values.calculateQC(tot_n=len(center_of_mass),
+                                            experiment_name=self.parameters['vector_type'],img_raw=original_images,
+                                            well=well,plate=plate,site=site,channel=self.parameters['channel'],
+                                            indQC=indQC)
                         QC_vector['file_path'] = current_file
                         self.csv_fileQC = self.save_csv_file(QC_vector,self.csv_fileQC)
 
