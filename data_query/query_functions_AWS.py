@@ -429,7 +429,8 @@ def filter_coord(locations, task_files):
 
 def get_subnet_ids(region):
     ec2 = boto3.client('ec2', region_name=region)
-    subnet_names = ["ScaleFExSubnetAId", "ScaleFExSubnetBId", "ScaleFExSubnetCId"]
+    print('start')
+    subnet_names = ["ScaleFExSubnetA", "ScaleFExSubnetB", "ScaleFExSubnetC"]
     subnet_ids = []
 
     for subnet_name in subnet_names:
@@ -451,8 +452,6 @@ def get_security_group_id(region):
     security_group_id = response['SecurityGroups'][0]['GroupId']
     return security_group_id
 
-# from botocore.exceptions.ClientError
-
 def launch_ec2_instances(experiment_name, region, s3_bucket, linux_ami, instance_type, plate_list, nb_subsets, subset_index, csv_coordinates,
                           ScaleFExSubnetA=None, ScaleFExSubnetB=None, ScaleFExSubnetC=None, security_group_id=None):
     ec2 = boto3.client('ec2', region_name=region)
@@ -463,7 +462,7 @@ def launch_ec2_instances(experiment_name, region, s3_bucket, linux_ami, instance
         print('Security closed')
     else:
         subnet_ids = [ScaleFExSubnetA, ScaleFExSubnetB, ScaleFExSubnetC]
-
+    print(security_group_id,subnet_ids)
     instance_ids = []
     instance_tags = []
 
