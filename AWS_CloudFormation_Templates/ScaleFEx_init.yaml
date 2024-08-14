@@ -55,7 +55,6 @@ Parameters:
     Description: "S3 folder containing images | ExperimentName followed by /"
     Type: String
     Default: 'experiment1/'
-
   AmazonAMI:
     Description: "Up to date Amazon Linux Machine ID"
     Type: String
@@ -63,12 +62,11 @@ Parameters:
   Plates:
     Description: "List of plates to compute, formatted as a Python list"
     Type: String
-
     Default: "['1', '2']"
   PlateIdentifier:
     Description: "Identifier for finding the plate number"
     Type: String
-    Default: ['Plate','']
+    Default: "['Plate','']"
   FnamePattern:
     Description: "Phenix pattern for filename"
     Type: String
@@ -147,7 +145,7 @@ Parameters:
   AWSRegion:
     Description: "AWSRegion"
     Type: String
-    Default: us-east-1
+    Default: 'us-east-1'
   ScaleFExSubnetA:
     Description: "ScaleFExSubnetAId"
     Type: String
@@ -210,7 +208,6 @@ Resources:
           source venv/bin/activate
           sudo yum install libglvnd-glx -y
           cd project
-          echo "C" > C.txt
           pip install -r AWS_requirements.txt
           sudo sed -i "s|^experiment_name:.*|experiment_name: ${ExperimentName}|" parameters.yaml
           sudo sed -i "s|^exp_folder:.*|exp_folder: ${ExperimentFolder}|" parameters.yaml
@@ -245,8 +242,8 @@ Resources:
           sudo sed -i "s|^ScaleFExSubnetB:.*|ScaleFExSubnetB: ${ScaleFExSubnetB}|" parameters.yaml
           sudo sed -i "s|^ScaleFExSubnetC:.*|ScaleFExSubnetC: ${ScaleFExSubnetC}|" parameters.yaml
           echo "OK" > Ok.txt
+          python3 AWS_scalefex_main.py 
           
-
 Outputs:
   InstanceId1:
     Description: EC2 Instance ID 1
