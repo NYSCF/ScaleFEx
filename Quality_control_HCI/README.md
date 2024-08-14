@@ -3,8 +3,7 @@ Performs a first pass of whole-image quality control for high content imaging sc
 
 ## Recorded Statistics
 
-- `tot_cell_num`: total number of cells in image (live + dead)    
-- `Cell_num`: number of live cells in image
+- `tot_cell_num`: total number of cells in image   
 - `Max_Intensity`: max pixel intensity across the entire image
 - `Min_Intensity`: min pixel intensity across the entire image
 - `Mean_Intensity`: mean pixel intensity across the entire image
@@ -14,4 +13,3 @@ Performs a first pass of whole-image quality control for high content imaging sc
 - `Mean_Foreground_Intensity`: mean pixel intensity of foreground identified using Otsu's method
 - `Mean_Background_Intensity`: mean pixel intensity of background identified using Otsu's method
 - `SNR`: signal-to-noise ratio
-- `neural_len`: sum of lengths of all neurites (if any)

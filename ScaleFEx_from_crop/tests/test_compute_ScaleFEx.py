@@ -29,7 +29,6 @@ def test_batch_compute_embeddings():
               'channel':['w1','w2','w3','w4','w5','w6'],
               'mito_ch':'w5',
               'rna_ch':'w4',
-              'neuritis_ch':None,
               'downsampling':1,
               'roi':30,
               'visualization':False}

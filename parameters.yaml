@@ -11,6 +11,7 @@ experiment_name: 'Dataset01' # Experiment name used to identify the experiment
 saving_folder: 'sample_data/output/' # folder to save results (e.g., embeddings, scalefex, coordinates, QC)
 plates: ['Plate1'] # list of plates to be processed (each should be in one plate subdirectory name)
 max_file_size: 2000 # max file size in MB before a new file is created
+overwrite: True # if True, overwrite existing files for the specified experiment; else, append to them
 
 # image file parsing parameters:
 plate_identifiers: ['_',''] #identifier for finding the plate number; should directly precede and follow the plate identifier 
