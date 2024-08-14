@@ -243,7 +243,7 @@ Resources:
           sudo sed -i "s|^ScaleFExSubnetB:.*|ScaleFExSubnetB: ${ScaleFExSubnetB}|" parameters.yaml
           sudo sed -i "s|^ScaleFExSubnetC:.*|ScaleFExSubnetC: ${ScaleFExSubnetC}|" parameters.yaml
           echo "OK" > Ok.txt
-          python3 AWS_scalefex_main.py
+          
 
 Outputs:
   InstanceId1:
