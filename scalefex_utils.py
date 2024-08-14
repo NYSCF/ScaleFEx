@@ -213,7 +213,7 @@ def check_YAML_parameter_validity(yaml_path):
     if parameters['resource'] not in ('local','AWS'):
         print(f"- Parameter resource ({parameters['resource']}) must be in ['local', 'AWS'].")
         PASS_CHECK = False
-    if not (isinstance(parameters['subset_index'],int) and parameters['subset_index']<1) and parameters['subset_index']!='all':
+    if  ((isinstance(parameters['subset_index'],int) and parameters['subset_index']<1)) and parameters['subset_index']!='all':
         print(f"- Parameter subset_index ({parameters['subset_index']}) must be a positive integer or 'all'.")
         PASS_CHECK = False
     for param in str_params:
