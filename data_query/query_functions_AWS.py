@@ -174,10 +174,20 @@ def create_marker_file(marker_file):
     with open(marker_file, 'w') as f:
         f.write('')
 
+def push_fields_computed_files(bucket, experiment_name, plate, index_subset, folder_path):
+    files = [os.path.join(folder_path, file) for file in os.listdir(folder_path) 
+             if file.endswith('.csv') and 'fields-computed' in file]
+    for file in files:
+        try:
+            # Push the CSV directly to S3
+            upload_to_s3(bucket, file, experiment_name, plate, index_subset)
+            print(f"Successfully pushed {file} to S3")
+        except Exception as e:
+            print(f"Failed to push {file}: {e}")
+
 def push_and_delete(csv_file, bucket, experiment_name, plate, index_subset):
     try:
         marker_file = get_marker_file(csv_file)
-
         # Create a marker file to indicate the file is being processed
         create_marker_file(marker_file)
 
@@ -189,6 +199,8 @@ def push_and_delete(csv_file, bucket, experiment_name, plate, index_subset):
         output_parquet = file_name + '.parquet'
         pq.write_table(pa.Table.from_pandas(df), output_parquet)
         upload_to_s3(bucket, output_parquet, experiment_name, plate, index_subset)
+        push_fields_computed_files(bucket, experiment_name, plate, index_subset, 'outputs')
+
         os.remove(csv_file)
         os.remove(output_parquet)
         
@@ -199,8 +211,31 @@ def upload_to_s3(bucket_name, file, experiment_name, plate, index_subset):
     s3 = boto3.client('s3')
     cleaned_filename = os.path.basename(file).replace("/", "_").replace("_home_ec2-user_project_scalefex_", "")
     s3_path = f'resultfolder/{experiment_name}/{plate}/{index_subset}/' + cleaned_filename
+
+    # Check if file already exists in S3
+    if check_s3_file_exists(s3, bucket_name, s3_path):
+        # Add a unique character or timestamp to the filename to avoid overwriting
+        cleaned_filename = add_unique_suffix(cleaned_filename)
+        s3_path = f'resultfolder/{experiment_name}/{plate}/{index_subset}/' + cleaned_filename
+
     s3.upload_file(file, bucket_name, s3_path)
     print(f"Uploaded {file} to s3://{bucket_name}/{s3_path}")
+
+def check_s3_file_exists(s3, bucket_name, s3_path):
+    try:
+        s3.head_object(Bucket=bucket_name, Key=s3_path)
+        return True
+    except s3.exceptions.ClientError as e:
+        if e.response['Error']['Code'] == '404':
+            return False
+        else:
+            raise
+
+def add_unique_suffix(filename):
+    import time
+    unique_suffix = time.strftime("%Y%m%d-%H%M%S")
+    base, ext = os.path.splitext(filename)
+    return f"{base}_{unique_suffix}{ext}"
     
 def scan_s3(plates, plate_identifiers, exp_folder, exts, experiment_name, s3_bucket):
     """
@@ -326,21 +361,23 @@ def upload_ffc_to_s3(bucket_name,file,experiment_name):
     s3.upload_file(file,bucket_name,f'resultfolder/{experiment_name}/'+ str(file).replace("/","_").replace("_home_ec2-user_project_",""))
     print(file + ' uploaded')
 
-def push_all_files(bucket, experiment_name, plate, index_subset,folder_path):
+def push_all_files(bucket, experiment_name, plate, index_subset, folder_path):
     files = [os.path.join(folder_path, file) for file in os.listdir(folder_path) if file.endswith('.csv')]
     for file in files:
-            try:
-            # Read the CSV file
+        try:
+            # Check if the filename contains 'fields-computed'
+            if 'fields-computed' in os.path.basename(file):
+                upload_to_s3(bucket, file, experiment_name, plate, index_subset)
+            else:
                 df = pd.read_csv(file)
                 df = df.applymap(lambda x: str(x).encode('utf-8') if isinstance(x, str) else x)
-            # Create the Parquet file name from the CSV file name
                 file_name = os.path.splitext(file)[0]
                 output_parquet = file_name + '.parquet'
                 pq.write_table(pa.Table.from_pandas(df), output_parquet)
                 upload_to_s3(bucket, output_parquet, experiment_name, plate, index_subset)
 
-            except Exception as e:
-                print(f"Failed to process {file}: {e}")
+        except Exception as e:
+            print(f"Failed to process {file}: {e}")
 
 def terminate_current_instance():
 
@@ -369,7 +406,7 @@ def filter_task_files(task_files,subset_index, nb_subsets):
         for i in range(remaining_wells):
             subset_wells[i].append(unique_wells[-(i+1)])
 
-        subset_index = subset_index - 1  # Adjust for zero-based indexing
+        subset_index = int(subset_index) - 1  # Adjust for zero-based indexing
 
         selected_subset_wells = subset_wells[subset_index]
         filtered_task_files = task_files[task_files['well'].isin(selected_subset_wells)]
@@ -392,7 +429,8 @@ def filter_coord(locations, task_files):
 
 def get_subnet_ids(region):
     ec2 = boto3.client('ec2', region_name=region)
-    subnet_names = ["ScaleFExSubnetAId", "ScaleFExSubnetBId", "ScaleFExSubnetCId"]
+    print('start')
+    subnet_names = ["ScaleFExSubnetA", "ScaleFExSubnetB", "ScaleFExSubnetC"]
     subnet_ids = []
 
     for subnet_name in subnet_names:
@@ -414,19 +452,17 @@ def get_security_group_id(region):
     security_group_id = response['SecurityGroups'][0]['GroupId']
     return security_group_id
 
-# from botocore.exceptions.ClientError
-
 def launch_ec2_instances(experiment_name, region, s3_bucket, linux_ami, instance_type, plate_list, nb_subsets, subset_index, csv_coordinates,
                           ScaleFExSubnetA=None, ScaleFExSubnetB=None, ScaleFExSubnetC=None, security_group_id=None):
     ec2 = boto3.client('ec2', region_name=region)
     
-    if ScaleFExSubnetA is None and security_group_id is None:
+    if ScaleFExSubnetA == None and security_group_id == None:
         subnet_ids = get_subnet_ids(region)
         security_group_id = get_security_group_id(region)
         print('Security closed')
     else:
         subnet_ids = [ScaleFExSubnetA, ScaleFExSubnetB, ScaleFExSubnetC]
-
+    print(security_group_id,subnet_ids)
     instance_ids = []
     instance_tags = []
 
@@ -468,11 +504,9 @@ def launch_ec2_instances(experiment_name, region, s3_bucket, linux_ami, instance
             pip install -r AWS_requirements.txt
             sed -i "s|^plates:.*|plates: ['{plate}']|" parameters.yaml
             sed -i "s|^subset_index:.*|subset_index: {subset_idx_str}|" parameters.yaml
-            # Ensure the correct ownership and permissions
             cd ..
             sudo chown -R ec2-user:ec2-user ScaleFEx
             sudo chmod -R 755 ScaleFEx
-            # Navigate back to the repository and run the Python script
             cd ScaleFEx
             echo "OK" > Ok.txt
             python3 AWS_scalefex_extraction.py
@@ -521,7 +555,6 @@ def launch_ec2_instances(experiment_name, region, s3_bucket, linux_ami, instance
                         raise
             if not launched:
                 print(f'Failed to launch instance for {plate} - {subset_index} in any subnet.')
-
 
     return instance_ids, instance_tags
 
