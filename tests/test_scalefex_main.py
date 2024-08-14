@@ -13,24 +13,22 @@ class TestProcess_HighContentImaging_screen():
         assert test_pipeline.saving_folder is not None
         assert test_pipeline.csv_file is not None
 
-    def test_init_badyaml(self):
-        with pytest.raises(FileNotFoundError):
-            Process_HighContentImaging_screen(yaml_path='not_a_file.yaml')
-
     def test_run(self):
         output_dir = 'sample_data/test/output/'
         for r,d,f in os.walk(output_dir):
             for file in f:
                 os.remove(os.path.join(r,file))
         self.pipeline.run()
-        # assert os.path.exists(os.path.join(output_dir,'scalefex'))
-        # assert os.path.exists(os.path.join(output_dir,'QC_analysis'))
-        # assert len([f for f in os.listdir(output_dir) if f.endswith('coordinates.csv')]) == 1
-        # assert len([f for f in os.listdir(output_dir) if f.endswith('parameters.yaml')]) == 1
-        # assert len(os.listdir(os.path.join(output_dir,'QC_analysis'))) == 1
-        # assert len(os.listdir(os.path.join(output_dir,'scalefex'))) == 1
+        assert os.path.exists(os.path.join(output_dir,'scalefex'))
+        assert os.path.exists(os.path.join(output_dir,'QC_analysis'))
+        assert len([f for f in os.listdir(output_dir) if f.endswith('coordinates.csv')]) == 1
+        assert len([f for f in os.listdir(output_dir) if f.endswith('parameters.yaml')]) == 1
+        assert len(os.listdir(os.path.join(output_dir,'QC_analysis'))) == 1
+        assert len(os.listdir(os.path.join(output_dir,'scalefex'))) == 1
 
-
+    def test_init_badyaml(self):
+        with pytest.raises(FileNotFoundError):
+            Process_HighContentImaging_screen(yaml_path='not_a_file.yaml')
     def test_save_csv_file(self):
         new_output_path = 'sample_data/test/sample_scalefex_vector/Dataset01_Plate1_scalefex_new.csv'
         if os.path.exists(new_output_path):
