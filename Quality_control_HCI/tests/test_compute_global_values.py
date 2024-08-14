@@ -20,15 +20,14 @@ def test_calculateQC():
     img_raw = np.zeros((len(channels),img['w1'].shape[0],img['w1'].shape[1]))
     for i,ch in enumerate(channels):
         img_raw[i,:,:] = img[ch]
-    PARAMS = {"tot_n": 20,"live_cells":14,
+    PARAMS = {"tot_n": 20,
               "experiment_name":"rxrx2",
               "img_raw": img_raw,
               "well":"O24",
               "plate":"Plate1",
               "site":"s2",
               "channel":list(img.keys()),
-              "indQC":0,
-              "neural_tracing":""}
+              "indQC":0}
     
     df, indQC = calculateQC(**PARAMS)
     assert not df.isna().any().any()
@@ -42,15 +41,14 @@ def test_calculateQC_OOF():
     for i,ch in enumerate(channels):
         img_raw[i,:,:] = img[ch].astype(float)
     print(np.unique(img_raw[0]))
-    PARAMS = {"tot_n": 20,"live_cells":14,
+    PARAMS = {"tot_n": 20,
               "experiment_name":"rxrx2",
               "img_raw": img_raw,
               "well":"O24",
               "plate":"Plate1",
               "site":"s2",
               "channel":list(img.keys()),
-              "indQC":0,
-              "neural_tracing":""}
+              "indQC":0}
    
     df, indQC = calculateQC(**PARAMS)
     assert not df.isna().any().any()

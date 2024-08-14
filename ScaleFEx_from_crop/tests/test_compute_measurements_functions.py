@@ -159,9 +159,10 @@ def test_single_cell_feature_extraction():
     test_img_stack = np.stack([test_img['w1'],test_img['w2'],test_img['w3'],test_img['w4'],test_img['w5'],test_img['w6']],axis=0)
     channels = ('w1','w2','w3','w4','w5','w6')
     q_flag, df = single_cell_feature_extraction(test_img_stack.astype(np.uint8),channels,roi=30,mito_ch='w5',rna_ch='w4',
-                                        neuritis_ch=None,downsampling=1,viz=False)
+                                                downsampling=1,viz=False)
 
     expected_df = pd.read_csv(os.path.join(TEST_CSV_DIR,'single_cell_feature_extraction_output.csv'))
+    
     df = df.astype(expected_df.dtypes.to_dict())
 
     assert df.isna().values.any() == False

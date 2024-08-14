@@ -168,7 +168,7 @@ def check_YAML_parameter_validity(yaml_path):
                        'max_file_size','plate_identifiers','pattern','exts','image_size','channel',
                        'zstack','ROI','downsampling','QC','FFC','FFC_n_images','csv_coordinates','segmenting_function',
                        'save_coordinates','min_cell_size','max_cell_size','visualization','RNA_channel','Mito_channel',
-                       'visualize_masks','visualize_crops')
+                       'visualize_masks','visualize_crops','overwrite')
     PASS_CHECK = True
     channels_valid = True
     if not set(REQUIRED_PARAMS).issubset(parameters.keys()):
@@ -198,7 +198,7 @@ def check_YAML_parameter_validity(yaml_path):
 
     # LOTS OF PARAMETER DTYPE VALIDATION
     str_params = ('experiment_name','pattern','s3_bucket','region','instance_type','ScaleFExSubnetA','ScaleFExSubnetB','ScaleFExSubnetC','security_group_id')
-    bool_params = ('zstack','QC','FFC','save_coordinates','visualization','visualize_masks','visualize_crops')
+    bool_params = ('zstack','QC','FFC','save_coordinates','visualization','visualize_masks','visualize_crops','overwrite')
     dir_params = ('exp_folder','saving_folder')
     empty_or_file_params = ('csv_coordinates',)
     list_of_str_params = ('plate_identifiers','exts','channel','plates')
@@ -213,7 +213,7 @@ def check_YAML_parameter_validity(yaml_path):
     if parameters['resource'] not in ('local','AWS'):
         print(f"- Parameter resource ({parameters['resource']}) must be in ['local', 'AWS'].")
         PASS_CHECK = False
-    if not (isinstance(parameters['subset_index'],int) and parameters['subset_index']<1) and parameters['subset_index']!='all':
+    if  ((isinstance(parameters['subset_index'],int) and parameters['subset_index']<1)) and parameters['subset_index']!='all':
         print(f"- Parameter subset_index ({parameters['subset_index']}) must be a positive integer or 'all'.")
         PASS_CHECK = False
     for param in str_params:

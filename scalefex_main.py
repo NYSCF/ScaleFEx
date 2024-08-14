@@ -39,7 +39,7 @@ class Process_HighContentImaging_screen:
             self.parameters = yaml.load(f.read(), Loader=yaml.CLoader)
         self.PARAMS_VALID = scalefex_utils.check_YAML_parameter_validity(yaml_path)
         self.saving_folder = self.parameters['saving_folder']
-        self.csv_file=self.parameters['csv_coordinates']
+        self.csv_file = self.parameters['csv_coordinates']
         self.fields_computed_file = os.path.join(self.saving_folder,self.parameters['experiment_name'] + '_fields-computed.csv')
 
     def run(self):
@@ -49,9 +49,9 @@ class Process_HighContentImaging_screen:
         
         files = data_query.query_functions_local.query_data(self.parameters['exp_folder'], self.parameters['pattern'],plate_identifiers=self.parameters['plate_identifiers'],
                                                             exts=self.parameters['exts'], plates=self.parameters['plates'],)
-        
-        pd.DataFrame(columns=['plate','well','site','file_path',
-                              'cell_count','fail_count','computed_ids','skipped_ids']).to_csv(self.fields_computed_file,index=False)
+        if self.parameters['overwrite'] or not os.path.exists(self.fields_computed_file):
+            pd.DataFrame(columns=['plate','well','site','file_path',
+                                'cell_count','fail_count','computed_ids','skipped_ids']).to_csv(self.fields_computed_file,index=False)
         
         # Perform Flat Field Correction (FFC)
         self.flat_field_correction = {}
@@ -82,7 +82,15 @@ class Process_HighContentImaging_screen:
 
         # save time-stamped parameters file
         shutil.copy2(self.yaml_path,os.path.join(self.saving_folder,self.parameters['experiment_name'] + f'_{start_time}_parameters.yaml'))
-        
+
+        # check which sites haven't computed (if continuing from a previous run)
+        if not self.parameters['overwrite'] and os.path.exists(self.fields_computed_file):
+            computed_df = pd.read_csv(self.fields_computed_file,converters={'plate':str,'well':str,'site':str,
+                                                                               'computed_ids':str,'skipped_ids':str})
+            if len(computed_df)>0:
+                files_minus_computed = files.merge(computed_df[['plate','well','site']],on=['plate','well','site'],how='outer',indicator=True)
+                files = files_minus_computed[files_minus_computed['_merge']=='left_only'].reset_index(drop=True)
+
         plates_finished = 0
         for plate in plate_list:
              # QC
@@ -91,9 +99,14 @@ class Process_HighContentImaging_screen:
                 self.csv_fileQC = os.path.join(qc_dir,self.parameters['experiment_name']+'_'+str(plate)+'QC.csv')
                 if not os.path.exists(qc_dir):
                     os.makedirs(qc_dir)
-                    
+            plate_coords_csv = os.path.join(self.saving_folder,self.parameters['experiment_name'] + '_coordinates_'+str(plate)+'.csv')
+            
+            # delete previous coords files if overwriting
+            if self.parameters['overwrite'] and os.path.exists(plate_coords_csv):
+                os.remove(plate_coords_csv)
+
             if self.parameters['save_coordinates'] == True:
-                self.csv_file_coordinates = os.path.join(self.saving_folder,self.parameters['experiment_name'] + '_coordinates_'+str(plate)+'.csv')
+                self.csv_file_coordinates = plate_coords_csv
 
             is_finished = self.start_computation(plate, files)
             if is_finished == True:
@@ -105,7 +118,10 @@ class Process_HighContentImaging_screen:
                 # concatenate coordinates files into time-stamped file
                 coordinate_csvs = [os.path.join(self.saving_folder,self.parameters['experiment_name'] + '_coordinates_'+str(plate)+'.csv') for plate in plate_list]
                 all_coords = pd.concat([pd.read_csv(file) for file in coordinate_csvs],ignore_index=True).reset_index(drop=True)
-                all_coords.to_csv(os.path.join(self.saving_folder,self.parameters['experiment_name'] + f'_{start_time}_coordinates.csv'),index=False)
+                write_mode = 'w'
+                if not self.parameters['overwrite']:
+                    write_mode = 'a'
+                all_coords.to_csv(os.path.join(self.saving_folder,self.parameters['experiment_name'] + f'_{start_time}_coordinates.csv'),index=False,mode=write_mode)
                 # remove plate specific coordinate files
                 _ = [os.remove(file) for file in coordinate_csvs]
             
@@ -123,8 +139,9 @@ class Process_HighContentImaging_screen:
         
         fields_computed_df = pd.read_csv(self.fields_computed_file,converters={'plate':str,'well':str,'site':str,
                                                                                'computed_ids':str,'skipped_ids':str})
-        wells, sites = data_query.query_functions_local.make_well_and_field_list(task_files)
 
+        wells, sites = data_query.query_functions_local.make_well_and_field_list(task_files)
+        
         if os.path.exists(self.parameters['csv_coordinates']):
             self.locations=pd.read_csv(self.parameters['csv_coordinates'])
             self.locations=self.locations.loc[self.locations.plate.astype(str)==str(plate)]
@@ -139,7 +156,7 @@ class Process_HighContentImaging_screen:
         def compute_vector(well):
             ''' Function that imports the images and extracts the location of cells'''
             print(well, plate, datetime.now())
-
+            sites = sorted(task_files[task_files['well']==well]['site'].unique().tolist())
             self.csv_file = os.path.join(vec_dir,self.parameters['experiment_name']+'_'+str(plate)+'_'+self.parameters['vector_type']+'.csv')
             
             for site in sites:
@@ -159,10 +176,7 @@ class Process_HighContentImaging_screen:
 
                     if self.parameters['csv_coordinates']=='':
                         center_of_mass=self.segment_crop_images(np_images[0,:,:,0])
-                        center_of_mass=[list(row) + [n] for n,row in enumerate(center_of_mass)]
-                        
-      
-                        #center_of_mass=np.array([list(row) + [n] for n,row in enumerate(center_of_mass)])
+                        center_of_mass=np.array([list(row) + [n] for n,row in enumerate(center_of_mass)])
                       
                     else:
                         
@@ -174,11 +188,11 @@ class Process_HighContentImaging_screen:
                     if self.parameters['QC']==True:
                         indQC=0
 
-                        QC_vector,indQC = Quality_control_HCI.compute_global_values.calculateQC(len(center_of_mass),
-                                            self.parameters['vector_type'],original_images,well,plate,site,self.parameters['channel'],
-                                            indQC)
+                        QC_vector,indQC = Quality_control_HCI.compute_global_values.calculateQC(tot_n=len(center_of_mass),
+                                            experiment_name=self.parameters['vector_type'],img_raw=original_images,
+                                            well=well,plate=plate,site=site,channel=self.parameters['channel'],
+                                            indQC=indQC)
                         QC_vector['file_path'] = current_file
-                        
                         self.csv_fileQC = self.save_csv_file(QC_vector,self.csv_fileQC)
 
                     is_computed = (np.ones(len(center_of_mass))*-1).astype(int)
@@ -324,12 +338,21 @@ def main():
     parser.add_argument("-p", "--parameters", type=str, default='parameters.yaml', 
                         required=False, help="Path to the parameters file")
     args = parser.parse_args()
-    # print(args.parameters)
+
     pipeline = Process_HighContentImaging_screen(yaml_path=args.parameters)
+    # check parameters are valid
     if pipeline.PARAMS_VALID is False:
         run = scalefex_utils.query_yes_no("Some parameters are not valid. Do you want to continue?",default='no')
         if run is False:
             return False
+    # check if files exist:
+    if pipeline.parameters['overwrite'] is True:
+        run = scalefex_utils.query_yes_no(f"You have set \"overwrite\" to True.\
+                                          \nThis will overwrite existing files in the '{pipeline.parameters['experiment_name']}' directory.\
+                                          \nAre you sure you want to continue?")
+        if run is False:
+            return False
+    # run pipeline
     print('\n\nScaleFEx pipeline starting...')
     pipeline.run()
 

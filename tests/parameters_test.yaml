@@ -11,6 +11,7 @@ experiment_name: 'Dataset01' # Experiment name used to identify the experiment
 saving_folder: 'sample_data/test/output/' # folder to save results (e.g., embeddings, scalefex, coordinates, QC)
 plates: ['Plate1'] # list of plates to be processed (each should be in one plate subdirectory name)
 max_file_size: 40 #2000 # max file size in MB before a new file is created
+overwrite: True # if True, overwrite existing files for the specified experiment; else, append to them
 
 # image file parsing parameters:
 plate_identifiers: ['_',''] #identifier for finding the plate number; should directly precede and follow the plate identifier 
@@ -38,7 +39,6 @@ visualization: False # if true, the segmentation masks of the entire field will 
 ## Scalefex settings
 RNA_channel: 'ch5' # channel with RNA stain (if any)
 Mito_channel: 'ch2' # channel with mitochondrial stain (if any)
-neurite_tracing: '' # channel where to compute tracing (if any)'ch3'
 visualize_masks: False # visualize the segmentation mask from each channel. NOTE: we suggest to visualize the masks for testing, but to turn it off during the processing of large screens
 visualize_crops: False # visualizes the crop of the cell. This helps setting the best ROI size, but we suggest to visualize the crop for testing, but to turn it off during the processing of large screens
 
