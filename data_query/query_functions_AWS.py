@@ -429,7 +429,8 @@ def filter_coord(locations, task_files):
 
 def get_subnet_ids(region):
     ec2 = boto3.client('ec2', region_name=region)
-    subnet_names = ["ScaleFExSubnetAId", "ScaleFExSubnetBId", "ScaleFExSubnetCId"]
+    print('start')
+    subnet_names = ["ScaleFExSubnetA", "ScaleFExSubnetB", "ScaleFExSubnetC"]
     subnet_ids = []
 
     for subnet_name in subnet_names:
@@ -451,19 +452,17 @@ def get_security_group_id(region):
     security_group_id = response['SecurityGroups'][0]['GroupId']
     return security_group_id
 
-# from botocore.exceptions.ClientError
-
 def launch_ec2_instances(experiment_name, region, s3_bucket, linux_ami, instance_type, plate_list, nb_subsets, subset_index, csv_coordinates,
                           ScaleFExSubnetA=None, ScaleFExSubnetB=None, ScaleFExSubnetC=None, security_group_id=None):
     ec2 = boto3.client('ec2', region_name=region)
     
-    if ScaleFExSubnetA is None and security_group_id is None:
+    if ScaleFExSubnetA == None and security_group_id == None:
         subnet_ids = get_subnet_ids(region)
         security_group_id = get_security_group_id(region)
         print('Security closed')
     else:
         subnet_ids = [ScaleFExSubnetA, ScaleFExSubnetB, ScaleFExSubnetC]
-
+    print(security_group_id,subnet_ids)
     instance_ids = []
     instance_tags = []
 
@@ -505,11 +504,9 @@ def launch_ec2_instances(experiment_name, region, s3_bucket, linux_ami, instance
             pip install -r AWS_requirements.txt
             sed -i "s|^plates:.*|plates: ['{plate}']|" parameters.yaml
             sed -i "s|^subset_index:.*|subset_index: {subset_idx_str}|" parameters.yaml
-            # Ensure the correct ownership and permissions
             cd ..
             sudo chown -R ec2-user:ec2-user ScaleFEx
             sudo chmod -R 755 ScaleFEx
-            # Navigate back to the repository and run the Python script
             cd ScaleFEx
             echo "OK" > Ok.txt
             python3 AWS_scalefex_extraction.py
