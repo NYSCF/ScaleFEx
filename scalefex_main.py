@@ -40,7 +40,7 @@ class Process_HighContentImaging_screen:
         self.PARAMS_VALID = scalefex_utils.check_YAML_parameter_validity(yaml_path)
         self.saving_folder = self.parameters['saving_folder']
         self.csv_file = self.parameters['csv_coordinates']
-        self.fields_computed_file = os.path.join(self.saving_folder,self.parameters['experiment_name'] + '_fields-computed.csv')
+        self.sites_computed_file = os.path.join(self.saving_folder,self.parameters['experiment_name'] + '_sites-computed.csv')
 
     def run(self):
 
@@ -49,9 +49,9 @@ class Process_HighContentImaging_screen:
         
         files = data_query.query_functions_local.query_data(self.parameters['exp_folder'], self.parameters['pattern'],plate_identifiers=self.parameters['plate_identifiers'],
                                                             exts=self.parameters['exts'], plates=self.parameters['plates'],)
-        if self.parameters['overwrite'] or not os.path.exists(self.fields_computed_file):
-            pd.DataFrame(columns=['plate','well','site','file_path',
-                                'cell_count','fail_count','computed_ids','skipped_ids']).to_csv(self.fields_computed_file,index=False)
+        if self.parameters['overwrite'] or not os.path.exists(self.sites_computed_file):
+            pd.DataFrame(columns=['plate','well','site','subset','file_path','total_count','computed_count','on_edge_count','fail_count',
+                                  'computed_ids','on_edge_ids','fail_ids']).to_csv(self.sites_computed_file,index=False)
         
         # Perform Flat Field Correction (FFC)
         self.flat_field_correction = {}
@@ -84,9 +84,9 @@ class Process_HighContentImaging_screen:
         shutil.copy2(self.yaml_path,os.path.join(self.saving_folder,self.parameters['experiment_name'] + f'_{start_time}_parameters.yaml'))
 
         # check which sites haven't computed (if continuing from a previous run)
-        if not self.parameters['overwrite'] and os.path.exists(self.fields_computed_file):
-            computed_df = pd.read_csv(self.fields_computed_file,converters={'plate':str,'well':str,'site':str,
-                                                                               'computed_ids':str,'skipped_ids':str})
+        if not self.parameters['overwrite'] and os.path.exists(self.sites_computed_file):
+            computed_df = pd.read_csv(self.sites_computed_file,converters={'plate':str,'well':str,'site':str,
+                                                                               'computed_ids':str,'on_edge_ids':str,'fail_ids':str})
             if len(computed_df)>0:
                 files_minus_computed = files.merge(computed_df[['plate','well','site']],on=['plate','well','site'],how='outer',indicator=True)
                 files = files_minus_computed[files_minus_computed['_merge']=='left_only'].reset_index(drop=True)
@@ -137,8 +137,8 @@ class Process_HighContentImaging_screen:
         if not os.path.exists(vec_dir):
             os.makedirs(vec_dir)
         
-        fields_computed_df = pd.read_csv(self.fields_computed_file,converters={'plate':str,'well':str,'site':str,
-                                                                               'computed_ids':str,'skipped_ids':str})
+        sites_computed_df = pd.read_csv(self.sites_computed_file,converters={'plate':str,'well':str,'site':str,
+                                                                               'computed_ids':str,'on_edge_ids':str,'fail_ids':str})
 
         wells, sites = data_query.query_functions_local.make_well_and_field_list(task_files)
         
@@ -256,15 +256,17 @@ class Process_HighContentImaging_screen:
                                 print('Not a valid vector type entry')
                     
                     # tracking cells computed/skipped/failed
-                    computed_cell_ids = tuple(np.asarray(center_of_mass)[np.nonzero(is_computed==1)[0],2].astype(int))
-                    skipped_cell_ids = tuple(np.asarray(center_of_mass)[np.nonzero(is_computed==0)[0],2].astype(int))
+                    computed_ids = tuple(np.asarray(center_of_mass)[np.nonzero(is_computed==1)[0],2].astype(int))
+                    on_edge_ids = tuple(np.asarray(center_of_mass)[np.nonzero(is_computed==0)[0],2].astype(int))
+                    failed_ids = tuple(np.asarray(center_of_mass)[np.nonzero(is_computed==-1)[0],2].astype(int))
                     file_path = files[(files['plate']==plate)&(files['well']==well)&(files['site']==site)&
                                     (files['channel']==self.parameters['channel'][0])]['file_path'].iloc[0]
-                    compute_vec = [[plate,well,site,file_path,
-                                    len(center_of_mass),np.count_nonzero(is_computed==-1),str(computed_cell_ids),str(skipped_cell_ids)]]
-                    site_row = pd.DataFrame(data=compute_vec,columns=fields_computed_df.columns)
+                    compute_vec = [[plate,well,site,0,file_path,
+                                    len(center_of_mass),np.count_nonzero(is_computed==1),np.count_nonzero(is_computed==0),
+                                    np.count_nonzero(is_computed==-1),str(computed_ids),str(on_edge_ids),str(failed_ids)]]
+                    site_row = pd.DataFrame(data=compute_vec,columns=sites_computed_df.columns)
                     
-                    site_row.to_csv(self.fields_computed_file,mode='a',header=False,index=False)
+                    site_row.to_csv(self.sites_computed_file,mode='a',header=False,index=False)
 
         if self.parameters['n_of_workers'] != 1:
             function = compute_vector
