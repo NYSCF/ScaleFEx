@@ -14,6 +14,7 @@ from datetime import datetime, timedelta, timezone
 from prettytable import PrettyTable
 from botocore.exceptions import ClientError
 from .query_functions_local import *
+import logging
 
 
 def query_data(pattern,plate_identifiers='',exts=('tiff',), exp_folder = ''
@@ -174,6 +175,14 @@ def create_marker_file(marker_file):
     with open(marker_file, 'w') as f:
         f.write('')
 
+def push_log_file(bucket,experiment_name): 
+    s3 = boto3.client('s3')
+    file = 'outputs/screen_init.log'
+    cleaned_filename = os.path.basename(file).replace("/", "_").replace("_home_ec2-user_project_scalefex_", "")
+    s3_path = f'resultfolder/{experiment_name}/' + cleaned_filename
+    s3.upload_file(file, bucket, s3_path)
+    print(f"Uploaded {file} to s3://{bucket}/{s3_path}")
+
 def push_fields_computed_files(bucket, experiment_name, plate, index_subset, folder_path):
     files = [os.path.join(folder_path, file) for file in os.listdir(folder_path) 
              if file.endswith('.csv') and 'fields-computed' in file]
@@ -251,13 +260,22 @@ def scan_s3(plates, plate_identifiers, exp_folder, exts, experiment_name, s3_buc
     Returns:
     - DataFrame: DataFrame containing file paths.
     """
-    print('Querying from bucket', s3_bucket)
-    print('Querying from', plate_identifiers)
-    print('Querying experiment', experiment_name)
-    print('Querying plates', plates)
-    print('Querying extensions', exts)
-    print('Querying folder', exp_folder)
-    
+
+    # Define the directory and file path for logging
+    log_dir = 'outputs'
+    log_file = os.path.join(log_dir, 'screen_init.log')
+
+    # Ensure the directory exists
+    os.makedirs(log_dir, exist_ok=True)
+
+    # Configure logging
+    logging.basicConfig(
+        filename=log_file,  # Log file name
+        filemode='a',       # Append mode
+        format='%(asctime)s - %(levelname)s - %(message)s',  # Log format
+        level=logging.INFO  # Log level
+    )
+
     s3 = boto3.client('s3')
     paginator = s3.get_paginator('list_objects_v2')
     prefix = exp_folder
@@ -268,11 +286,14 @@ def scan_s3(plates, plate_identifiers, exp_folder, exts, experiment_name, s3_buc
         folders.extend([content.get('Prefix') for content in page.get('CommonPrefixes', [])])
     
     print(f'Found {len(folders)} folders inside the experiment folder')
+    logging.info(f'Found {len(folders)} folders inside the experiment folder')
     
     # Step 2: Extract and print plate names from folder names
     matching_plates = []
     for folder in folders:
         print(f"Processing folder: {folder}")
+        logging.info(f"Processing folder: {folder}")
+        
         start_idx = folder.find(plate_identifiers[0])
         if start_idx != -1:
             start_idx += len(plate_identifiers[0])
@@ -280,12 +301,18 @@ def scan_s3(plates, plate_identifiers, exp_folder, exts, experiment_name, s3_buc
             if end_idx != -1:
                 plate = folder[start_idx:end_idx]
                 print(f"Extracted plate: {plate}")
+                logging.info(f"Extracted plate: {plate}")
+                
                 if plates == 'all' or plate in plates:
                     matching_plates.append((folder, plate))
                     print(f"Matching plate found: {plate} in folder: {folder}")
+                    logging.info(f"Matching plate found: {plate} in folder: {folder}")
 
     print(f'{len(matching_plates)} folders contain plate names:')
+    logging.info(f'{len(matching_plates)} folders contain plate names:')
+    
     print('Matching plate names:', [plate for _, plate in matching_plates])
+    logging.info(f'Matching plate names: {[plate for _, plate in matching_plates]}')
 
     # Step 3: Plate by plate go through every element and add it to a dataframe with the key and plate for columns 
     data = []
@@ -303,13 +330,17 @@ def scan_s3(plates, plate_identifiers, exp_folder, exts, experiment_name, s3_buc
             filter_keys(page)
     
     print(len(data), 'files found in prod mode')
+    logging.info(f'{len(data)} files found in prod mode')
 
     data.sort()
     files_df = pd.DataFrame(data, columns=['file_path', 'plate'])
     unique_plates = files_df['plate'].unique().tolist()
+    
     print('Unique plates:', unique_plates)
+    logging.info(f'Unique plates: {unique_plates}')
 
     return files_df, unique_plates
+
 
 def read_image_from_s3(bucket, object_name):
     s3 = boto3.client('s3')
@@ -429,15 +460,12 @@ def filter_coord(locations, task_files):
 
 def get_subnet_ids(region):
     ec2 = boto3.client('ec2', region_name=region)
-    print('start')
     subnet_names = ["ScaleFExSubnetA", "ScaleFExSubnetB", "ScaleFExSubnetC"]
     subnet_ids = []
-
     for subnet_name in subnet_names:
         response = ec2.describe_subnets(Filters=[{'Name': 'tag:Name', 'Values': [subnet_name]}])
         if response['Subnets']:
             subnet_ids.append(response['Subnets'][0]['SubnetId'])
-
     return subnet_ids
 
 def get_security_group_id(region):
@@ -453,16 +481,22 @@ def get_security_group_id(region):
     return security_group_id
 
 def launch_ec2_instances(experiment_name, region, s3_bucket, linux_ami, instance_type, plate_list, nb_subsets, subset_index, csv_coordinates,
-                          ScaleFExSubnetA=None, ScaleFExSubnetB=None, ScaleFExSubnetC=None, security_group_id=None):
+                         ScaleFExSubnetA=None, ScaleFExSubnetB=None, ScaleFExSubnetC=None, security_group_id=None):
     ec2 = boto3.client('ec2', region_name=region)
     
-    if ScaleFExSubnetA == None and security_group_id == None:
+    # Detailed log messages
+    detailed_logs = []
+
+    if ScaleFExSubnetA is None and security_group_id is None:
         subnet_ids = get_subnet_ids(region)
         security_group_id = get_security_group_id(region)
-        print('Security closed')
+        logging.info("Security closed and default subnet/security group IDs retrieved.")
     else:
         subnet_ids = [ScaleFExSubnetA, ScaleFExSubnetB, ScaleFExSubnetC]
-    print(security_group_id,subnet_ids)
+    logging.info(f"Security group ID: {security_group_id}, Subnet IDs: {subnet_ids}")
+    
+    detailed_logs.append(f"Security group ID: {security_group_id}, Subnet IDs: {subnet_ids}")
+
     instance_ids = []
     instance_tags = []
 
@@ -543,20 +577,28 @@ def launch_ec2_instances(experiment_name, region, s3_bucket, linux_ami, instance
                     # Launch the instance
                     response = ec2.run_instances(**instance_params)
                     # Append the new instance ID to the list
-                    instance_ids.append(response['Instances'][0]['InstanceId'])
+                    instance_id = response['Instances'][0]['InstanceId']
+                    instance_ids.append(instance_id)
                     instance_tags.append(f'{experiment_name}_{plate}_{subset_idx_str}')
-                    print(f'Instance {response["Instances"][0]["InstanceId"]} launched for {plate} - {subset_idx_str} in subnet {subnet_id}')
+                    log_message = f'Instance {instance_id} launched for {plate} - {subset_idx_str} in subnet {subnet_id}.'
+                    logging.info(log_message)
+                    detailed_logs.append(log_message)
                     launched = True
                     break
                 except ClientError as e:
                     if 'InsufficientInstanceCapacity' in str(e):
-                        print(f'Insufficient capacity in subnet {subnet_id}. Trying next subnet...')
+                        log_message = f'Insufficient capacity in subnet {subnet_id}. Trying next subnet...'
+                        logging.warning(log_message)
+                        detailed_logs.append(log_message)
                     else:
                         raise
             if not launched:
-                print(f'Failed to launch instance for {plate} - {subset_index} in any subnet.')
+                log_message = f'Failed to launch instance for {plate} - {subset_index} in any subnet.'
+                logging.error(log_message)
+                detailed_logs.append(log_message)
 
     return instance_ids, instance_tags
+
 
 def check_instance_metrics(instance_ids, instance_tags,region, threshold_cpu=0.35, threshold_status_check_failed=0):
     ec2 = boto3.client('ec2', region_name=region)
