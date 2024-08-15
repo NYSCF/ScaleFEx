@@ -103,10 +103,11 @@ def query_data(exp_folder,pattern,plate_identifiers=('_CCU384_','_'),exts=('tiff
 
     print("retrieving files from ", (exp_folder))
     # getting plates that match plate_identifiers
+    
     plate_identifiers = list(plate_identifiers)
-    if plate_identifiers[0] == '':
+    if plate_identifiers[0] in ('','/'):
         plate_identifiers[0] = '^'
-    if plate_identifiers[1] == '':
+    if plate_identifiers[1] == ('','/'):
         plate_identifiers[1] = '$'
     plate_identifiers = tuple(plate_identifiers)
     # match plate subdir 

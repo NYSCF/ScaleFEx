@@ -34,7 +34,7 @@ segmenting_function: 'Nuclei_segmentation.nuclei_location_extraction'
 save_coordinates: True # if true, saves a csv file with the coordinates for cells for each plate
 min_cell_size: 200 # min area threshold for mask (any object with smaller area will be removed)
 max_cell_size: 100000 # max area threshold for mask (any object with bigger area will be removed)
-visualization: False # if true, the segmentation masks of the entire field will be visualizaed (using matplotlib). NOTE: we suggest to visualize the masks for testing, but to turn it off during the processing of large screens
+visualization: False # if true, the segmentation masks of the entire field will be visualized (using matplotlib). NOTE: we suggest to visualize the masks for testing, but to turn it off during the processing of large screens
 
 ## Scalefex settings
 RNA_channel: 'ch5' # channel with RNA stain (if any)
