@@ -43,10 +43,11 @@ class Process_HighContentImaging_screen_on_AWS:
         if not os.path.exists(self.vec_dir):
             os.makedirs(self.vec_dir)
 
-        self.fields_computed_file = os.path.join(self.vec_dir,str(self.parameters['experiment_name'])+ '_' + str(self.plate) + '_' + str(self.parameters['subset_index']) +'_fields-computed.csv')
+        self.sites_computed_file = os.path.join(self.vec_dir,str(self.parameters['experiment_name'])+ '_' + str(self.plate) + '_' + str(self.parameters['subset_index']) +'_sites-computed.csv')
         pd.DataFrame(columns=['plate','well','site','subset','file_path',
-                    'cell_count','fail_count','computed_ids','cells_on_edge','cells_not_found','other_errors']).to_csv(self.fields_computed_file,index=False)
-              
+                    'total_count','computed_count','on_edge_count','fail_count','computed_ids',
+                    'on_edge_ids','fail_ids']).to_csv(self.sites_computed_file,index=False)
+        
         ffc_file = os.path.join(self.vec_dir, self.parameters['experiment_name'] + '_FFC.p')
         self.flat_field_correction = {}
         if self.parameters['FFC'] is True and os.path.exists(ffc_file):
@@ -146,33 +147,32 @@ class Process_HighContentImaging_screen_on_AWS:
                                 is_computed[index] = 1
                                                 
                         except ValueError as e:
-                            if "DataFrame constructor not properly called!" in str(e):
-                                print("An error occurred during ScaleFEx computation: DataFrame constructor not properly called! - size inconsistency. Cell not found")
-                                is_computed[index] = -2
-                            else:
-                                print("An error occurred during ScaleFEx computation:", e)
-                                is_computed[index] = -1
+                            print("An error occurred during ScaleFEx computation:", e)
+                            is_computed[index] = -1
 
+                center_of_mass = np.array(center_of_mass)
                 computed_ids = tuple(center_of_mass[np.argwhere(is_computed == 1).flatten(),2])
-                cells_on_edge = tuple(center_of_mass[np.argwhere(is_computed == 0).flatten(), 2])
-                cells_not_found = tuple(center_of_mass[np.argwhere(is_computed == -2).flatten(), 2])
-                other_errors = tuple(center_of_mass[np.argwhere(is_computed == -1).flatten(), 2])
+                on_edge_ids = tuple(center_of_mass[np.argwhere(is_computed == 0).flatten(), 2])
+                failed_ids = tuple(center_of_mass[np.argwhere(is_computed == -1).flatten(), 2])
   
                 file_path = self.task_files[(self.task_files['plate'] == self.plate) & (self.task_files['well'] == well) & (self.task_files['site'] == site) &
                                             (self.task_files['channel'] == self.parameters['channel'][0])]['file_path'].iloc[0]
+                
                 compute_vec = [[self.plate, well, site, self.parameters['subset_index'], file_path,
-                                len(center_of_mass), len(cells_on_edge) + len(other_errors) + len(cells_not_found), str(computed_ids), str(cells_on_edge), str(cells_not_found), str(other_errors)]]
+                                len(center_of_mass),len(computed_ids), len(on_edge_ids), len(failed_ids), 
+                                str(computed_ids), str(on_edge_ids),str(failed_ids)]]
+                
                 site_row = pd.DataFrame(data=compute_vec, columns=self.fields_computed_df.columns)
                 
-                site_row.to_csv(self.fields_computed_file, mode='a', header=False, index=False)
+                site_row.to_csv(self.sites_computed_file, mode='a', header=False, index=False)
 
 
 
     def start_computation(self, plate, files):
         self.task_files = dq.filter_task_files(files, self.parameters['subset_index'], self.parameters['nb_subsets']) 
 
-        self.fields_computed_df = pd.read_csv(self.fields_computed_file,converters={'plate':str,'well':str,'site':str,
-                                                                'computed_ids':str,'cell_on_edge':str,'cells_not_found':str,'other_errors':str})
+        self.fields_computed_df = pd.read_csv(self.sites_computed_file,converters={'plate':str,'well':str,'site':str,
+                                                                               'computed_ids':str,'on_edge_ids':str,'fail_ids':str})
 
         if self.parameters['csv_coordinates'] is not None and os.path.exists(self.parameters['csv_coordinates']):
             self.locations = pd.read_csv(self.parameters['csv_coordinates'])

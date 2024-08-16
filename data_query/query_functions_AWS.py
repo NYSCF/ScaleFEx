@@ -51,7 +51,13 @@ def query_data(pattern,plate_identifiers='',exts=('tiff',), exp_folder = ''
             tabular data with metadata fields divided into columns, one row per file
     '''
     if plate_identifiers == None:
-        plate_identifiers = ''
+        plate_identifiers = ['/','/']
+    plate_identifiers = list(plate_identifiers)
+    if plate_identifiers[0] == '':
+        plate_identifiers[0] = '/'
+    if plate_identifiers[1] == '':
+        plate_identifiers[1] = '/'
+    plate_identifiers = tuple(plate_identifiers)
 
     files_df,plate_list = scan_s3(plates,plate_identifiers,exp_folder,exts,experiment_name, s3_bucket)
     plate_pattern = pattern
