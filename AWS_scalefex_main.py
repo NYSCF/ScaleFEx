@@ -11,15 +11,13 @@ ROOT_DIR = '/'.join(__file__.split('/')[:-1])
 # Ensure the outputs folder exists
 output_dir = os.path.join(ROOT_DIR, 'outputs')
 os.makedirs(output_dir, exist_ok=True)
-
 # Setup logging
-log_file_path = os.path.join(output_dir, 'screen_init.log')
+log_file_path = os.path.join(output_dir, f'screen_init.log')
 logging.basicConfig(
     filename=log_file_path,  # Log file name in the outputs folder
     filemode='w',            # Overwrite the log file at the beginning
     format='%(asctime)s - %(levelname)s - %(message)s',  # Log format
-    level=logging.INFO       # Log level
-)
+    level=logging.INFO)
 
 class Screen_Init: 
     """
@@ -37,14 +35,12 @@ class Screen_Init:
             yaml_path (str): Path to the YAML file containing parameters. Default is 'parameters.yaml'.
         """
         try:
-            logging.info("Initialization started.")
-            
             # Read the yaml file
-            logging.info(f"Reading YAML file from path: {yaml_path}.")
             with open(yaml_path, 'rb') as f:
                 self.parameters = yaml.load(f.read(), Loader=yaml.CLoader)
-            logging.info(f"YAML file loaded successfully with parameters: {self.parameters}.")
+            exp_name = self.parameters['experiment_name']
             
+            logging.info(f"YAML file loaded successfully with parameters: {self.parameters}.")
             # Query data
             logging.info("Querying data with the following parameters: "
                          f"pattern={self.parameters['pattern']}, "
@@ -77,6 +73,7 @@ class Screen_Init:
                 logging.info(f"Checking if FFC file exists in S3 with path: {ffc_file}.")
                 if not dq.check_s3_file_exists_with_prefix(
                     self.parameters['s3_bucket'], 
+                    self.parameters['saving_folder'],
                     self.parameters['exp_folder'],
                     self.parameters['experiment_name']
                 ):
@@ -87,6 +84,7 @@ class Screen_Init:
                         files, 
                         ffc_file,
                         self.parameters['s3_bucket'],
+                        self.parameters['saving_folder'],
                         self.parameters['channel'],
                         self.parameters['experiment_name'],
                         n_images=self.parameters['FFC_n_images']
@@ -98,7 +96,7 @@ class Screen_Init:
             logging.info("Uploading FFC to S3 with bucket: "
                          f"{self.parameters['s3_bucket']} and experiment name: "
                          f"{self.parameters['experiment_name']}.")
-            dq.upload_ffc_to_s3(self.parameters['s3_bucket'], 'parameters.yaml', self.parameters['experiment_name'])
+            dq.upload_ffc_to_s3(self.parameters['s3_bucket'],self.parameters['saving_folder'], 'parameters.yaml', self.parameters['experiment_name'])
             logging.info("FFC upload completed.")
 
             if len(files) != 0:
@@ -106,6 +104,7 @@ class Screen_Init:
                              f"experiment_name={self.parameters['experiment_name']}, "
                              f"region={self.parameters['region']}, "
                              f"s3_bucket={self.parameters['s3_bucket']}, "
+                             f"saving_folder={self.parameters['saving_folder']}, "
                              f"amazon_image_id={self.parameters['amazon_image_id']}, "
                              f"instance_type={self.parameters['instance_type']}, "
                              f"nb_subsets={self.parameters['nb_subsets']}, "
@@ -117,6 +116,7 @@ class Screen_Init:
                     self.parameters['experiment_name'],
                     self.parameters['region'],
                     self.parameters['s3_bucket'],
+                    self.parameters['saving_folder'],
                     self.parameters['amazon_image_id'], 
                     self.parameters['instance_type'], 
                     plates, 
@@ -131,7 +131,7 @@ class Screen_Init:
                 logging.info(f"EC2 instances launched successfully with instance IDs: {instance_ids}.")
 
                 logging.info("Starting periodic check scheduler with interval of 300 seconds.")
-                dq.push_log_file(self.parameters['s3_bucket'], self.parameters['experiment_name'])
+                dq.push_log_file(self.parameters['s3_bucket'],self.parameters['saving_folder'],self.parameters['experiment_name'])
                 scheduler = sched.scheduler(time.time, time.sleep)
                 scheduler.enter(300, 1, dq.periodic_check, (
                     scheduler, 360, dq.check_instance_metrics, 
