@@ -150,7 +150,7 @@ Parameters:
   SavingFolder:
     Description: "Folder where outputs will be stored on S3"
     Type: String
-    Default: 'resultfolder/'
+    Default: 'resultfolder'
   ScaleFExSubnetA:
     Description: "ScaleFExSubnetAId"
     Type: String
