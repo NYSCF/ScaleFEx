@@ -113,8 +113,8 @@ class Process_HighContentImaging_screen_on_AWS:
 
                     else:
                         ind = 0
-                        vector = pd.DataFrame(np.asarray([self.plate, well, site, x, y, index, n]).reshape(1, 7), 
-                                            columns=['plate', 'well', 'site', 'coordX', 'coordY', 'cell_num', 'coord_cell_id'], index=[ind])
+                        vector = pd.DataFrame(np.asarray([self.plate, well, site, x, y, n]).reshape(1, 6 ), 
+                                            columns=['plate', 'well', 'site', 'coordX', 'coordY', 'cell_id'], index=[ind])
                         if self.parameters['csv_coordinates'] == '' or self.parameters['csv_coordinates'] is None:
                             tree = KDTree([row[:2] for row in center_of_mass])
                             # Query the nearest distance and the index of the nearest point
