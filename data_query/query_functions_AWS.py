@@ -15,6 +15,7 @@ from prettytable import PrettyTable
 from botocore.exceptions import ClientError
 from .query_functions_local import *
 import logging
+import shutil
 
 
 def query_data(pattern,plate_identifiers='',exts=('tiff',), exp_folder = ''
@@ -128,7 +129,7 @@ def save_qc_file(QC_vector, csv_fileQC):
         QC_vector.to_csv(csv_fileQC, mode='a', header=False)
     return csv_fileQC
 
-def save_csv_file(vector, csv_file, max_file_size, bucket, experiment_name, plate, index_subset):
+def save_csv_file(vector, csv_file, max_file_size, bucket,saving_folder, experiment_name, plate, index_subset):
     '''
     Save the vector in a CSV file.
     If the file exceeds the max_file_size, convert it to Parquet, upload to S3, and delete the original CSV file.
@@ -149,7 +150,7 @@ def save_csv_file(vector, csv_file, max_file_size, bucket, experiment_name, plat
                 print(f"File size limit reached for {csv_file}. Processing.")
                 new_csv_file = increment_filename(csv_file)
                 vector.to_csv(new_csv_file, header=True)
-                push_and_delete(csv_file, bucket, experiment_name, plate, index_subset)
+                push_and_delete(csv_file, bucket, saving_folder,experiment_name, plate, index_subset)
                 return new_csv_file
     except Exception as e:
         print(f"Failed to save : {e}")
@@ -181,26 +182,30 @@ def create_marker_file(marker_file):
     with open(marker_file, 'w') as f:
         f.write('')
 
-def push_log_file(bucket,experiment_name): 
+def push_log_file(bucket, saving_folder, experiment_name): 
     s3 = boto3.client('s3')
-    file = 'outputs/screen_init.log'
-    cleaned_filename = os.path.basename(file).replace("/", "_").replace("_home_ec2-user_project_scalefex_", "")
-    s3_path = f'resultfolder/{experiment_name}/' + cleaned_filename
-    s3.upload_file(file, bucket, s3_path)
-    print(f"Uploaded {file} to s3://{bucket}/{s3_path}")
+    file = f'outputs/screen_init.log'
+    renamed_file = f'{experiment_name}_init.log'
+    new_file_path = os.path.join('outputs', renamed_file)
+    shutil.copyfile(file, new_file_path)
+    s3_path = f'{saving_folder}/{experiment_name}/{renamed_file}'
+    s3.upload_file(new_file_path, bucket, s3_path)
+    os.remove(new_file_path)
+    print(f"Uploaded {new_file_path} to s3://{bucket}/{s3_path}")
 
-def push_fields_computed_files(bucket, experiment_name, plate, index_subset, folder_path):
+
+def push_fields_computed_files(bucket,saving_folder, experiment_name, plate, index_subset, folder_path):
     files = [os.path.join(folder_path, file) for file in os.listdir(folder_path) 
-             if file.endswith('.csv') and 'fields-computed' in file]
+             if file.endswith('.csv') and 'computed' in file]
     for file in files:
         try:
             # Push the CSV directly to S3
-            upload_to_s3(bucket, file, experiment_name, plate, index_subset)
+            upload_to_s3(bucket,saving_folder, file, experiment_name, plate, index_subset)
             print(f"Successfully pushed {file} to S3")
         except Exception as e:
             print(f"Failed to push {file}: {e}")
 
-def push_and_delete(csv_file, bucket, experiment_name, plate, index_subset):
+def push_and_delete(csv_file, bucket, saving_folder, experiment_name, plate, index_subset):
     try:
         marker_file = get_marker_file(csv_file)
         # Create a marker file to indicate the file is being processed
@@ -213,8 +218,8 @@ def push_and_delete(csv_file, bucket, experiment_name, plate, index_subset):
         file_name = os.path.splitext(csv_file)[0]
         output_parquet = file_name + '.parquet'
         pq.write_table(pa.Table.from_pandas(df), output_parquet)
-        upload_to_s3(bucket, output_parquet, experiment_name, plate, index_subset)
-        push_fields_computed_files(bucket, experiment_name, plate, index_subset, 'outputs')
+        upload_to_s3(bucket,saving_folder, output_parquet, experiment_name, plate, index_subset)
+        push_fields_computed_files(bucket,saving_folder, experiment_name, plate, index_subset, 'outputs')
 
         os.remove(csv_file)
         os.remove(output_parquet)
@@ -222,16 +227,16 @@ def push_and_delete(csv_file, bucket, experiment_name, plate, index_subset):
     except Exception as e:
         print(f"Failed to process {csv_file}: {e}")
         
-def upload_to_s3(bucket_name, file, experiment_name, plate, index_subset):
+def upload_to_s3(bucket_name,saving_folder, file, experiment_name, plate, index_subset):
     s3 = boto3.client('s3')
     cleaned_filename = os.path.basename(file).replace("/", "_").replace("_home_ec2-user_project_scalefex_", "")
-    s3_path = f'resultfolder/{experiment_name}/{plate}/{index_subset}/' + cleaned_filename
+    s3_path = f'{saving_folder}/{experiment_name}/{plate}/{index_subset}/'+cleaned_filename
 
     # Check if file already exists in S3
     if check_s3_file_exists(s3, bucket_name, s3_path):
         # Add a unique character or timestamp to the filename to avoid overwriting
         cleaned_filename = add_unique_suffix(cleaned_filename)
-        s3_path = f'resultfolder/{experiment_name}/{plate}/{index_subset}/' + cleaned_filename
+        s3_path = f'{saving_folder}/{experiment_name}/{plate}/{index_subset}/' + cleaned_filename
 
     s3.upload_file(file, bucket_name, s3_path)
     print(f"Uploaded {file} to s3://{bucket_name}/{s3_path}")
@@ -269,7 +274,7 @@ def scan_s3(plates, plate_identifiers, exp_folder, exts, experiment_name, s3_buc
 
     # Define the directory and file path for logging
     log_dir = 'outputs'
-    log_file = os.path.join(log_dir, 'screen_init.log')
+    log_file = os.path.join(log_dir, f'{experiment_name}_init.log')
 
     # Ensure the directory exists
     os.makedirs(log_dir, exist_ok=True)
@@ -368,7 +373,7 @@ def process_zstack_s3(bucket_name, image_keys):
     img = np.max(np.asarray(img), axis=0)
     return img
 
-def flat_field_correction_AWS(files,ffc_file,s3_bucket, Channel, experiment_name, bf_channel='', n_images=20):
+def flat_field_correction_AWS(files,ffc_file,s3_bucket,saving_folder, Channel, experiment_name, bf_channel='', n_images=20):
     ''' Calculates the background trend of the entire experiment to be used for flat field correction'''
     flat_field_correction = {}
 
@@ -390,28 +395,27 @@ def flat_field_correction_AWS(files,ffc_file,s3_bucket, Channel, experiment_name
             flat_field_correction[ch] = img
 
     pickle.dump(flat_field_correction, open(ffc_file, "wb"))
-    upload_ffc_to_s3(s3_bucket, ffc_file,experiment_name)
+    upload_ffc_to_s3(s3_bucket,saving_folder, ffc_file,experiment_name)
     return flat_field_correction
 
-def upload_ffc_to_s3(bucket_name,file,experiment_name):
+def upload_ffc_to_s3(bucket_name,saving_folder,file,experiment_name):
     s3 = boto3.client('s3')
-    s3.upload_file(file,bucket_name,f'resultfolder/{experiment_name}/'+ str(file).replace("/","_").replace("_home_ec2-user_project_",""))
+    s3.upload_file(file,bucket_name,f'{saving_folder}/{experiment_name}/'+ str(file).replace("/","_").replace("_home_ec2-user_project_",""))
     print(file + ' uploaded')
 
-def push_all_files(bucket, experiment_name, plate, index_subset, folder_path):
+def push_all_files(bucket, saving_folder, experiment_name, plate, index_subset, folder_path):
     files = [os.path.join(folder_path, file) for file in os.listdir(folder_path) if file.endswith('.csv')]
     for file in files:
         try:
-            # Check if the filename contains 'fields-computed'
-            if 'fields-computed' in os.path.basename(file):
-                upload_to_s3(bucket, file, experiment_name, plate, index_subset)
+            if 'computed' in os.path.basename(file) or '.log' in os.path.basename(file):  
+                upload_to_s3(bucket,saving_folder, file, experiment_name, plate, index_subset)
             else:
                 df = pd.read_csv(file)
                 df = df.applymap(lambda x: str(x).encode('utf-8') if isinstance(x, str) else x)
                 file_name = os.path.splitext(file)[0]
                 output_parquet = file_name + '.parquet'
                 pq.write_table(pa.Table.from_pandas(df), output_parquet)
-                upload_to_s3(bucket, output_parquet, experiment_name, plate, index_subset)
+                upload_to_s3(bucket,saving_folder, output_parquet, experiment_name, plate, index_subset)
 
         except Exception as e:
             print(f"Failed to process {file}: {e}")
@@ -432,30 +436,23 @@ def filter_task_files(task_files,subset_index, nb_subsets):
         # Count unique well numbers
         unique_wells = task_files['well'].unique()
         total_wells = len(unique_wells)
-
         # Divide unique well numbers into subsets
         subset_size = total_wells // nb_subsets
         remaining_wells = total_wells % nb_subsets
-
         subset_wells = [unique_wells[i:i+subset_size].tolist() for i in range(0, total_wells, subset_size)]
-
         # Distribute remaining wells among subsets
         for i in range(remaining_wells):
             subset_wells[i].append(unique_wells[-(i+1)])
-
         subset_index = int(subset_index) - 1  # Adjust for zero-based indexing
-
         selected_subset_wells = subset_wells[subset_index]
         filtered_task_files = task_files[task_files['well'].isin(selected_subset_wells)]
-
     else :
         filtered_task_files = task_files
-
     return filtered_task_files
 
-def check_s3_file_exists_with_prefix(bucket, exp_folder, experiment_name):
+def check_s3_file_exists_with_prefix(bucket,saving_folder, exp_folder, experiment_name):
     s3 = boto3.client('s3')
-    prefix = f'resultfolder/{exp_folder}{experiment_name}_FFC.p'
+    prefix = f'{saving_folder}/{exp_folder}{experiment_name}_FFC.p'
     print('Looking for ' + prefix)
     response = s3.list_objects_v2(Bucket=bucket, Prefix=prefix)
     return 'Contents' in response and len(response['Contents']) > 0
@@ -486,7 +483,7 @@ def get_security_group_id(region):
     security_group_id = response['SecurityGroups'][0]['GroupId']
     return security_group_id
 
-def launch_ec2_instances(experiment_name, region, s3_bucket, linux_ami, instance_type, plate_list, nb_subsets, subset_index, csv_coordinates,
+def launch_ec2_instances(experiment_name, region, s3_bucket,saving_folder, linux_ami, instance_type, plate_list, nb_subsets, subset_index, csv_coordinates,
                          ScaleFExSubnetA=None, ScaleFExSubnetB=None, ScaleFExSubnetC=None, security_group_id=None):
     ec2 = boto3.client('ec2', region_name=region)
     
@@ -538,9 +535,9 @@ def launch_ec2_instances(experiment_name, region, s3_bucket, linux_ami, instance
             git clone $MAIN_REPO_URL
             cd ScaleFEx
             git submodule update --init --recursive
-            aws s3 sync s3://{s3_bucket}/resultfolder/{experiment_name}/ . --exclude '*' --include='{csv_coordinates}'
-            aws s3 sync s3://{s3_bucket}/resultfolder/{experiment_name}/ . --exclude '*' --include='{experiment_name}_FFC.p'
-            aws s3 sync s3://{s3_bucket}/resultfolder/{experiment_name}/ . --exclude '*' --include='parameters.yaml'
+            aws s3 sync s3://{s3_bucket}/{saving_folder}/{experiment_name}/ . --exclude '*' --include='{csv_coordinates}'
+            aws s3 sync s3://{s3_bucket}/{saving_folder}/{experiment_name}/ . --exclude '*' --include='{experiment_name}_FFC.p'
+            aws s3 sync s3://{s3_bucket}/{saving_folder}/{experiment_name}/ . --exclude '*' --include='parameters.yaml'
             pip install -r AWS_requirements.txt
             sed -i "s|^plates:.*|plates: ['{plate}']|" parameters.yaml
             sed -i "s|^subset_index:.*|subset_index: {subset_idx_str}|" parameters.yaml

@@ -37,6 +37,7 @@ Metadata:
           - SecurityGroupID
           - SubnetID
           - SubsetIndex
+          - SavingFolder
 
 Parameters:
   S3Bucket:
@@ -146,6 +147,10 @@ Parameters:
     Description: "AWSRegion"
     Type: String
     Default: 'us-east-1'
+  SavingFolder:
+    Description: "Folder where outputs will be stored on S3"
+    Type: String
+    Default: 'resultfolder/'
   ScaleFExSubnetA:
     Description: "ScaleFExSubnetAId"
     Type: String
@@ -211,6 +216,7 @@ Resources:
           pip install -r AWS_requirements.txt
           sudo sed -i "s|^experiment_name:.*|experiment_name: ${ExperimentName}|" parameters.yaml
           sudo sed -i "s|^exp_folder:.*|exp_folder: ${ExperimentFolder}|" parameters.yaml
+          sudo sed -i "s|^saving_folder:.*|saving_folder: ${SavingFolder}|" parameters.yaml
           sudo sed -i "s|^plates:.*|plates: ${Plates}|" parameters.yaml
           sudo sed -i "s|^plate_identifiers:.*|plate_identifiers: ${PlateIdentifier}|" parameters.yaml
           sudo sed -i "s|^fname_pattern:.*|fname_pattern: ${FnamePattern}|" parameters.yaml
