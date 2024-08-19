@@ -1,1 +1,2 @@
 plate,well,site,subset,file_path,total_count,computed_count,on_edge_count,fail_count,computed_ids,on_edge_ids,fail_ids
+201,r03c08,01,all,TEST0001/plate_201/r03c08f01p01-ch4sk1fk1fl1.tiff,3,0,3,0,(),"(0.0, 1.0, 2.0)",()
