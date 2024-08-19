@@ -7,7 +7,6 @@ profile*.txt
 batch_compute_embeddings.py
 try_*
 *venv*
-parameters.yaml
 # C extensions
 *.so
 /scalefex
