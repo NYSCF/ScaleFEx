@@ -1,11 +1,15 @@
 [![pytests](https://github.com/NYSCF/ScaleFEx/actions/workflows/python-package.yml/badge.svg?branch=main)](https://github.com/NYSCF/ScaleFEx/actions/workflows/python-package.yml)
 ## ScaleFEx℠: Feature Extraction for High-Content Imaging
 
-ScaleFEx℠ (Scalable Feature Extraction ) is an open-source Python pipeline designed to extract biologically meaningful features from large high-content imaging (HCI) datasets. By leveraging artificial intelligence, ScaleFEx℠ enhances the analysis of morphological profiles, particularly in distinguishing disease phenotypes that are indiscernible to the human eye.
+ScaleFEx℠ (Scalable Feature Extraction ) is an open-source Python pipeline designed to extract biologically meaningful features from large high-content imaging (HCI) datasets. 
+Read more about it in the preprint: "ADD LINK TO ARXIV"
+![Fig_1_v2 0](https://github.com/user-attachments/assets/9f4af03f-929a-494e-bac5-6610baf8d7e4)
 
 ### Key Features
 - **Robust Feature Extraction**: Utilizes advanced algorithms to distill complex image data into critical features that drive insights into cellular phenotypes.
 - **High-Content Imaging Focus**: Tailored for large-scale HCI screens, addressing challenges of scale, variability, and high-dimensionality in biomedical imaging.
+- **Low overhead**: leveraging parallelizations over cores, it maximizes any computer resources
+- **AWS implementation**: to scale up even more. Easy to deploy. Cheaper and faster than the state of the art
 
 ## Installation Instructions
 
