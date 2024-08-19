@@ -189,7 +189,7 @@ class Process_HighContentImaging_screen_on_AWS:
         function = self.compute_vector
         scalefex_utils.parallelize(wells, function, self.parameters['n_of_workers'], mode='dev')
         
-        dq.push_all_files(self.parameters['s3_bucket'], self.parameters['experiment_name'], plate, self.parameters['subset_index'], self.vec_dir)
+        dq.push_all_files(self.parameters['s3_bucket'], self.parameters['saving_folder'],self.parameters['experiment_name'], plate, self.parameters['subset_index'], self.vec_dir)
         dq.terminate_current_instance()
 
     def segment_crop_images(self, img_nuc):
