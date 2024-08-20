@@ -237,9 +237,9 @@ def upload_to_s3(bucket_name,saving_folder, file, experiment_name, plate, index_
         # Add a unique character or timestamp to the filename to avoid overwriting
         cleaned_filename = add_unique_suffix(cleaned_filename)
         s3_path = f'{saving_folder}/{experiment_name}/{plate}/{index_subset}/' + cleaned_filename
-
-    s3.upload_file(file, bucket_name, s3_path)
-    print(f"Uploaded {file} to s3://{bucket_name}/{s3_path}")
+    if f'{experiment_name}' in os.path.basename(file) :
+        s3.upload_file(file, bucket_name, s3_path)
+        print(f"Uploaded {file} to s3://{bucket_name}/{s3_path}")
 
 def check_s3_file_exists(s3, bucket_name, s3_path):
     try:

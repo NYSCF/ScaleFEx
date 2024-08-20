@@ -143,7 +143,7 @@ class Process_HighContentImaging_screen_on_AWS:
                                 vector['channel_order'] = str(self.parameters['channel'])
                                 vector['downsampling'] = self.parameters['downsampling']
                                 csv_file = dq.save_csv_file(vector, csv_file, self.parameters['max_file_size'], 
-                                                            self.parameters['s3_bucket'], self.parameters['experiment_name'], 
+                                                            self.parameters['s3_bucket'],self.parameters['saving_folder'], self.parameters['experiment_name'], 
                                                             self.plate, self.parameters['subset_index'])
                                 is_computed[index] = 1
                                                 
