@@ -123,20 +123,20 @@ def iter_text(chan, simg, segmented_labels, ndistance=5, nangles=4):
     for dcount, dis in enumerate(distances):
         for angle in angles:
 
-            texture_props = skimage.feature.texture.graycomatrix(
+            texture_props = skimage.feature.graycomatrix(
                 np.uint8(simg * segmented_labels) * 255, [dis], [angle])
             df['Texture_dist_' + str(dcount) + 'angle' + str(round(angle, 2)) + chan] = np.nanmean(
-                skimage.feature.texture.graycoprops(texture_props, prop='ASM'))
+                skimage.feature.graycoprops(texture_props, prop='ASM'))
             df['TextContrast_dist_' + str(dcount) + 'angle' + str(round(angle, 2)) + chan] = np.nanmean(
-                skimage.feature.texture.graycoprops(texture_props, prop='contrast'))
+                skimage.feature.graycoprops(texture_props, prop='contrast'))
             df['TextCorrelation_dist_' + str(dcount) + 'angle' + str(round(angle, 2)) + chan] = np.nanmean(
-                skimage.feature.texture.graycoprops(texture_props, prop='correlation'))
+                skimage.feature.graycoprops(texture_props, prop='correlation'))
             df['TextDissimilarity_dist_' + str(dcount) + 'angle' + str(round(angle, 2)) + chan] = np.nanmean(
-                skimage.feature.texture.graycoprops(texture_props, prop='dissimilarity'))
+                skimage.feature.graycoprops(texture_props, prop='dissimilarity'))
             df['TextHomo_dist_' + str(dcount) + 'angle' + str(round(angle, 2)) + chan] = np.nanmean(
-                skimage.feature.texture.graycoprops(texture_props, prop='homogeneity'))
+                skimage.feature.graycoprops(texture_props, prop='homogeneity'))
             df['TextEnergy_dist_' + str(dcount) + 'angle' + str(round(angle, 2)) + chan] = np.nanmean(
-                skimage.feature.texture.graycoprops(texture_props, prop='energy'))
+                skimage.feature.graycoprops(texture_props, prop='energy'))
     return df
 
 

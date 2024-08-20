@@ -30,10 +30,6 @@ def test_compute_primary_mask():
     assert primary_mask.min() == 0
     assert np.array_equal(primary_mask,test_mask['w1'])
 
-@pytest.mark.skip(reason="under development")
-def test_compute_primary_mask_neuron():
-    pass
-
 # @pytest.mark.skip(reason="not implemented yet")
 def test_compute_shape():
     channel = 'w2'
@@ -134,10 +130,6 @@ def test_RNA_measurement():
     expected_df = pd.read_csv(os.path.join(TEST_CSV_DIR,'RNA_measurement_output.csv'))
     df = df.astype(expected_df.dtypes.to_dict())
     pd.testing.assert_frame_equal(df,expected_df)
-
-@pytest.mark.skip(reason="under development")
-def test_neuritis_measurement():
-    pass
 
 # @pytest.mark.skip(reason="not implemented yet")
 def test_correlation_measurements():
