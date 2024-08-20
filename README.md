@@ -53,7 +53,7 @@ You should be able to visualize the detected single cells cells from the data pr
     - **saving_folder**: '/path/to/saving/folder/' ;path to the saving folder
     - **plates**: ['1','2'] ;if you want to process a subset of plates, 'all' for all of the ones found in the folder
     - **plate_identifiers**: ['Plate','_'] ;identifier for finding the plate number; should directly precede and follow the plate identifier (eg exp_folder/Plate1/)
-    - **pattern**: 'Images/<Well>f<Site>p<Plane(2)>-<Channel(3)>.<ext>' # pattern of the image file: specify all the characters that make up the filepath indicating the location (more details in the wiki) 
+    - **pattern**: 'Images/<Well>f<Site>p<Plane(2)>-<Channel(3)>.<ext>' # pattern of the image file: specify all the characters that make up the filepath indicating the location ([more details in the wiki](https://github.com/NYSCF/ScaleFEx/wiki/Querying-Data)) 
     - **file_extensions**: ['tiff',] ; specify the extensions of the image files 
     - **image_size**: [2160,2160] ;size of the image
     - **channel**: ['ch4','ch1', 'ch5',  'ch3', 'ch2'] ;channels to be processed. NOTE: the nuclear channel should be first
