@@ -1,5 +1,5 @@
 # requirements for embeddings not included yet
-scikit-image==0.20.0
+scikit-image==0.22.0
 pytest==8.2.0
 pandas==2.2.2
 opencv-python-headless==4.9.0.80

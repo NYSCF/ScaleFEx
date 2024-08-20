@@ -8,7 +8,7 @@ pytest==8.2.0
 PyYAML==6.0.1
 scipy<=1.14.0
 setuptools==68.2.2
-scikit-image<=0.20.0
+scikit-image<=0.22.0
 mahotas==1.4.15
 
 # AWS reqs
