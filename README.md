@@ -1,4 +1,8 @@
-[![pytests](https://github.com/NYSCF/ScaleFEx/actions/workflows/python-package.yml/badge.svg?branch=main)](https://github.com/NYSCF/ScaleFEx/actions/workflows/python-package.yml)
+<!-- [![pytests](https://github.com/NYSCF/ScaleFEx/actions/workflows/python-package.yml/badge.svg?branch=main)](https://github.com/NYSCF/ScaleFEx/actions/workflows/python-package.yml) -->
+![Ubuntu](https://github.com/NYSCF/ScaleFEx/actions/workflows/ubuntu-latest.yml/badge.svg)
+![MacOS](https://github.com/NYSCF/ScaleFEx/actions/workflows/macos-latest.yml/badge.svg)
+![Windows](https://github.com/NYSCF/ScaleFEx/actions/workflows/windows-latest.yml/badge.svg)
+
 ## ScaleFEx℠: Feature Extraction for High-Content Imaging
 
 ScaleFEx℠ (Scalable Feature Extraction ) is an open-source Python pipeline designed to extract biologically meaningful features from large high-content imaging (HCI) datasets. 
@@ -123,5 +127,5 @@ If you leave the parameters.yaml file as it is, the notebook will automatically 
 
 ### License
 
-ScaleFEx℠ is released under the BSD-3-Clause Clear license. For more details read the LICENSE file.
+ScaleFEx℠ is released under the BSD-3-Clause Clear license. For more details read the [LICENSE file](https://github.com/NYSCF/ScaleFEx/blob/main/LICENSE.md).
 

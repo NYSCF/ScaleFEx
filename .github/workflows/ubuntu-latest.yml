@@ -1,0 +1,8 @@
+name: ubuntu-latest
+on: [push, pull_request]
+
+jobs:
+    macos-latest-build:
+        uses: ./.github/workflows/python-package.yml
+        with:
+            os: ubuntu-latest
