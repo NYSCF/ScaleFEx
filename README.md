@@ -1,7 +1,8 @@
-<!-- [![pytests](https://github.com/NYSCF/ScaleFEx/actions/workflows/python-package.yml/badge.svg?branch=main)](https://github.com/NYSCF/ScaleFEx/actions/workflows/python-package.yml) -->
 ![Ubuntu](https://github.com/NYSCF/ScaleFEx/actions/workflows/ubuntu-latest.yml/badge.svg)
 ![MacOS](https://github.com/NYSCF/ScaleFEx/actions/workflows/macos-latest.yml/badge.svg)
 ![Windows](https://github.com/NYSCF/ScaleFEx/actions/workflows/windows-latest.yml/badge.svg)
+[![Python 3.12](https://img.shields.io/badge/python-3.10%2C3.11%2C3.12-lightgrey)](https://www.python.org/downloads/release/python-312/)
+
 
 ## ScaleFEx℠: Feature Extraction for High-Content Imaging
 
@@ -23,7 +24,7 @@ Follow these steps to set up and run ScaleFEx:
 Ensure you have Conda installed, then create a new environment:
 
 ```
-conda create --name ScaleFEx
+conda create --name ScaleFEx python=3.12
 conda activate ScaleFEx
 ```
 ### 2. Clone the Repository
