@@ -1,4 +1,9 @@
-[![pytests](https://github.com/NYSCF/ScaleFEx/actions/workflows/python-package.yml/badge.svg?branch=main)](https://github.com/NYSCF/ScaleFEx/actions/workflows/python-package.yml)
+![Ubuntu](https://github.com/NYSCF/ScaleFEx/actions/workflows/ubuntu-latest.yml/badge.svg)
+![MacOS](https://github.com/NYSCF/ScaleFEx/actions/workflows/macos-latest.yml/badge.svg)
+![Windows](https://github.com/NYSCF/ScaleFEx/actions/workflows/windows-latest.yml/badge.svg)
+[![Python 3.12](https://img.shields.io/badge/python-3.10%2C3.11%2C3.12-lightgrey)](https://www.python.org/downloads/release/python-312/)
+
+
 ## ScaleFEx℠: Feature Extraction for High-Content Imaging
 
 ScaleFEx℠ (Scalable Feature Extraction ) is an open-source Python pipeline designed to extract biologically meaningful features from large high-content imaging (HCI) datasets. 
@@ -19,7 +24,7 @@ Follow these steps to set up and run ScaleFEx:
 Ensure you have Conda installed, then create a new environment:
 
 ```
-conda create --name ScaleFEx
+conda create --name ScaleFEx python=3.12
 conda activate ScaleFEx
 ```
 ### 2. Clone the Repository
@@ -123,5 +128,5 @@ If you leave the parameters.yaml file as it is, the notebook will automatically 
 
 ### License
 
-ScaleFEx℠ is released under the BSD-3-Clause Clear license. For more details read the LICENSE file.
+ScaleFEx℠ is released under the BSD-3-Clause Clear license. For more details read the [LICENSE file](https://github.com/NYSCF/ScaleFEx/blob/main/LICENSE.md).
 

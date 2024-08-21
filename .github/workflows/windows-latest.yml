@@ -1,0 +1,12 @@
+name: windows-latest
+on: 
+    pull_request:
+        branches: [ "main" ]
+    push:
+        branches: [ "main" ]
+        
+jobs:
+    windows-latest-build:
+        uses: ./.github/workflows/python-package.yml
+        with:
+            os: windows-latest
