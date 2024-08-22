@@ -62,7 +62,6 @@ def test_texture_single_values():
     test_mask = np.load(os.path.join(TEST_MASK_DIR,MASK_FILES[IMG_ID]),allow_pickle=True).item()
 
     df = texture_single_values(channel,test_mask[channel],test_img[channel])
-    # print(df)
     expected_df = pd.read_csv(os.path.join(TEST_CSV_DIR,'texture_single_values_output.csv'))
     pd.testing.assert_frame_equal(df,expected_df)
 
