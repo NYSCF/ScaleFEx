@@ -3,14 +3,15 @@ import sys
 sys.path.append('/'.join(__file__.split('/')[:-2]))
 from scalefex_main import *
 from warnings import simplefilter
-ROOT_DIR = '/'.join(__file__.split('/')[:-2])
+ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
 simplefilter(action="ignore", category=pd.errors.PerformanceWarning)
 class TestProcess_HighContentImaging_screen():
-    pipeline = Process_HighContentImaging_screen(yaml_path=os.path.join(ROOT_DIR,'tests/parameters_test.yaml'))
+    pipeline = Process_HighContentImaging_screen(yaml_path = os.path.join(ROOT_DIR, 'tests', 'parameters_test.yaml'))
     if not os.path.exists(pipeline.parameters['saving_folder']):
         os.makedirs(pipeline.parameters['saving_folder'])
     def test_init_goodyaml(self):
-        test_pipeline = Process_HighContentImaging_screen(yaml_path=os.path.join(ROOT_DIR,'tests/parameters_test.yaml'))
+        test_pipeline = Process_HighContentImaging_screen(yaml_path=os.path.join(ROOT_DIR,'tests','parameters_test.yaml'))
         assert test_pipeline is not None
         assert test_pipeline.parameters is not None
         assert test_pipeline.saving_folder is not None
@@ -18,6 +19,7 @@ class TestProcess_HighContentImaging_screen():
 
     def test_run(self):
         output_dir = os.path.join(ROOT_DIR,'tests/data/output/')
+
         for r,d,f in os.walk(output_dir):
             for file in f:
                 os.remove(os.path.join(r,file))

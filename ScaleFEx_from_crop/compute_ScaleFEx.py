@@ -2,8 +2,8 @@
 
 import warnings
 import pandas as pd
-import sys
-ROOT_DIR = '/'.join(__file__.split('/')[:-1])
+import sys,os
+ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(ROOT_DIR)
 from compute_measurements_functions import single_cell_feature_extraction
 

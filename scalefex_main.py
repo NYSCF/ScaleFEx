@@ -44,7 +44,7 @@ class Process_HighContentImaging_screen:
 
     def run(self):
 
-        start_time = datetime.now()
+        start_time = datetime.now().strftime("%Y-%m-%d_%H%M%S")
         
         
         files = data_query.query_functions_local.query_data(self.parameters['exp_folder'], self.parameters['pattern'],plate_identifiers=self.parameters['plate_identifiers'],

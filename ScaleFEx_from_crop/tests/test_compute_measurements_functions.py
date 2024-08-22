@@ -10,10 +10,13 @@ import os,sys
 import warnings
 warnings.simplefilter(action='ignore',category=pd.errors.PerformanceWarning)
 
-ROOT_DIR = '/'.join(__file__.split('/')[:-2])
+ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(ROOT_DIR)
+
+TEST_DIR = os.path.dirname(os.path.abspath(__file__))
+
 from compute_measurements_functions import *
-TEST_DIR = "/".join(__file__.split('/')[:-1])
+
 TEST_IMG_DIR = os.path.join(TEST_DIR,'sample_crops')
 TEST_MASK_DIR = os.path.join(TEST_DIR ,'primary_masks')
 TEST_CSV_DIR = os.path.join(TEST_DIR ,'csv_outputs')

@@ -6,12 +6,15 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy import ndimage as ndi
 import pytest
-ROOT_DIR = "/".join(__file__.split('/')[:-2])
+
 import sys, os
+ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(ROOT_DIR)
+
+
 from compute_global_values import *
 
-TEST_IMG_DIR = os.path.join(ROOT_DIR,'tests/test_imgs')
+TEST_IMG_DIR = os.path.join(ROOT_DIR,'tests','test_imgs')
 # @pytest.mark.skip(reason="not yet implemented")
 def test_calculateQC():
     img = np.load(os.path.join(TEST_IMG_DIR,'rxrx2_O24_s2.npy'),allow_pickle=True).item()
