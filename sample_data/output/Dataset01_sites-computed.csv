@@ -1,0 +1,2 @@
+plate,well,site,subset,file_path,total_count,computed_count,on_edge_count,fail_count,computed_ids,on_edge_ids,fail_ids
+Plate1,r03c03,01,0,sample_data/ScaleFEx_Dataset01_Plate1/r03c03f01p01-ch4sk1fk1fl1.tiff,9,4,5,0,"(0, 3, 5, 6)","(1, 2, 4, 7, 8)",()
