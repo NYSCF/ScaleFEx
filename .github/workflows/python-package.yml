@@ -39,6 +39,6 @@ jobs:
     - name: Test with pytest
 
       run: |
-        mkdir sample_data/test/output
+        mkdir tests/data/output
         pytest -v
 
