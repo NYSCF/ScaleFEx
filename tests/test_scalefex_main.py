@@ -3,7 +3,8 @@ import sys
 sys.path.append('/'.join(__file__.split('/')[:-2]))
 from scalefex_main import *
 from warnings import simplefilter
-ROOT_DIR = '/'.join(__file__.split('/')[:-2])
+ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
 simplefilter(action="ignore", category=pd.errors.PerformanceWarning)
 class TestProcess_HighContentImaging_screen():
     pipeline = Process_HighContentImaging_screen(yaml_path = os.path.join(ROOT_DIR, 'tests', 'parameters_test.yaml'))
