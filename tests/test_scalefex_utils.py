@@ -1,6 +1,10 @@
 import pytest
-import sys
-sys.path.append('/'.join(__file__.split('/')[:-2]))
+import sys,os
+current_dir = os.path.dirname(__file__)
+parent_dir = os.path.dirname(current_dir)
+grandparent_dir = os.path.dirname(parent_dir)
+sys.path.append(grandparent_dir)
+
 from scalefex_utils import *
 from warnings import simplefilter
 
