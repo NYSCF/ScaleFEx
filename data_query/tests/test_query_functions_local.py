@@ -60,7 +60,7 @@ def test_load_image():
     np.testing.assert_equal(img,np.zeros((10,10)).astype(np.uint8))
 
 def test_flat_field_correction_on_data():
-    img_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'sample_data', 'zstack')
+    img_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'sample_data', 'zstack')
 
     ffc_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'sample_data', 'ffc', 'ffc.npy')
 
@@ -78,7 +78,7 @@ def test_flat_field_correction_on_data():
     np.testing.assert_equal(ffc_dict['ch1'],expected_ffc_dict['ch1'])
 
 def test_flat_field_correction_on_data_bf():
-    img_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'sample_data', 'zstack')
+    img_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'sample_data', 'zstack')
     ffc_file = os.path.join(os.path.dirname(__file__),'sample_data','ffc','bf-ffc.npy')
     img_fnames = [f for f in os.listdir(img_dir) if f.endswith('ch2sk1fk1fl1.tiff')]
     img_paths = [os.path.join(img_dir,f) for f in os.listdir(img_dir) if f.endswith('ch2sk1fk1fl1.tiff')]
@@ -94,7 +94,7 @@ def test_flat_field_correction_on_data_bf():
     np.testing.assert_allclose(ffc_dict['ch2'],expected_ffc_dict['ch2'], rtol = .5)
 
 def test_process_zstack():
-    img_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'sample_data', 'zstack')
+    img_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'sample_data', 'zstack')
     img_fnames = [os.path.join(img_dir,f) for f in os.listdir(img_dir) if f.endswith('ch1sk1fk1fl1.tiff')] #changed the endswith bc i added more images 
     expected_output = cv.imread(os.path.join(img_dir,'max_proj.tiff'),cv.IMREAD_GRAYSCALE)
     max_proj = query_functions_local.process_zstack(img_fnames)
