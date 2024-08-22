@@ -167,8 +167,10 @@ def texture_single_values(chan, segmented_labels, simg):
         ((segmented_labels * simg) > 0).shape[0] * ((segmented_labels * simg) > 0).shape[1])+ 1e-8 # Average of the variance of the texture of the image (only in the masked area)
                                                                                                    # divided by the total number of pixels in the masked area
     temp = ((segmented_labels * simg) - 1)/((segmented_labels * simg) - 1).max()
-    temp[temp < -1] = -1
-    temp = skimage.filters.rank.entropy(temp, skimage.morphology.disk(3))
+    mask = np.where(temp>=0,1,0).astype(np.uint8)
+    temp[temp <0] = 0
+    temp = skimage.filters.rank.entropy(skimage.util.img_as_ubyte(temp), skimage.morphology.disk(3),
+                                        mask=mask)
     df['Variance_Entropy_Texture' + chan] = np.nanmean(temp > 0) # Entropy of the texture of the image (only in the masked area)
     return df
 
