@@ -165,7 +165,7 @@ cython_debug/
 
 # VSCode pytest simulation
 .vscode/settings.json
-
+.vscode/
 # temp testing files
-sample_data/test/output
+tests/data/output/
 tests/parameters_test_realdata.yaml
