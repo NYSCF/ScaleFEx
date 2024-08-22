@@ -1,0 +1,6 @@
+Well,channel,Site,Plate,batch,Empty,Usable,tot_cell_num,Max_Intensity,Min_Intensity,Mean_Intensity,Blur,InFocus,Mean_Foreground_Intensity,Mean_Background_Intensity,SNR,file_path
+r03c03,ch4,01,Plate1,scalefex,False,False,9.0,3533.0,97.0,164.54061814128943,65.80655570539403,False,1048.235045522875,136.94533941164406,20.975550569650583,sample_data/ScaleFEx_Dataset01_Plate1/r03c03f01p01-ch2sk1fk1fl1.tiff
+r03c03,ch1,01,Plate1,scalefex,False,False,9.0,28927.0,576.0,2986.2093998628256,80.30276416715488,False,9768.49329264416,2049.2408158047783,8.351616465118353,sample_data/ScaleFEx_Dataset01_Plate1/r03c03f01p01-ch2sk1fk1fl1.tiff
+r03c03,ch5,01,Plate1,scalefex,False,False,9.0,17584.0,303.0,2229.3683744855966,53.35945627084933,False,6473.352008106773,1370.0605809428077,7.52830733597947,sample_data/ScaleFEx_Dataset01_Plate1/r03c03f01p01-ch2sk1fk1fl1.tiff
+r03c03,ch3,01,Plate1,scalefex,False,False,9.0,39037.0,858.0,5540.60429526749,152.15417876648436,False,10223.07120701382,4146.154013748963,5.3700646115429755,sample_data/ScaleFEx_Dataset01_Plate1/r03c03f01p01-ch2sk1fk1fl1.tiff
+r03c03,ch2,01,Plate1,scalefex,False,False,9.0,19122.0,269.0,1305.6748010973936,170.11162169776907,False,3064.371552981357,848.1760144958072,7.073430507238897,sample_data/ScaleFEx_Dataset01_Plate1/r03c03f01p01-ch2sk1fk1fl1.tiff
