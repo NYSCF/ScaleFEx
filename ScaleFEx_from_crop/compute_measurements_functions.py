@@ -426,6 +426,7 @@ def mitochondria_measurement(segmented_labels, simg, viz=False):
             image_of_branch_points = B >= 4
             branch.append(skimage.morphology.label(
                 image_of_branch_points).max())
+            
             B = np.zeros_like(SS)
             for k in range(9):
                 K = np.zeros((9))
@@ -434,7 +435,7 @@ def mitochondria_measurement(segmented_labels, simg, viz=False):
                 B = B + cv2.filter2D(SS.astype(np.float32), -1, K.reshape(3, 3).astype(np.float32), borderType=cv2.BORDER_CONSTANT)
                 
             end_points.append(np.count_nonzero(B == 10))
-
+    print(branch,end_points,aspect_ratio)
     if branch:
         df['MitoMeanBranch'] = np.nanmean(branch)
         df['MitoStdBranchN'] = np.nanstd(branch)
