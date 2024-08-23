@@ -9,4 +9,4 @@ jobs:
     macos-latest-build:
         uses: ./.github/workflows/python-package.yml
         with:
-            os: macos-latest
+            os: macos-13
