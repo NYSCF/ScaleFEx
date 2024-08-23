@@ -117,11 +117,12 @@ def test_mitochondria_measurement():
     test_mask = np.load(os.path.join(TEST_MASK_DIR,MASK_FILES[IMG_ID]),allow_pickle=True).item()
     
     df = mitochondria_measurement(test_mask[channel],test_img[channel],viz=False)
+    print(df['MitoMeanBranch'])
     expected_df = pd.read_csv(os.path.join(TEST_CSV_DIR,'mitochondria_measurement_output.csv'))
-    print(df)
+    print(expected_df['MitoMeanBranch'])
     df = df.astype(expected_df.dtypes.to_dict())
-    print(df)
-    print(expected_df)
+    print(df['MitoMeanBranch'])
+    # print(expected_df)
     pd.testing.assert_frame_equal(df,expected_df)
 
 
