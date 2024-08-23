@@ -1,6 +1,6 @@
 import pytest
 import sys
-sys.path.append('/'.join(__file__.split('/')[:-2]))
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 from scalefex_main import *
 from warnings import simplefilter
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -35,10 +35,10 @@ class TestProcess_HighContentImaging_screen():
         with pytest.raises(FileNotFoundError):
             Process_HighContentImaging_screen(yaml_path=os.path.join(ROOT_DIR,'not_a_file.yaml'))
     def test_save_csv_file(self):
-        new_output_path = os.path.join(ROOT_DIR,'tests/data/sample_scalefex_vector/Dataset01_Plate1_scalefex_new.csv')
+        new_output_path = os.path.join(ROOT_DIR,'tests','data','sample_scalefex_vector','Dataset01_Plate1_scalefex_new.csv')
         if os.path.exists(new_output_path):
             os.remove(new_output_path)
-        test_output_path = os.path.join(ROOT_DIR,'tests/data/sample_scalefex_vector/Dataset01_Plate1_scalefex.csv')
+        test_output_path = os.path.join(ROOT_DIR,'tests','data','sample_scalefex_vector','Dataset01_Plate1_scalefex.csv')
         vector = pd.read_csv(test_output_path)
         csv_file = new_output_path
         self.pipeline.save_csv_file(vector,csv_file)
@@ -49,14 +49,14 @@ class TestProcess_HighContentImaging_screen():
 
     def test_segment_crop_images(self):
         # load saved output of data_query.query_functions_local.load_and_preprocess()
-        np_images = np.load(os.path.join(ROOT_DIR,'tests/data/preprocessed_images.npy'),allow_pickle=True)
+        np_images = np.load(os.path.join(ROOT_DIR,'tests','data','preprocessed_images.npy'),allow_pickle=True)
         centroids = self.pipeline.segment_crop_images(np_images[0,:,:,0])
         assert centroids.shape[1] == 2
         assert len(centroids)>0
 
     def test_segment_crop_images_empty(self):
         # load saved output of data_query.query_functions_local.load_and_preprocess()
-        np_images = np.load(os.path.join(ROOT_DIR,'tests/data/preprocessed_images.npy'),allow_pickle=True)
+        np_images = np.load(os.path.join(ROOT_DIR,'tests','data','preprocessed_images.npy'),allow_pickle=True)
         img_nuc = (np.random.rand(np_images[0,:,:,0].shape[0],np_images[0,:,:,0].shape[1])*10).astype(int)
         centroids = self.pipeline.segment_crop_images(img_nuc)
         assert centroids is not None
