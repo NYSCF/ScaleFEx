@@ -385,6 +385,7 @@ def mitochondria_measurement(segmented_labels, simg, viz=False):
         if np.nansum(labeled_skeleton == u) < 5:
             labeled_skeleton[labeled_skeleton == u] = 0
     labeled_skeleton = skimage.morphology.label(labeled_skeleton)
+    print(np.unique(labeled_skeleton))
     if np.count_nonzero(labeled_skeleton) < 1:
         df['MitoCount'] = 0
         df['MitoVolumeMean'] = 0
@@ -435,7 +436,7 @@ def mitochondria_measurement(segmented_labels, simg, viz=False):
                 B = B + cv2.filter2D(SS.astype(np.float32), -1, K.reshape(3, 3).astype(np.float32), borderType=cv2.BORDER_CONSTANT)
                 
             end_points.append(np.count_nonzero(B == 10))
-    print(branch,end_points,aspect_ratio)
+    # print(branch,end_points,aspect_ratio)
     if branch:
         df['MitoMeanBranch'] = np.nanmean(branch)
         df['MitoStdBranchN'] = np.nanstd(branch)
