@@ -118,7 +118,10 @@ def test_mitochondria_measurement():
     
     df = mitochondria_measurement(test_mask[channel],test_img[channel],viz=False)
     expected_df = pd.read_csv(os.path.join(TEST_CSV_DIR,'mitochondria_measurement_output.csv'))
+    print(df)
     df = df.astype(expected_df.dtypes.to_dict())
+    print(df)
+    print(expected_df)
     pd.testing.assert_frame_equal(df,expected_df)
 
 

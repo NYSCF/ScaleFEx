@@ -40,5 +40,5 @@ jobs:
 
       run: |
         mkdir tests/data/output
-        pytest -v
+        pytest -v -s
 
