@@ -11,12 +11,12 @@ sys.path.append(ROOT_DIR)
 import query_functions_local
 
 def test_query_data():
-    exp_folder = os.path.join('/'.join(__file__.split('/')[:-1]),'sample_data','rxrx2','images','HUVEC-1')
+    exp_folder = os.path.join(os.path.dirname(__file__),'sample_data','rxrx2','images','HUVEC-1')
     # plate_identifier='Plate'
     plates = [1,2,902342,23,'plates']
     pattern = '<Well>_<Site>_<Channel>.<ext>'
     query_results = query_functions_local.query_data(exp_folder,pattern,plate_identifiers=('Plate',''),plates=plates,exts=('png',))
-    expected_output = pd.read_csv( os.path.join('/'.join(__file__.split('/')[:-1]),'sample_data','rxrx2','test_query_data_expected_output.csv'))
+    expected_output = pd.read_csv( os.path.join(os.path.dirname(__file__),'sample_data','rxrx2','test_query_data_expected_output.csv'))
     assert len(query_results) == 16
     assert query_results.isna().values.any() == False
     assert query_results['plate'].unique().tolist() == ['1','2']

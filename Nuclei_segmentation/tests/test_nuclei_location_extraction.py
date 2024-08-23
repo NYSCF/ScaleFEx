@@ -5,7 +5,7 @@ from scipy import ndimage as ndi
 import pytest
 import cv2 as cv
 import os,sys
-ROOT_DIR = '/'.join(__file__.split('/')[:-2])
+ROOT_DIR = os.path.dirname(os.path.dirname(__file__))
 TEST_DIR = os.path.join(ROOT_DIR,'tests')
 sys.path.append(ROOT_DIR)
 from nuclei_location_extraction import *
