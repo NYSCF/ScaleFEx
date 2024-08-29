@@ -95,6 +95,7 @@ You should be able to visualize the detected single cells cells from the data pr
    #### 1.1 NOTE ON QUERYING DATA
 
    The colored parameters described above are used in parsing data and are used together to search for files in the following way:
+   
    ![image](https://github.com/user-attachments/assets/b10603d7-4162-4851-b444-9596dece8126)
    
    where each plate in **plates** and each extension in **file_extensions** is substituted to match all possible combinations.\
