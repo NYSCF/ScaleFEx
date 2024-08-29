@@ -62,13 +62,13 @@ You should be able to visualize the detected single cells cells from the data pr
     - **vector_type**: Write 'scalefex' for the feature vector, '' if you want only the preprocessing part (specified below)
     - **resource**: 'local' for local computation, 'AWS' for cloud computing
     - **n_of_workers**: 60 ;int, n of workers to use in parallel. If computing on AWS, this parameter will be ignored, as it is fixed in the AWS framework
-    - <span style="color:blue">**exp_folder**</span>: '/path/to/images/' ;
+    - 🟦**exp_folder**: '/path/to/images/' ;
     - **experiment_name**: 'exp001' ;this name will be appended to the saved files
     - **saving_folder**: '/path/to/saving/folder/' ;path to the saving folder
-    - <span style="color:green">**plates**</span>: ['1','2'] ;if you want to process a subset of plates, 'all' for all of the ones found in the folder
-    - <span style="color:red">**plate_identifiers**</span>: ['Plate',''] ;identifier for finding the plate number; should directly precede and follow the plate identifier (eg exp_folder/<u>Plate</u>1/*.tiffs;)
-    - <span style="color:orange">**pattern**</span>: 'Images/<Well\>f<Site\>p<Plane(2)>-<Channel(3)>.<ext>' # pattern of the image file: specify all the characters that make up the filepath indicating the location ([more details in the wiki](https://github.com/NYSCF/ScaleFEx/wiki/Querying-Data)) 
-    - <span style="color:purple">**file_extensions**</span>: ['tiff',] ; specify the extensions of the image files 
+    - 🟩**plates**: ['1','2'] ;if you want to process a subset of plates, 'all' for all of the ones found in the folder
+    - 🟥**plate_identifiers**: ['Plate',''] ;identifier for finding the plate number; should directly precede and follow the plate identifier (eg exp_folder/<u>Plate</u>1/*.tiffs;)
+    - 🟧**pattern**: 'Images/<Well\>f<Site\>p<Plane(2)>-<Channel(3)>.<ext>' # pattern of the image file: specify all the characters that make up the filepath indicating the location ([more details in the wiki](https://github.com/NYSCF/ScaleFEx/wiki/Querying-Data)) 
+    - 🟪**file_extensions**: ['tiff',] ; specify the extensions of the image files 
     - **image_size**: [2160,2160] ;size of the image
     - **channel**: ['ch4','ch1', 'ch5',  'ch3', 'ch2'] ;channels to be processed. NOTE: the nuclear channel should be first
     - **zstack**: False ;Set to True if you have multi-plane images
@@ -95,8 +95,9 @@ You should be able to visualize the detected single cells cells from the data pr
    #### 1.1 NOTE ON QUERYING DATA
 
    The colored parameters described above are used in parsing data and are used together to search for files in the following way:
-   <center><span style="color:blue;opacity:0.4">exp_folder</span>/<span style="color:red;opacity:0.4">plate_identifiers[0]</span><span style="color:green;opacity:0.4">plates[0]</span><span style="color:red;opacity:0.4">plate_identifiers[1]</span>/<span style="color:orange;opacity:0.4">pattern</span><span style='color:purple;opacity:0.4'>file_extensions[0]</span> <span style="color:blue">exp_folder</span>/<span style="color:red">plate_identifiers[0]</span><span style="color:green">plates[1]</span><span style="color:red">plate_identifiers[1]</span>/<span style="color:orange">pattern</span><span style='color:purple'>file_extensions[0]</span></center>
-   
+   <p align="left">
+      <img src="image.png">
+   </p>
    where each plate in **plates** and each extension in **file_extensions** is substituted to match all possible combinations.\
    Please consult the [Querying Data wiki](https://github.com/NYSCF/ScaleFEx/wiki/Querying-Data) for more information.
 
