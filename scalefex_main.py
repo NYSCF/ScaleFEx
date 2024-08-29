@@ -10,6 +10,7 @@ import matplotlib.pyplot as plt
 import ScaleFEx_from_crop.compute_ScaleFEx
 import shutil
 import argparse
+import cv2 as cv
 # ignore performance warnings about dataframe fragmentation
 from warnings import simplefilter
 simplefilter(action="ignore", category=pd.errors.PerformanceWarning)
@@ -60,15 +61,19 @@ class Process_HighContentImaging_screen:
             if not os.path.exists(ffc_file):
                 print(ffc_file + ' Not found generating FFC now') 
                 self.flat_field_correction = data_query.query_functions_local.flat_field_correction_on_data(
-                files, self.parameters['channel'], bf_channel=self.parameters['bf_channel'],n_images=self.parameters['FFC_n_images'])
+                files, self.parameters['channel'],n_images=self.parameters['FFC_n_images'])
                 pickle.dump(self.flat_field_correction, open(ffc_file, "wb"))
             else:
                 print(ffc_file + ' Found, loading FFC')
                 self.flat_field_correction = pickle.load(open(ffc_file, "rb"))
+            print(self.flat_field_correction.keys())
+            print(self.flat_field_correction[self.parameters['channel'][0]])
+            self.parameters['image_size'] = self.flat_field_correction[self.parameters['channel'][0]].shape
         else:
             for channel in self.parameters['channel']:
                 self.flat_field_correction[channel] = 1
-
+            image_size = cv.imread(files.iloc[0]['file_path'],cv.IMREAD_GRAYSCALE).shape
+            self.parameters['image_size'] = image_size
 
         # Loop over plates and start computation
 

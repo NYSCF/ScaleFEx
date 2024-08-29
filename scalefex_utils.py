@@ -165,7 +165,7 @@ def check_YAML_parameter_validity(yaml_path):
     print(f"Checking parameters in {yaml_path}...")
     
     REQUIRED_PARAMS = ('vector_type','resource','n_of_workers','exp_folder','experiment_name','saving_folder','plates',
-                       'max_file_size','plate_identifiers','pattern','exts','image_size','channel',
+                       'max_file_size','plate_identifiers','pattern','exts','channel',
                        'zstack','ROI','downsampling','QC','FFC','FFC_n_images','csv_coordinates','segmenting_function',
                        'save_coordinates','min_cell_size','max_cell_size','visualization','RNA_channel','Mito_channel',
                        'visualize_masks','visualize_crops','overwrite')
@@ -206,7 +206,6 @@ def check_YAML_parameter_validity(yaml_path):
     int_params = ('n_of_workers','max_file_size','ROI','FFC_n_images','min_cell_size','max_cell_size','nb_subsets')
     float_params = ('downsampling',)
     module_params = ('segmenting_function',)
-    list_of_int_params = ('image_size',)
     if parameters['vector_type'] not in ('scalefex', 'coordinates',''):
         print(f"- Parameter vector_type ({parameters['vector_type']}) must be in ['scalefex', 'coordinates', ''].")
         PASS_CHECK = False
@@ -253,11 +252,6 @@ def check_YAML_parameter_validity(yaml_path):
     for param in float_params:
         if param in parameters and (not isinstance(parameters[param], (int,float)) or parameters[param] < 0):
             print(f"- Parameter {param} ({parameters[param]}) must be a positive float.")
-            PASS_CHECK = False
-    for param in list_of_int_params:
-        if param in parameters and (not isinstance(parameters[param], list) or not all(isinstance(x, int) for x in parameters[param])\
-                                                                            or not all(x > 0 for x in parameters[param])):
-            print(f"- Parameter {param} ({parameters[param]}) must be a list of positive integers.")
             PASS_CHECK = False
     for param in module_params:
         if param in parameters and (not isinstance(parameters[param], str)):
