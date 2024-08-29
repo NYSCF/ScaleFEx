@@ -18,9 +18,15 @@ Read more about it in the preprint: https://doi.org/10.1101/2023.07.06.547985
 - **Low overhead**: leveraging parallelizations over cores, it maximizes any computer resources
 - **AWS implementation**: to scale up even more. Easy to deploy. Cheaper and faster than the state of the art
 
-## Installation Instructions
+## Installation Instructions 
+### Basic Requirements:
+1.  [Git](https://git-scm.com/downloads) (version control)
+       - on MacOS, install the XCode command line tools by running `xcode-select --install` in `terminal`
+2.  [Anaconda](https://www.anaconda.com/download) (package manager)
+3.  Access to your computer's command line (`terminal` on MacOS, Linux;`cmd` on Windows)
 
-Follow these steps to set up and run ScaleFEx:
+
+**Follow these steps to set up and run ScaleFEx via command line:**
 
 ### 1. Create and Activate a New Environment
 Ensure you have Conda installed, then create a new environment:
@@ -51,17 +57,18 @@ You should be able to visualize the detected single cells cells from the data pr
 
 ## Usage
 
+
 1. **Set Parameters**: Configure `parameters.yaml` with your dataset paths and processing preferences.
     - **vector_type**: Write 'scalefex' for the feature vector, '' if you want only the preprocessing part (specified below)
     - **resource**: 'local' for local computation, 'AWS' for cloud computing
     - **n_of_workers**: 60 ;int, n of workers to use in parallel. If computing on AWS, this parameter will be ignored, as it is fixed in the AWS framework
-    - **exp_folder**: '/path/to/images/' ;
+    - <span style="color:blue">**exp_folder**</span>: '/path/to/images/' ;
     - **experiment_name**: 'exp001' ;this name will be appended to the saved files
     - **saving_folder**: '/path/to/saving/folder/' ;path to the saving folder
-    - **plates**: ['1','2'] ;if you want to process a subset of plates, 'all' for all of the ones found in the folder
-    - **plate_identifiers**: ['Plate','_'] ;identifier for finding the plate number; should directly precede and follow the plate identifier (eg exp_folder/Plate1/)
-    - **pattern**: 'Images/<Well>f<Site>p<Plane(2)>-<Channel(3)>.<ext>' # pattern of the image file: specify all the characters that make up the filepath indicating the location ([more details in the wiki](https://github.com/NYSCF/ScaleFEx/wiki/Querying-Data)) 
-    - **file_extensions**: ['tiff',] ; specify the extensions of the image files 
+    - <span style="color:green">**plates**</span>: ['1','2'] ;if you want to process a subset of plates, 'all' for all of the ones found in the folder
+    - <span style="color:red">**plate_identifiers**</span>: ['Plate',''] ;identifier for finding the plate number; should directly precede and follow the plate identifier (eg exp_folder/<u>Plate</u>1/*.tiffs;)
+    - <span style="color:orange">**pattern**</span>: 'Images/<Well\>f<Site\>p<Plane(2)>-<Channel(3)>.<ext>' # pattern of the image file: specify all the characters that make up the filepath indicating the location ([more details in the wiki](https://github.com/NYSCF/ScaleFEx/wiki/Querying-Data)) 
+    - <span style="color:purple">**file_extensions**</span>: ['tiff',] ; specify the extensions of the image files 
     - **image_size**: [2160,2160] ;size of the image
     - **channel**: ['ch4','ch1', 'ch5',  'ch3', 'ch2'] ;channels to be processed. NOTE: the nuclear channel should be first
     - **zstack**: False ;Set to True if you have multi-plane images
@@ -84,7 +91,15 @@ You should be able to visualize the detected single cells cells from the data pr
 
     - **visualize_masks**: False ; visualize the segmentation mask from each channel. NOTE: we suggest to visualize the masks for testing, but to turn it off during the processing of large screens
     - **visualize_crops**: False ; visualizes the crop of the cell. This helps setting the best ROI size, but we suggest to visualize the crop for testing, but to turn it off during the processing of large screens
-    
+
+   #### 1.1 NOTE ON QUERYING DATA
+
+   The colored parameters described above are used in parsing data and are used together to search for files in the following way:
+   <center><span style="color:blue;opacity:0.4">exp_folder</span>/<span style="color:red;opacity:0.4">plate_identifiers[0]</span><span style="color:green;opacity:0.4">plates[0]</span><span style="color:red;opacity:0.4">plate_identifiers[1]</span>/<span style="color:orange;opacity:0.4">pattern</span><span style='color:purple;opacity:0.4'>file_extensions[0]</span> <span style="color:blue">exp_folder</span>/<span style="color:red">plate_identifiers[0]</span><span style="color:green">plates[1]</span><span style="color:red">plate_identifiers[1]</span>/<span style="color:orange">pattern</span><span style='color:purple'>file_extensions[0]</span></center>
+   
+   where each plate in **plates** and each extension in **file_extensions** is substituted to match all possible combinations.\
+   Please consult the [Querying Data wiki](https://github.com/NYSCF/ScaleFEx/wiki/Querying-Data) for more information.
+
    **AWS parameters**  
    - **s3_bucket**: 'your-bucket'; name of the S3 Bucket storing your images
    - **nb_subsets**: 6; how many machines per plate you want to deploy
@@ -97,9 +112,10 @@ You should be able to visualize the detected single cells cells from the data pr
    - **ScaleFExSubnetC**: 'subnet-0811845bbe0f6b56e' ; third subnet you want to use, if only one use the same
    - **security_group_id**: 'sg-0e85edf74867bae19' ; security group you want to use, empty string if you want to use the default one
   
+
   
       
-3. **Execute Analysis**:
+2. **Execute Analysis**:
     
    If running the code locally:  
    From the terminal:
