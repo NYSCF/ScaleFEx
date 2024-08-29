@@ -256,6 +256,8 @@ class Process_HighContentImaging_screen:
                                 print('Not a valid vector type entry')
                     
                     # tracking cells computed/skipped/failed
+                    if len(center_of_mass) ==0:
+                        center_of_mass = np.array([]).reshape((0,3))
                     computed_ids = tuple(np.asarray(center_of_mass)[np.nonzero(is_computed==1)[0],2].astype(int))
                     on_edge_ids = tuple(np.asarray(center_of_mass)[np.nonzero(is_computed==0)[0],2].astype(int))
                     failed_ids = tuple(np.asarray(center_of_mass)[np.nonzero(is_computed==-1)[0],2].astype(int))
