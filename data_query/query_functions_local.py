@@ -219,6 +219,7 @@ def flat_field_correction_on_data(files, channel, bf_channel='', n_images=300):
     ''' Calculates the background trend of the entire experiment to be used for flat field correction'''
 
     flat_field_correction = {}
+    n_images = np.min([n_images, np.floor(len(files)/len(channel)).astype(int)])
     for ch in channel:
         B = files.loc[files.channel == ch].sample(n_images)
         img = load_image(B.iloc[0].file_path)
@@ -232,7 +233,6 @@ def flat_field_correction_on_data(files, channel, bf_channel='', n_images=300):
             img[img==0]=1
 
             flat_field_correction[ch] = img
-
     return flat_field_correction
 
 
