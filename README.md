@@ -98,6 +98,7 @@ You should be able to visualize the detected single cells cells from the data pr
    <p align="left">
       <img src="image.png">
    </p>
+   
    where each plate in **plates** and each extension in **file_extensions** is substituted to match all possible combinations.\
    Please consult the [Querying Data wiki](https://github.com/NYSCF/ScaleFEx/wiki/Querying-Data) for more information.
 
