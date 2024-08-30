@@ -19,6 +19,7 @@ Read more about it in the preprint: https://doi.org/10.1101/2023.07.06.547985
 - **AWS implementation**: to scale up even more. Easy to deploy. Cheaper and faster than the state of the art
 
 ## Installation Instructions 
+For a full description on how to run ScaleFEx on AWS, see the Wiki page [here](https://github.com/NYSCF/ScaleFEx/wiki/Running-ScaleFEx-on-AWS)
 ### Basic Requirements:
 1.  [Git](https://git-scm.com/downloads) (version control)
        - on MacOS, install the XCode command line tools by running `xcode-select --install` in `terminal`
@@ -106,7 +107,10 @@ You should be able to visualize the detected single cells cells from the data pr
    where each plate in **plates** and each extension in **file_extensions** is substituted to match all possible combinations.\
    Please consult the [Querying Data wiki](https://github.com/NYSCF/ScaleFEx/wiki/Querying-Data) for more information.
 
-   **AWS parameters**  
+   **AWS parameters**
+
+For a full description on how to run ScaleFEx on AWS, see the Wiki page [here](https://github.com/NYSCF/ScaleFEx/wiki/Running-ScaleFEx-on-AWS)
+
    - **s3_bucket**: 'your-bucket'; name of the S3 Bucket storing your images
    - **nb_subsets**: 6; how many machines per plate you want to deploy
    - **subset_index**: 'all'; can use an int to compute a specific subset to compute (i.e:'2')
@@ -121,7 +125,7 @@ You should be able to visualize the detected single cells cells from the data pr
 
   
       
-2. **Execute Analysis**:
+3. **Execute Analysis**:
     
    If running the code locally:  
    From the terminal:
