@@ -8,10 +8,10 @@ import os,sys
 from warnings import simplefilter
 simplefilter(action='ignore',category=pd.errors.PerformanceWarning)
 
-ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+ROOT_DIR = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 sys.path.append(ROOT_DIR)
 
-TEST_DIR = os.path.dirname(os.path.abspath(__file__))
+TEST_DIR = os.path.dirname(os.path.realpath(__file__))
 # from compute_measurements_functions import *
 from compute_ScaleFEx import *
 
