@@ -59,7 +59,10 @@ def test_batch_compute_embeddings():
     print("=============================")
     print(sc_vector.iloc[:, 1760:1781].values)
     print(expected_sc_vector.iloc[:, 1760:1781].values)
+    print(sc_vector.iloc[:, 1781])
+    print(expected_sc_vector.iloc[:, 1781])
     time.sleep(1)
+    pd.testing.assert_frame_equal(expected_sc_vector,sc_vector)
     pd.testing.assert_frame_equal(sc_vector,expected_sc_vector)
 
 test_batch_compute_embeddings()
