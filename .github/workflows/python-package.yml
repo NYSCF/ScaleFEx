@@ -3,12 +3,11 @@
 
 name: CI
 
-on:
-  workflow_call:
-    inputs:
-      os:
-        required: true
-        type: string
+on: 
+    pull_request:
+        branches: [ "main" ]
+    push:
+        branches: [ "main" ]
 
 jobs:
   build:
