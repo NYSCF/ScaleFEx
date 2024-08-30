@@ -8,7 +8,7 @@ import os,sys
 from warnings import simplefilter
 simplefilter(action='ignore',category=pd.errors.PerformanceWarning)
 from pathlib import Path
-
+import time
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 sys.path.append(ROOT_DIR)
 
@@ -54,7 +54,7 @@ def test_batch_compute_embeddings():
     assert sc_vector.iloc[:, 179].dtype == 'float32',sc_vector.iloc[:, 179].dtype 
     print(sc_vector.iloc[:, 1760:1781].values)
     print(expected_sc_vector.iloc[:, 1760:1781].values)
-     
+    time.sleep(10)
     pd.testing.assert_frame_equal(sc_vector,expected_sc_vector)
 
 test_batch_compute_embeddings()
