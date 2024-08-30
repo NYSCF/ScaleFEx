@@ -40,5 +40,8 @@ def test_batch_compute_embeddings():
     # sc_vector.to_csv(os.path.join(TEST_CSV_DIR,'batch_compute_empeddings_expected_output.csv'),index=False)
     expected_sc_vector = pd.read_csv(os.path.join(TEST_CSV_DIR,'batch_compute_empeddings_expected_output.csv'))
     expected_sc_vector = expected_sc_vector.astype(sc_vector.dtypes.to_dict())
-
+    
+    print(sc_vector.iloc[:, 1781])
+    print(expected_sc_vector.iloc[:, 1781])
+     
     pd.testing.assert_frame_equal(sc_vector,expected_sc_vector)
