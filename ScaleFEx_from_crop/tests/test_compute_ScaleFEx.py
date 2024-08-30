@@ -49,16 +49,19 @@ def test_batch_compute_embeddings():
     expected_sc_vector = pd.read_csv(os.path.join(TEST_CSV_DIR,'batch_compute_empeddings_expected_output.csv'))
     expected_sc_vector = expected_sc_vector.astype(sc_vector.dtypes.to_dict())
     
+    assert sc_vector.iloc[:, 1782].dtype == 'float64',sc_vector.iloc[:, 1782].dtype 
     assert sc_vector.iloc[:, 1781].dtype == 'float64',sc_vector.iloc[:, 1781].dtype 
     assert sc_vector.iloc[:, 1780].dtype == 'int64',sc_vector.iloc[:, 1780].dtype 
     assert sc_vector.iloc[:, 179].dtype == 'float32',sc_vector.iloc[:, 179].dtype 
-    time.sleep(1)
+   
     print("****************************")
     print(sc_vector.iloc[:, 0:10].values)
     print(expected_sc_vector.iloc[:, 0:10].values)
     print("=============================")
     print(sc_vector.iloc[:, 1760:1782].values)
     print(expected_sc_vector.iloc[:, 1760:1782].values)
+    print("-----------------------------")
+    print(len(sc_vector.columns),len(expected_sc_vector.columns))
     print(sc_vector.iloc[:, 1780])
     print(expected_sc_vector.iloc[:, 1780])
     print(sc_vector.iloc[:, 1781])
