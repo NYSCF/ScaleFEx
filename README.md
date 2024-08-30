@@ -68,7 +68,9 @@ You should be able to visualize the detected single cells cells from the data pr
     - **experiment_name**: 'exp001' ;this name will be appended to the saved files
     - **saving_folder**: '/path/to/saving/folder/' ;path to the saving folder
     - 🟩 **plates**: ['1','2'] ;if you want to process a subset of plates, 'all' for all of the ones found in the folder
-    - 🟥 **plate_identifiers**: ['Plate',''] ;identifier for finding the plate number; should directly precede and follow the plate identifier (eg exp_folder/<u>Plate</u>1/*.tiffs;)
+    - 🟥 **plate_identifiers**: ['Plate',''] ;identifier for finding the plate number; should directly precede and follow the plate identifier (eg exp_folder/<u>Plate</u>1/*.tiffs)
+      NOTE: The plate identifiers do not need to contain all the strings within the folder, but just the strings that are constant and can identify the plate. The identifiers are used to identify the plate even when the folder patterns are not the same. Eg sometimes folders include time stamps and it would be hard to query the plate wothout imputing all of the folders.
+      (example: exp_folder/some_strings<identifier1>Plate<identifier2>some_other_string/*.tiffs)
     - 🟧 **pattern**: 'Images/<Well\>f<Site\>p<Plane(2)>-<Channel(3)>.<ext>' # pattern of the image file: specify all the characters that make up the filepath indicating the location ([more details in the wiki](https://github.com/NYSCF/ScaleFEx/wiki/Querying-Data)) 
     - 🟪 **file_extensions**: ['tiff',] ; specify the extensions of the image files 
     - **image_size**: [2160,2160] ;size of the image
