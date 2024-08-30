@@ -55,6 +55,6 @@ def test_batch_compute_embeddings():
     print(sc_vector.iloc[:, 1760:1781].values)
     print(expected_sc_vector.iloc[:, 1760:1781].values)
      
-    # pd.testing.assert_frame_equal(sc_vector,expected_sc_vector)
+    pd.testing.assert_frame_equal(sc_vector,expected_sc_vector)
 
 test_batch_compute_embeddings()
