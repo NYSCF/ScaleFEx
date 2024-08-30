@@ -7,6 +7,7 @@ import pandas as pd
 import os,sys
 from warnings import simplefilter
 simplefilter(action='ignore',category=pd.errors.PerformanceWarning)
+from pathlib import Path
 
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 sys.path.append(ROOT_DIR)
@@ -23,10 +24,17 @@ MASK_FILES = sorted([f for f in os.listdir(TEST_MASK_DIR) if f.endswith('.npy')]
 IMG_ID =3
 
 def test_batch_compute_embeddings():
+    assert Path(os.path.join(TEST_IMG_DIR,IMG_FILES[IMG_ID])).exists()
     test_img = np.load(os.path.join(TEST_IMG_DIR,IMG_FILES[IMG_ID]),allow_pickle=True).item()
     test_img_stack = np.stack([test_img['w1'],test_img['w2'],test_img['w3'],
                                test_img['w4'],test_img['w5'],test_img['w6']],axis=0)
-
+    assert test_img['w1'].max() == 24
+    assert test_img['w2'].max() == 99
+    assert test_img['w3'].max() == 31
+    assert test_img['w4'].max() == 49
+    assert test_img['w5'].max() == 10
+    assert test_img['w6'].max() == 41
+             
     PARAMS = {'cell_crop':test_img_stack,
               'channel':['w1','w2','w3','w4','w5','w6'],
               'mito_ch':'w5',
@@ -45,3 +53,5 @@ def test_batch_compute_embeddings():
     print(expected_sc_vector.iloc[:, 1781])
      
     pd.testing.assert_frame_equal(sc_vector,expected_sc_vector)
+
+test_batch_compute_embeddings()
