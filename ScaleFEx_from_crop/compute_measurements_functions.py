@@ -434,7 +434,7 @@ def mitochondria_measurement(segmented_labels, simg, viz=False):
                 B = B + cv2.filter2D(SS.astype(np.float32), -1, K.reshape(3, 3).astype(np.float32), borderType=cv2.BORDER_CONSTANT)
                 
             end_points.append(np.count_nonzero(B == 10))
-
+    print(branch)
     if branch:
         df['MitoMeanBranch'] = np.nanmean(branch)
         df['MitoStdBranchN'] = np.nanstd(branch)
