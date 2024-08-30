@@ -424,6 +424,7 @@ def mitochondria_measurement(segmented_labels, simg, viz=False):
             a_orthog[B == 2] = 1
             B = cv2.filter2D(a_orthog, -1, structure1, borderType=cv2.BORDER_CONSTANT)
             image_of_branch_points = B >= 4
+            print(np.sum(image_of_branch_points))
             branch.append(skimage.morphology.label(
                 image_of_branch_points).max())
             B = np.zeros_like(SS)
