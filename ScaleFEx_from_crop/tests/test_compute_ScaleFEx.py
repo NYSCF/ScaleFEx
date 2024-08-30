@@ -52,8 +52,8 @@ def test_batch_compute_embeddings():
     assert sc_vector.iloc[:, 1781].dtype == 'float64',sc_vector.iloc[:, 1781].dtype 
     assert sc_vector.iloc[:, 1780].dtype == 'int64',sc_vector.iloc[:, 1780].dtype 
     assert sc_vector.iloc[:, 179].dtype == 'float32',sc_vector.iloc[:, 179].dtype 
-    print(sc_vector.iloc[:, 1781])
-    print(expected_sc_vector.iloc[:, 1781])
+    print(sc_vector.iloc[:, 1760:1781].values)
+    print(expected_sc_vector.iloc[:, 1760:1781].values)
      
     # pd.testing.assert_frame_equal(sc_vector,expected_sc_vector)
 
