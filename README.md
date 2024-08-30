@@ -62,6 +62,7 @@ You should be able to visualize the detected single cells cells from the data pr
     - **vector_type**: Write 'scalefex' for the feature vector, '' if you want only the preprocessing part (specified below)
     - **resource**: 'local' for local computation, 'AWS' for cloud computing
     - **n_of_workers**: 60 ;int, n of workers to use in parallel. If computing on AWS, this parameter will be ignored, as it is fixed in the AWS framework
+      
    [ example:    ![image](https://github.com/user-attachments/assets/b10603d7-4162-4851-b444-9596dece8126) ]
     - 🟦 **exp_folder**: '/path/to/images/' ;
     - **experiment_name**: 'exp001' ;this name will be appended to the saved files
