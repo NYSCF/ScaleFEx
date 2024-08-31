@@ -410,9 +410,10 @@ def mitochondria_measurement(segmented_labels, simg, viz=False):
 
         for ii in range(1, np.max(labeled_skeleton)):
             SS = labeled_skeleton == ii
-            print(ii,np.mean(SS), np.std(SS))
             SS = SS.astype(np.uint8)
+            print(ii,np.mean(SS), np.std(SS))
             reg = skimage.measure.regionprops(SS * 1)
+            print('\t',np.mean(reg), np.std(reg))
             if reg[0].minor_axis_length > 0:
                 aspect_ratio.append(
                     reg[0].major_axis_length / reg[0].minor_axis_length+ 1e-8)
