@@ -403,7 +403,7 @@ def mitochondria_measurement(segmented_labels, simg, viz=False):
         K_diag_downslope = np.array([[0, 0, 0], [1, 0, 0], [0, 1, 0]])
         structure1 = np.array([[0, 1, 0],
                                [1, 1, 1],
-                               [0, 1, 0]], dtype=np.uint8)
+                               [0, 1, 0]])
         branch = []
         aspect_ratio = []
         end_points = []
