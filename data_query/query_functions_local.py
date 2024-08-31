@@ -295,16 +295,8 @@ def scale_images(downsampling,img, img_size):
     - img: The downscaled image.
     - img_size: The size of the downscaled image.
     """
-    for i in range(5):
-        for j in range(5):
-            print('before resize: ',i,j,img[i,j])
     img_size=[int(img_size[0]/downsampling),int(img_size[1]/downsampling)]
-    print(img_size)
-    img = np.int8(cv2.resize(np.float64(img), img_size))
-
-    for i in range(5):
-        for j in range(5):
-            print('after resize: ',i,j,img[i,j])
+    img = cv2.resize(img, img_size)
 
     return img, img_size
 
