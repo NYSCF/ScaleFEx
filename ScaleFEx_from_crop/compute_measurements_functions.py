@@ -425,6 +425,7 @@ def mitochondria_measurement(segmented_labels, simg, viz=False):
             B = cv2.filter2D(SS, -1, K_diag_downslope, borderType=cv2.BORDER_CONSTANT)
             print('\t\t filter:2d',np.mean(B), np.std(B))
             a_orthog[B == 2] = 1
+            print('\t\t filter:2d-before',np.mean(a_orthog), np.std(a_orthog))
             B = cv2.filter2D(a_orthog, -1, structure1, borderType=cv2.BORDER_CONSTANT)
             print('\t\t filter:2d',np.mean(B), np.std(B))
             image_of_branch_points = B >= 4
