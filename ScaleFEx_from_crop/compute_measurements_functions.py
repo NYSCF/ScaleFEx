@@ -413,7 +413,6 @@ def mitochondria_measurement(segmented_labels, simg, viz=False):
             SS = SS.astype(np.uint8)
             print(ii,np.mean(SS), np.std(SS))
             reg = skimage.measure.regionprops(SS * 1)
-            print('\t',np.mean(reg), np.std(reg))
             if reg[0].minor_axis_length > 0:
                 aspect_ratio.append(
                     reg[0].major_axis_length / reg[0].minor_axis_length+ 1e-8)
@@ -421,13 +420,14 @@ def mitochondria_measurement(segmented_labels, simg, viz=False):
                 aspect_ratio.append(reg[0].major_axis_length / 1)
             a_orthog = SS.copy()
             B = cv2.filter2D(SS, -1, k_diag_upslope, borderType=cv2.BORDER_CONSTANT)
+            print('\t filter:2d',np.mean(B), np.std(B))
             a_orthog[B == 2] = 1
             B = cv2.filter2D(SS, -1, K_diag_downslope, borderType=cv2.BORDER_CONSTANT)
+            print('\t\t filter:2d',np.mean(B), np.std(B))
             a_orthog[B == 2] = 1
             B = cv2.filter2D(a_orthog, -1, structure1, borderType=cv2.BORDER_CONSTANT)
-            print("Before",np.max(B))
+            print('\t\t filter:2d',np.mean(B), np.std(B))
             image_of_branch_points = B >= 4
-            print("After",np.max(image_of_branch_points))
             
             branch.append(skimage.morphology.label(
                 image_of_branch_points).max())
