@@ -175,8 +175,8 @@ def test_scale_images():
     print(ds_img,expected_output_img)
     print(type(ds_img),type(expected_output_img))
     print(np.where((ds_img-expected_output_img)!=0))
-    for i in range(10):
-        for j in range(10):
+    for i in range(5):
+        for j in range(5):
             print(i,j,ds_img[i,j],expected_output_img[i,j],ds_img[i,j]-expected_output_img[i,j])
 
     assert np.array_equal(ds_img,expected_output_img)

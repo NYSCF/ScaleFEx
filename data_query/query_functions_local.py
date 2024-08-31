@@ -258,7 +258,7 @@ def load_and_preprocess(task_files,channels,well,site,zstack,img_size,flat_field
             img = load_image(image_fnames[0])
         else:
             img = process_zstack(image_fnames)
-            
+
         # Check that the image is of the right format
         if (img is not None) and (img.shape[0] == img_size[0]) and (img.shape[1] == img_size[1]):
 
@@ -270,8 +270,7 @@ def load_and_preprocess(task_files,channels,well,site,zstack,img_size,flat_field
                 img,img_size=scale_images(downsampling, img, img_size)
 
             img = (img/(np.max(img))) * 255
-            # np_images.append(img.astype('uint8'))
-            np_images.append(np.floor(img))
+            np_images.append(img.astype('uint8'))
             
         else:
             print('Img corrupted at: ',image_fnames[0])
@@ -296,9 +295,15 @@ def scale_images(downsampling,img, img_size):
     - img: The downscaled image.
     - img_size: The size of the downscaled image.
     """
-
+    for i in range(5):
+        for j in range(5):
+            print('before resize: ',i,j,img[i,j])
     img_size=[int(img_size[0]/downsampling),int(img_size[1]/downsampling)]
     img = cv2.resize(img, img_size)
+
+    for i in range(5):
+        for j in range(5):
+            print('after resize: ',i,j,img[i,j])
 
     return img, img_size
 
