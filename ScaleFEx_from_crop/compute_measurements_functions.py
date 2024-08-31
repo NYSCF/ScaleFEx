@@ -410,6 +410,7 @@ def mitochondria_measurement(segmented_labels, simg, viz=False):
 
         for ii in range(1, np.max(labeled_skeleton)):
             SS = labeled_skeleton == ii
+            print(ii,np.mean(SS), np.std(SS))
             SS = SS.astype(np.uint8)
             reg = skimage.measure.regionprops(SS * 1)
             if reg[0].minor_axis_length > 0:
