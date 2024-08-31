@@ -271,7 +271,7 @@ def load_and_preprocess(task_files,channels,well,site,zstack,img_size,flat_field
 
             img = (img/(np.max(img))) * 255
             # np_images.append(img.astype('uint8'))
-            np_images.append(np.ceil(img))
+            np_images.append(np.floor(img))
             
         else:
             print('Img corrupted at: ',image_fnames[0])
