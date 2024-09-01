@@ -8,7 +8,7 @@ import data_query.query_functions_AWS as dq
 import time
 from scipy.spatial import KDTree
 import matplotlib.pyplot as plt
-
+import cv2 as cv
 global ScaleFEx_from_crop
 import ScaleFEx_from_crop.compute_ScaleFEx
 global Quality_control_HCI 
@@ -51,11 +51,16 @@ class Process_HighContentImaging_screen_on_AWS:
         
         ffc_file = os.path.join(self.vec_dir, self.parameters['experiment_name'] + '_FFC.p')
         self.flat_field_correction = {}
+
         if self.parameters['FFC'] is True and os.path.exists(ffc_file):
             print(ffc_file + ' Found')
         else:
             for channel in self.parameters['channel']:
                 self.flat_field_correction[channel] = 1
+            image_size = cv.imread(self.files.iloc[0]['file_path'],cv.IMREAD_GRAYSCALE).shape
+            self.parameters['image_size'] = image_size
+
+        self.parameters['image_size'] = self.flat_field_correction[self.parameters['channel'][0]].shape
         
         if self.parameters['QC'] == True:
 
