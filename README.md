@@ -107,7 +107,7 @@ You should be able to visualize the detected single cells cells from the data pr
    where each plate in **plates** and each extension in **file_extensions** is substituted to match all possible combinations.\
    Please consult the [Querying Data wiki](https://github.com/NYSCF/ScaleFEx/wiki/Querying-Data) for more information.
 
-   **AWS parameters**
+   **AWS specific parameters**
 
 For a full description on how to run ScaleFEx on AWS, see the Wiki page [here](https://github.com/NYSCF/ScaleFEx/wiki/Running-ScaleFEx-on-AWS)
 
@@ -117,12 +117,11 @@ For a full description on how to run ScaleFEx on AWS, see the Wiki page [here](h
    - **region**: 'us-east-1'; what region you want to deploy machines into
    - **instance_type**: 'c5.12xlarge' ; Machine type/size
    - **amazon_image_id**: 'ami-06c68f701d8090592' ; AMI linked to region
-   - **ScaleFExSubnetA**: 'subnet-0f55e119abeabb79d'; ARN of the subnet you want to use for machines deployment, empty string if you want to use the default one
-   - **ScaleFExSubnetB**: 'subnet-0f2fffa1123aba4e7'; second subnet you want to use, if only one use the same
-   - **ScaleFExSubnetC**: 'subnet-0811845bbe0f6b56e' ; third subnet you want to use, if only one use the same
-   - **security_group_id**: 'sg-0e85edf74867bae19' ; security group you want to use, empty string if you want to use the default one
+   - **ScaleFExSubnetA**: 'subnet-XXXXXXXXXXXXXXXXX' ; ARN of the subnet you want to use for machines deployment, empty string if you want to use the default one
+   - **ScaleFExSubnetB**: 'subnet-XXXXXXXXXXXXXXXXX' ; second subnet you want to use, if only one use the same
+   - **ScaleFExSubnetC**: 'subnet-XXXXXXXXXXXXXXXXX' ; third subnet you want to use, if only one use the same
+   - **security_group_id**: 'sg-XXXXXXXXXXXXXXXXX' ; security group you want to use, empty string if you want to use the default one
   
-
   
       
 3. **Execute Analysis**:
