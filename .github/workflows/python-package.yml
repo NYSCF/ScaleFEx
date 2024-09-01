@@ -4,22 +4,20 @@
 name: CI
 
 on:
-    pull_request:
-        branches: [ "main" ]
-    push:
-        branches: [ "main" ]
+  workflow_call:
+    inputs:
+      os:
+        required: true
+        type: string
 
 jobs:
   build:
+
+    runs-on: ${{ inputs.os }}
     strategy:
-      fail-fast: True
+      fail-fast: false
       matrix:
-        os: ["macos-latest", "ubuntu-latest"] #, "windows-latest"]
         python-version: ["3.10", "3.11", "3.12"]
-    defaults:
-      run:
-        shell: bash
-    runs-on: ${{ matrix.os }}
 
     steps:
     - uses: actions/checkout@v4
