@@ -373,9 +373,10 @@ def process_zstack_s3(bucket_name, image_keys):
     img = np.max(np.asarray(img), axis=0)
     return img
 
-def flat_field_correction_AWS(files,ffc_file,s3_bucket,saving_folder, Channel, experiment_name, bf_channel='', n_images=20):
+def flat_field_correction_AWS(files,ffc_file,s3_bucket,saving_folder, Channel, experiment_name, n_images=20):
     ''' Calculates the background trend of the entire experiment to be used for flat field correction'''
     flat_field_correction = {}
+    n_images = np.min([n_images, np.floor(len(files)/len(Channel)).astype(int)])
 
     for ch in Channel:
         B = files.loc[files['channel'] == ch].sample(n_images)
@@ -384,13 +385,8 @@ def flat_field_correction_AWS(files,ffc_file,s3_bucket,saving_folder, Channel, e
         for i in range(1, n_images):
             new_img = read_image_from_s3(s3_bucket, B.iloc[i]['file_path'])
             img = np.stack([new_img, img], axis=2)
-            if ch == bf_channel:
-                img = np.mean(img, axis=2)
-            else:
-                img = np.min(img, axis=2)
+            img = np.min(img, axis=2)
 
-        if ch == bf_channel:
-            flat_field_correction[ch] = 1/img
         else:
             flat_field_correction[ch] = img
 
