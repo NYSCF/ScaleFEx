@@ -147,7 +147,7 @@ For a full description on how to run ScaleFEx on AWS, see the Wiki page [here](h
    
 ### Example
 
-To see the output of ScaleFEx, execute the Jupyter Notebook provided with the code: **test_sample_dataset.ipynb**
+To see the output of ScaleFEx, execute the Jupyter Notebook provided in the "demo" folder with the code: **test_sample_dataset.ipynb**
 
 If you leave the parameters.yaml file as it is, the notebook will automatically compute scalefex on the provided data. The notebook already displays that same output.
 
