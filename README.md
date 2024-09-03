@@ -56,10 +56,9 @@ python3 scalefex_main.py
 ```
 You should be able to visualize the detected single cells cells from the data provided with the code
 
-## Usage
+### 4. Parameters setup
+Navigate to the folder where the repository was cloned and open the `parameters.yaml` file to edit it. Once the code is run, a copy of the used parameters will be saved for your records. NOTE: if you leave the parameters as they are, the code will compute ScaleFEx on the sample dataset provided
 
-
-1. **Set Parameters**: Configure `parameters.yaml` with your dataset paths and processing preferences.
     - **vector_type**: Write 'scalefex' for the feature vector, '' if you want only the preprocessing part (specified below)
     - **resource**: 'local' for local computation, 'AWS' for cloud computing
     - **n_of_workers**: 60 ;int, n of workers to use in parallel. If computing on AWS, this parameter will be ignored, as it is fixed in the AWS framework
@@ -124,7 +123,7 @@ For a full description on how to run ScaleFEx on AWS, see the Wiki page [here](h
   
   
       
-3. **Execute Analysis**:
+ **Execute Analysis**:
     
    If running the code locally:  
    From the terminal:
@@ -147,9 +146,9 @@ For a full description on how to run ScaleFEx on AWS, see the Wiki page [here](h
    
 ### Example
 
-To see the output of ScaleFEx, execute the Jupyter Notebook provided in the "demo" folder with the code: **test_sample_dataset.ipynb**
+A example notebook for running our pipeline on a single field is included here. To run it, make sure to have installed the correct library (on terminal input pip install notebook)
 
-If you leave the parameters.yaml file as it is, the notebook will automatically compute scalefex on the provided data. The notebook already displays that same output.
+An example of a possible analysis that can be performed on the ScaleFEx features is outlined in demos/demo_scalefex_analysis.ipynb`
 
 
 
