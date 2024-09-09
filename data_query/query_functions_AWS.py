@@ -86,6 +86,11 @@ def query_data(pattern,plate_identifiers='',exts=('tiff',), exp_folder = ''
     files_df = files_df[final_cols]
 
     return files_df.convert_dtypes(),plate_list
+
+def check_img_size(files,s3_bucket = ''):
+    print(files.iloc[0]['file_path'])
+    img = read_image_from_s3(s3_bucket,files.iloc[0]['file_path'])
+    return img.shape
     
 def load_and_preprocess(task_files,channels,well,site,zstack,img_size,flat_field_correction,
                         downsampling,return_original=False,s3_bucket = ''):

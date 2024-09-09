@@ -411,7 +411,7 @@ def mitochondria_measurement(segmented_labels, simg, viz=False):
         for ii in range(1, np.max(labeled_skeleton)):
             SS = labeled_skeleton == ii
             SS = SS.astype(np.uint8)
-            print(ii,np.mean(SS), np.std(SS))
+            # print(ii,np.mean(SS), np.std(SS))
             reg = skimage.measure.regionprops(SS * 1)
             if reg[0].minor_axis_length > 0:
                 aspect_ratio.append(
@@ -420,14 +420,14 @@ def mitochondria_measurement(segmented_labels, simg, viz=False):
                 aspect_ratio.append(reg[0].major_axis_length / 1)
             a_orthog = SS.copy()
             B = cv2.filter2D(SS, -1, k_diag_upslope, borderType=cv2.BORDER_CONSTANT)
-            print('\t filter:2d',np.mean(B), np.std(B))
+            # print('\t filter:2d',np.mean(B), np.std(B))
             a_orthog[B == 2] = 1
             B = cv2.filter2D(SS, -1, K_diag_downslope, borderType=cv2.BORDER_CONSTANT)
-            print('\t\t filter:2d',np.mean(B), np.std(B))
+            # print('\t\t filter:2d',np.mean(B), np.std(B))
             a_orthog[B == 2] = 1
             print('\t\t filter:2d-before',np.mean(a_orthog), np.std(a_orthog))
             B = cv2.filter2D(a_orthog, -1, structure1, borderType=cv2.BORDER_CONSTANT)
-            print('\t\t filter:2d',np.mean(B), np.std(B))
+            # print('\t\t filter:2d',np.mean(B), np.std(B))
             image_of_branch_points = B >= 4
             
             branch.append(skimage.morphology.label(
@@ -440,7 +440,7 @@ def mitochondria_measurement(segmented_labels, simg, viz=False):
                 B = B + cv2.filter2D(SS.astype(np.float32), -1, K.reshape(3, 3).astype(np.float32), borderType=cv2.BORDER_CONSTANT)
                 
             end_points.append(np.count_nonzero(B == 10))
-    print(branch)
+    # print(branch)
     if branch:
         df['MitoMeanBranch'] = np.nanmean(branch)
         df['MitoStdBranchN'] = np.nanstd(branch)
