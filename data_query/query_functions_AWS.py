@@ -525,13 +525,6 @@ def launch_ec2_instances(experiment_name, region, s3_bucket,saving_folder, linux
             python3 -m pip install --user virtualenv
             python3 -m virtualenv venv
             source venv/bin/activate
-            SECRET_NAME="Gab_Github"
-            REGION="{region}"
-            SECRET=$(aws secretsmanager get-secret-value --secret-id $SECRET_NAME --region $REGION --query SecretString --output text)
-            USERNAME=$(echo "$SECRET" | jq -r 'keys[]')
-            TOKEN=$(echo "$SECRET" | jq -r '.[keys[]]')
-            echo -e "machine github.com\nlogin $USERNAME\npassword $TOKEN" > ~/.netrc 
-            chmod 600 ~/.netrc
             MAIN_REPO_URL="https://github.com/NYSCF/ScaleFEx.git"
             git clone $MAIN_REPO_URL
             cd ScaleFEx
