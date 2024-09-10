@@ -194,13 +194,6 @@ Resources:
           sudo yum install python3 python3-pip -y
           sudo yum install -y awscli jq
           sudo yum install git -y
-          SECRET_NAME="Gab_Github"
-          REGION="${AWSRegion}"
-          SECRET=$(aws secretsmanager get-secret-value --secret-id $SECRET_NAME --region $REGION --query SecretString --output text)
-          USERNAME=$(echo "$SECRET" | jq -r 'keys[]')
-          TOKEN=$(echo "$SECRET" | jq -r '.[keys[]]')
-          echo -e "machine github.com\nlogin $USERNAME\npassword $TOKEN" > ~/.netrc 
-          chmod 600 ~/.netrc
           MAIN_REPO_URL="https://github.com/NYSCF/ScaleFEx.git"
           git clone $MAIN_REPO_URL
           cd ScaleFEx
