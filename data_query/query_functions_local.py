@@ -117,7 +117,7 @@ def query_data(exp_folder,pattern,plate_identifiers=('_CCU384_','_'),exts=('tiff
     if plates != 'all' and isinstance(plates,list):
         plates = list(np.asarray(plates).astype(str))
         plate_subdirs = [str(plate_subdir) for plate_subdir in plate_subdirs if re.search('|'.join([plate_identifiers[0]+p+plate_identifiers[1] for p in plates]),plate_subdir) is not None]
-        plate_substr = [tuple(p for p in plates if re.search(p,plate_subdir)) for plate_subdir in plate_subdirs]
+        plate_substr = [tuple(p for p in plates if re.search(re.compile(f'{plate_identifiers[0]}{p}{plate_identifiers[1]}'),plate_subdir)) for plate_subdir in plate_subdirs]
     else:
         plate_substr = [(p,) for p in plate_subdirs]
         
