@@ -235,7 +235,6 @@ class Process_HighContentImaging_screen:
                                 vector['distance']=locations.loc[(locations.coordX==x)&(locations.coordY==y),'distance'].values[0]
                             
                             if self.parameters['save_coordinates']==True:
-                                print(vector)
                                 self.csv_file_coordinates = self.save_csv_file(vector,self.csv_file_coordinates)
 
                             if 'scal' in self.parameters['vector_type']:
