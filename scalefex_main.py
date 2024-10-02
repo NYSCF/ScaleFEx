@@ -66,8 +66,6 @@ class Process_HighContentImaging_screen:
             else:
                 print(ffc_file + ' Found, loading FFC')
                 self.flat_field_correction = pickle.load(open(ffc_file, "rb"))
-            print(self.flat_field_correction.keys())
-            print(self.flat_field_correction[self.parameters['channel'][0]])
             self.parameters['image_size'] = self.flat_field_correction[self.parameters['channel'][0]].shape
         else:
             for channel in self.parameters['channel']:
@@ -95,8 +93,12 @@ class Process_HighContentImaging_screen:
             if len(computed_df)>0:
                 files_minus_computed = files.merge(computed_df[['plate','well','site']],on=['plate','well','site'],how='outer',indicator=True)
                 files = files_minus_computed[files_minus_computed['_merge']=='left_only'].reset_index(drop=True)
-
+        if len(files) == 0:
+            print('All files already processed, set "overwrite: True" to overwrite')
+            print('Terminating ScaleFEx...')
+            return
         plates_finished = 0
+
         for plate in plate_list:
              # QC
             if self.parameters['QC']==True:
@@ -105,7 +107,6 @@ class Process_HighContentImaging_screen:
                 if not os.path.exists(qc_dir):
                     os.makedirs(qc_dir)
             plate_coords_csv = os.path.join(self.saving_folder,self.parameters['experiment_name'] + '_coordinates_'+str(plate)+'.csv')
-            
             # delete previous coords files if overwriting
             if self.parameters['overwrite'] and os.path.exists(plate_coords_csv):
                 os.remove(plate_coords_csv)
@@ -114,6 +115,7 @@ class Process_HighContentImaging_screen:
                 self.csv_file_coordinates = plate_coords_csv
 
             is_finished = self.start_computation(plate, files)
+
             if is_finished == True:
                 plates_finished += 1
             
@@ -121,12 +123,16 @@ class Process_HighContentImaging_screen:
         if plates_finished == len(plate_list) and plates_finished>0:
             if self.parameters['save_coordinates'] == True:
                 # concatenate coordinates files into time-stamped file
-                coordinate_csvs = [os.path.join(self.saving_folder,self.parameters['experiment_name'] + '_coordinates_'+str(plate)+'.csv') for plate in plate_list]
+                coordinate_csvs = [os.path.join(self.saving_folder,self.parameters['experiment_name'] + '_coordinates_'+str(plate)+'.csv') for plate in plate_list
+                                   if os.path.exists(os.path.join(self.saving_folder,self.parameters['experiment_name'] + '_coordinates_'+str(plate)+'.csv'))]
+                if len(coordinate_csvs) == 0:
+                    print('No coordinates to concatenate')
+                    return
                 all_coords = pd.concat([pd.read_csv(file) for file in coordinate_csvs],ignore_index=True).reset_index(drop=True)
                 write_mode = 'w'
                 if not self.parameters['overwrite']:
                     write_mode = 'a'
-                all_coords.to_csv(os.path.join(self.saving_folder,self.parameters['experiment_name'] + f'_{start_time}_coordinates.csv'),index=False,mode=write_mode)
+                all_coords.to_csv(os.path.join(self.saving_folder,self.parameters['experiment_name'] + '_coordinates.csv'),index=False,mode=write_mode)
                 # remove plate specific coordinate files
                 _ = [os.remove(file) for file in coordinate_csvs]
             
@@ -144,9 +150,8 @@ class Process_HighContentImaging_screen:
         
         sites_computed_df = pd.read_csv(self.sites_computed_file,converters={'plate':str,'well':str,'site':str,
                                                                                'computed_ids':str,'on_edge_ids':str,'fail_ids':str})
-
         wells, sites = data_query.query_functions_local.make_well_and_field_list(task_files)
-        
+
         if os.path.exists(self.parameters['csv_coordinates']):
             self.locations=pd.read_csv(self.parameters['csv_coordinates'])
             self.locations=self.locations.loc[self.locations.plate.astype(str)==str(plate)]
@@ -230,8 +235,8 @@ class Process_HighContentImaging_screen:
                                 vector['distance']=locations.loc[(locations.coordX==x)&(locations.coordY==y),'distance'].values[0]
                             
                             if self.parameters['save_coordinates']==True:
+                                print(vector)
                                 self.csv_file_coordinates = self.save_csv_file(vector,self.csv_file_coordinates)
-
 
                             if 'scal' in self.parameters['vector_type']:
                                 try:
@@ -297,9 +302,11 @@ class Process_HighContentImaging_screen:
             else:
                 try: 
                     int(csv_file[-6:-4])
+
                     csv_file=csv_file[:-6]+str(int(csv_file[-6:-4])+1).zfill(2)+'.csv'
                 except ValueError:
                     csv_file=csv_file[:-4]+str(1).zfill(2)+'.csv'
+                
                 vector.to_csv(csv_file,mode='a',header=True,index=False)
         return csv_file
 

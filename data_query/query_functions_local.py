@@ -267,7 +267,7 @@ def load_and_preprocess(task_files,channels,well,site,zstack,img_size,flat_field
 
             img = img/(flat_field_correction[ch] * 1e-8)
             if downsampling!=1:
-                img,img_size=scale_images(downsampling, img, img_size)
+                img,_=scale_images(downsampling, img, img_size)
 
             img = (img/(np.max(img))) * 255
             np_images.append(img.astype('uint8'))
