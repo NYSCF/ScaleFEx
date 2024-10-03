@@ -370,15 +370,17 @@ def mitochondria_measurement(segmented_labels, simg, viz=False):
     sigma = 1
     ksize = int(6*sigma + 1)  # Ensure ksize is odd
     mito = cv2.GaussianBlur(simg, (ksize, ksize), sigmaX=sigma, sigmaY=sigma)
+    mito = skimage.filters.sobel(mito) #cv2.GaussianBlur(simg, (ksize, ksize), sigmaX=sigma, sigmaY=sigma)
 
     sigma = 3
-    ksize = int(6*sigma + 1)  # Ensure ksize is odd
+    ksize = int(31)#6*sigma + 1)  # Ensure ksize is odd
     filter_mito = cv2.GaussianBlur(mito, (ksize, ksize), sigmaX=sigma, sigmaY=sigma)
-    alpha = 40
-    mito = mito + alpha * (mito - filter_mito)
+    alpha = 10
+    mito = mito + alpha  - filter_mito
 
     mito_segmented = mito > skimage.filters.threshold_multiotsu(mito)[-1]
     mito_segmented = mito_segmented*segmented_labels
+    mito_segmented = ndi.binary_fill_holes(mito_segmented)
     skel = skimage.morphology.skeletonize(mito_segmented)
     labeled_skeleton = skimage.morphology.label(skel)
     for u in range(1, np.max(labeled_skeleton)):
@@ -497,8 +499,8 @@ def RNA_measurement(segmented_labels, simg, viz=False):
     filter_Rn = cv2.GaussianBlur(Rn,(ksize, ksize), sigmaX=sigma, sigmaY=sigma)
     alpha = 30
     Rn = Rn + alpha * (Rn - filter_Rn)
-    Rn = Rn*cv2.erode((segmented_labels * 1).astype(np.uint8), cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (10,10)), iterations=1)
-    Rn = Rn > skimage.filters.threshold_otsu(Rn[Rn > 1]) * 1.1
+    Rn = Rn*cv2.erode((segmented_labels * 1).astype(np.uint8), cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5,5)), iterations=1)
+    Rn = Rn > skimage.filters.threshold_otsu(Rn[Rn > 1]) * 1.15
     Rn = ndi.binary_opening(Rn, skimage.morphology.disk(1))
     Rn = ndi.binary_closing(Rn)
     for u in range(1, np.max(Rn)):

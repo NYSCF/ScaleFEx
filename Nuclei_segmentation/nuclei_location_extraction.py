@@ -16,7 +16,7 @@ def compute_DNA_mask(dna_img):
             label: labelled image of the segmented cells
         '''
 
-    thresh = dna_img > skimage.filters.threshold_triangle(dna_img)*5
+    thresh = dna_img > skimage.filters.threshold_triangle(dna_img)*3
     thresh = ndi.binary_erosion(
         thresh, structure=skimage.morphology.disk(3), iterations=2)
     thresh = ndi.binary_fill_holes(thresh)
