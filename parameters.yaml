@@ -33,7 +33,7 @@ csv_coordinates: '' # '' if you don't want to use a pre-computed coordinates fil
 segmenting_function: 'Nuclei_segmentation.nuclei_location_extraction' 
 save_coordinates: True # if true, saves a csv file with the coordinates for cells for each plate
 min_cell_size: 200 # min area threshold for mask (any object with smaller area will be removed)
-max_cell_size: 100000 # max area threshold for mask (any object with bigger area will be removed)
+max_cell_size: 2000 # max area threshold for mask (any object with bigger area will be removed)
 visualization: False # if true, the segmentation masks of the entire field will be visualized (using matplotlib). NOTE: we suggest to visualize the masks for testing, but to turn it off during the processing of large screens
 
 ## Scalefex settings
