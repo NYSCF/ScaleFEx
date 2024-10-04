@@ -24,7 +24,7 @@ class Process_HighContentImaging_screen_on_AWS:
         __init__(yaml_path='parameters.yaml'): 
             Initializes the Screen_Compute object with parameters from a YAML file.
     """
-    def __init__(self, yaml_path='parameters.yaml'):
+    def __init__(self, yaml_path='try_AWSparameters.yaml'):
         """
         Initializes the Screen_Compute object with parameters from a YAML file.
 
@@ -85,7 +85,7 @@ class Process_HighContentImaging_screen_on_AWS:
             
             if np_images is not None:
                 if self.parameters['csv_coordinates'] == '' or self.parameters['csv_coordinates'] is None:
-                    center_of_mass = self.segment_crop_images(ffc_corrected_original[ 0,:, :])
+                    center_of_mass = self.segment_crop_images(ffc_corrected_original[ :, :])
                     del ffc_corrected_original
                     center_of_mass = [list(row) + [n] for n, row in enumerate(center_of_mass)]
                 else:

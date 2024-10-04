@@ -27,7 +27,7 @@ class Screen_Init:
         __init__(yaml_path='parameters.yaml'): 
             Initializes the Screen_Compute object with parameters from a YAML file.
     """
-    def __init__(self, yaml_path='parameters.yaml'):
+    def __init__(self, yaml_path='try_AWSparameters.yaml'):
         """
         Initializes the Screen_Compute object with parameters from a YAML file.
 

@@ -185,7 +185,7 @@ class Process_HighContentImaging_screen:
                 if np_images is not None:
 
                     if self.parameters['csv_coordinates']=='':
-                        center_of_mass=self.segment_crop_images(ffc_corrected_original[0,:,:])
+                        center_of_mass=self.segment_crop_images(ffc_corrected_original[:,:])
                         del ffc_corrected_original
                         center_of_mass=np.array([list(row/self.parameters['downsampling']) + [n] for n,row in enumerate(center_of_mass)])
                       
