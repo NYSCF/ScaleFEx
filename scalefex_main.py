@@ -173,7 +173,7 @@ class Process_HighContentImaging_screen:
 
                 print(site, well, plate, datetime.now())
 
-                np_images, original_images, current_file = data_query.query_functions_local.load_and_preprocess(task_files,
+                np_images, original_images, current_file, ffc_corrected_original = data_query.query_functions_local.load_and_preprocess(task_files,
                                     self.parameters['channel'],well,site,self.parameters['zstack'],
                                     self.parameters['image_size'],self.flat_field_correction,
                                     self.parameters['downsampling'],return_original=self.parameters['QC'])
@@ -185,7 +185,8 @@ class Process_HighContentImaging_screen:
                 if np_images is not None:
 
                     if self.parameters['csv_coordinates']=='':
-                        center_of_mass=self.segment_crop_images(original_images[0,:,:])
+                        center_of_mass=self.segment_crop_images(ffc_corrected_original[0,:,:])
+                        del ffc_corrected_original
                         center_of_mass=np.array([list(row/self.parameters['downsampling']) + [n] for n,row in enumerate(center_of_mass)])
                       
                     else:

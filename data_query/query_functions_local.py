@@ -267,7 +267,9 @@ def load_and_preprocess(task_files,channels,well,site,zstack,img_size,flat_field
 
             img = img/(flat_field_correction[ch] * 1e-8)
             if downsampling!=1:
+                ffc_corrected_original=img
                 img,_=scale_images(downsampling, img, img_size)
+                
 
             img = (img/(np.max(img))) * 255
             np_images.append(img.astype('uint8'))
@@ -279,7 +281,7 @@ def load_and_preprocess(task_files,channels,well,site,zstack,img_size,flat_field
     np_images = np.array(np_images)
     np_images = np.expand_dims(np_images, axis=3)
 
-    return np_images, np.array(original_images), image_fnames[0]
+    return np_images, np.array(original_images), image_fnames[0],ffc_corrected_original
 
 
 def scale_images(downsampling,img, img_size):

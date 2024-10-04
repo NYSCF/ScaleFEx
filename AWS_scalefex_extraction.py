@@ -77,7 +77,7 @@ class Process_HighContentImaging_screen_on_AWS:
         sites.sort()
 
         for site in sites:
-            np_images, original_images, current_file = dq.load_and_preprocess(self.task_files, self.parameters['channel'], well, site, 
+            np_images, original_images, current_file , ffc_corrected_original= dq.load_and_preprocess(self.task_files, self.parameters['channel'], well, site, 
                                                                             self.parameters['zstack'], self.parameters['image_size'], 
                                                                             self.flat_field_correction, self.parameters['downsampling'], 
                                                                             return_original=self.parameters['QC'], 
@@ -85,7 +85,8 @@ class Process_HighContentImaging_screen_on_AWS:
             
             if np_images is not None:
                 if self.parameters['csv_coordinates'] == '' or self.parameters['csv_coordinates'] is None:
-                    center_of_mass = self.segment_crop_images(np_images[0, :, :, 0])
+                    center_of_mass = self.segment_crop_images(ffc_corrected_original[ 0,:, :])
+                    del ffc_corrected_original
                     center_of_mass = [list(row) + [n] for n, row in enumerate(center_of_mass)]
                 else:
                     locations = self.locations
