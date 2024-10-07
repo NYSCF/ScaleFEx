@@ -121,7 +121,7 @@ class TestLoadAndPreprocess:
                     'return_original':True
                     }
         params.update({'img_size':(100,100)})
-        np_images, original_images, current_file = query_functions_local.load_and_preprocess(**params)
+        np_images, original_images, current_file, ffc_corrected_original = query_functions_local.load_and_preprocess(**params)
         assert np_images is None
         assert original_images is None
 
@@ -136,7 +136,7 @@ class TestLoadAndPreprocess:
                 'downsampling':2,
                 'return_original':True
                 }
-        np_images, original_images, current_file = query_functions_local.load_and_preprocess(**params)
+        np_images, original_images, current_file, ffc_corrected_original = query_functions_local.load_and_preprocess(**params)
         expected_original_img = query_functions_local.load_image(os.path.join(ROOT_DIR,'tests','sample_data','zstack','max_proj.tiff'))
         expected_output_img = query_functions_local.load_image(os.path.join(ROOT_DIR,'tests','sample_data','zstack','zstack_downsampled_output.tiff'))
         assert np_images.shape == (1,270,270,1)
@@ -145,6 +145,7 @@ class TestLoadAndPreprocess:
         assert original_images[0].shape == (540,540)
     
     def test_load_and_preprocess_no_zstack(self):
+
         params = {'task_files':self.task_files,
                 'channels':['ch1'],
                 'well':'r11c06',
@@ -155,7 +156,7 @@ class TestLoadAndPreprocess:
                 'downsampling':2,
                 'return_original':True
                 }
-        np_images, original_images, current_file = query_functions_local.load_and_preprocess(**params)
+        np_images, original_images, current_file, ffc_corrected_original = query_functions_local.load_and_preprocess(**params)
         expected_original_img = query_functions_local.load_image(os.path.join(ROOT_DIR,'tests','sample_data','zstack','r11c06f23p01-ch1sk1fk1fl1.tiff'))
         expected_output_img = query_functions_local.load_image(os.path.join(ROOT_DIR,'tests','sample_data','zstack','no_zstack_downsampled_output.tiff'))
         assert np.array_equal(original_images[0],expected_original_img)
