@@ -226,8 +226,8 @@ def push_and_delete(csv_file, bucket, saving_folder, experiment_name, plate, ind
         file_name = os.path.splitext(csv_file)[0]
         output_parquet = file_name + '.parquet'
         pq.write_table(pa.Table.from_pandas(df), output_parquet)
-        upload_to_s3(bucket,saving_folder, output_parquet, experiment_name, plate, index_subset)
-        push_fields_computed_files(bucket,saving_folder, experiment_name, plate, index_subset, 'outputs')
+        upload_to_s3(bucket,saving_folder, output_parquet, plate, index_subset)
+        push_fields_computed_files(bucket,saving_folder, plate, index_subset, 'outputs')
 
         os.remove(csv_file)
         os.remove(output_parquet)
@@ -235,19 +235,16 @@ def push_and_delete(csv_file, bucket, saving_folder, experiment_name, plate, ind
     except Exception as e:
         print(f"Failed to process {csv_file}: {e}")
         
-def upload_to_s3(bucket_name,saving_folder, file, experiment_name, plate, index_subset):
+def upload_to_s3(bucket_name,saving_folder, file, plate, index_subset):
     s3 = boto3.client('s3')
     cleaned_filename = os.path.basename(file).replace("/", "_").replace("_home_ec2-user_project_scalefex_", "")
-    s3_path = f'{saving_folder}/{experiment_name}/{plate}/{index_subset}/'+cleaned_filename
+    s3_path = f'{saving_folder}/{plate}/{index_subset}/'+cleaned_filename
 
     # Check if file already exists in S3
     if check_s3_file_exists(s3, bucket_name, s3_path):
         # Add a unique character or timestamp to the filename to avoid overwriting
         cleaned_filename = add_unique_suffix(cleaned_filename)
-        s3_path = f'{saving_folder}/{experiment_name}/{plate}/{index_subset}/' + cleaned_filename
-    if f'{experiment_name}' in os.path.basename(file) :
-        s3.upload_file(file, bucket_name, s3_path)
-        print(f"Uploaded {file} to s3://{bucket_name}/{s3_path}")
+        s3_path = f'{saving_folder}/{plate}/{index_subset}/' + cleaned_filename
 
 def check_s3_file_exists(s3, bucket_name, s3_path):
     try:
@@ -381,7 +378,7 @@ def process_zstack_s3(bucket_name, image_keys):
     img = np.max(np.asarray(img), axis=0)
     return img
 
-def flat_field_correction_AWS(files,ffc_file,s3_bucket,saving_folder, Channel, experiment_name, n_images=20):
+def flat_field_correction_AWS(files,ffc_file,s3_bucket,saving_folder, Channel, n_images=20):
     ''' Calculates the background trend of the entire experiment to be used for flat field correction'''
     flat_field_correction = {}
     n_images = np.min([n_images, np.floor(len(files)/len(Channel)).astype(int)])
@@ -399,12 +396,12 @@ def flat_field_correction_AWS(files,ffc_file,s3_bucket,saving_folder, Channel, e
             flat_field_correction[ch] = img
 
     pickle.dump(flat_field_correction, open(ffc_file, "wb"))
-    upload_ffc_to_s3(s3_bucket,saving_folder, ffc_file,experiment_name)
+    upload_ffc_to_s3(s3_bucket,saving_folder, ffc_file)
     return flat_field_correction
 
-def upload_ffc_to_s3(bucket_name,saving_folder,file,experiment_name):
+def upload_ffc_to_s3(bucket_name,saving_folder,file):
     s3 = boto3.client('s3')
-    s3.upload_file(file,bucket_name,f'{saving_folder}/{experiment_name}/'+ str(file).replace("/","_").replace("_home_ec2-user_project_",""))
+    s3.upload_file(file,bucket_name,f'{saving_folder}/'+ str(file).replace("/","_").replace("_home_ec2-user_project_",""))
     print(file + ' uploaded')
 
 def push_all_files(bucket, saving_folder, experiment_name, plate, index_subset, folder_path):
@@ -454,9 +451,9 @@ def filter_task_files(task_files,subset_index, nb_subsets):
         filtered_task_files = task_files
     return filtered_task_files
 
-def check_s3_file_exists_with_prefix(bucket,saving_folder, exp_folder, experiment_name):
+def check_s3_file_exists_with_prefix(bucket,saving_folder, experiment_name):
     s3 = boto3.client('s3')
-    prefix = f'{saving_folder}/{exp_folder}{experiment_name}_FFC.p'
+    prefix = f'{saving_folder}/{experiment_name}_FFC.p'
     print('Looking for ' + prefix)
     response = s3.list_objects_v2(Bucket=bucket, Prefix=prefix)
     return 'Contents' in response and len(response['Contents']) > 0
@@ -532,9 +529,9 @@ def launch_ec2_instances(experiment_name, region, s3_bucket,saving_folder, linux
             git clone $MAIN_REPO_URL
             cd ScaleFEx
             git submodule update --init --recursive
-            aws s3 sync s3://{s3_bucket}/{saving_folder}/{experiment_name}/ . --exclude '*' --include='{csv_coordinates}'
-            aws s3 sync s3://{s3_bucket}/{saving_folder}/{experiment_name}/ . --exclude '*' --include='{experiment_name}_FFC.p'
-            aws s3 sync s3://{s3_bucket}/{saving_folder}/{experiment_name}/ . --exclude '*' --include='parameters.yaml'
+            aws s3 sync s3://{s3_bucket}/{saving_folder}/ . --exclude '*' --include='{csv_coordinates}'
+            aws s3 sync s3://{s3_bucket}/{saving_folder}/. --exclude '*' --include='{experiment_name}_FFC.p'
+            aws s3 sync s3://{s3_bucket}/{saving_folder}/ . --exclude '*' --include='parameters.yaml'
             pip install -r AWS_requirements.txt
             sed -i "s|^plates:.*|plates: ['{plate}']|" parameters.yaml
             sed -i "s|^subset_index:.*|subset_index: {subset_idx_str}|" parameters.yaml
