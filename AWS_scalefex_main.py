@@ -1,4 +1,4 @@
-import yaml
+import yaml,pickle
 import os
 import sched
 import time
@@ -27,7 +27,7 @@ class Screen_Init:
         __init__(yaml_path='parameters.yaml'): 
             Initializes the Screen_Compute object with parameters from a YAML file.
     """
-    def __init__(self, yaml_path='try_AWSparameters.yaml'):
+    def __init__(self, yaml_path='parameters.yaml'):
         """
         Initializes the Screen_Compute object with parameters from a YAML file.
 
@@ -62,19 +62,18 @@ class Screen_Init:
             )
             logging.info(f"Data query completed. Number of files found: {len(files)}.")
             
-            # Perform Flat Field Correction (FFC)
-            logging.info("Checking if Flat Field Correction (FFC) is needed with FFC parameter: "
-                         f"{self.parameters['FFC']}.")
+            
             self.flat_field_correction = {}
-        
-            if self.parameters['FFC'] is True:
-                logging.info("FFC is enabled.")
+            if self.parameters['FFC'] is True :
+                # Perform Flat Field Correction (FFC)
+                logging.info("Checking if Flat Field Correction (FFC) is needed with FFC parameter: "
+                        f"{self.parameters['FFC']}.")
+                
                 ffc_file = os.path.join(self.parameters['experiment_name'] + '_FFC.p')
-                logging.info(f"Checking if FFC file exists in S3 with path: {ffc_file}.")
-                if not dq.check_s3_file_exists_with_prefix(
+                
+                if not dq.check_s3_file_exists_with_prefix( 
                     self.parameters['s3_bucket'], 
                     self.parameters['saving_folder'],
-                    self.parameters['exp_folder'],
                     self.parameters['experiment_name']
                 ):
                     logging.info(f"{ffc_file} not found, generating FFC with channel: "
@@ -86,19 +85,17 @@ class Screen_Init:
                         self.parameters['s3_bucket'],
                         self.parameters['saving_folder'],
                         self.parameters['channel'],
-                        self.parameters['experiment_name'],
                         n_images=self.parameters['FFC_n_images']
                     )
                     logging.info("FFC generation completed.")
-                else:
-                    logging.info(f"{ffc_file} found, using existing FFC.")
-            
-            logging.info("Uploading FFC to S3 with bucket: "
+                    logging.info("Uploading FFC to S3 with bucket: "
                          f"{self.parameters['s3_bucket']} and experiment name: "
                          f"{self.parameters['experiment_name']}.")
-            dq.upload_ffc_to_s3(self.parameters['s3_bucket'],self.parameters['saving_folder'], 'parameters.yaml', self.parameters['experiment_name'])
-            logging.info("FFC upload completed.")
-
+                    dq.upload_ffc_to_s3(self.parameters['s3_bucket'],self.parameters['saving_folder'], 'parameters.yaml')
+                    logging.info("FFC upload completed.")
+                else :
+                    logging.info(f"✅ FFC file found: {ffc_file}")
+            
             if len(files) != 0:
                 logging.info("Files found, launching EC2 instances with the following parameters: "
                              f"experiment_name={self.parameters['experiment_name']}, "
