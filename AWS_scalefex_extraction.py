@@ -27,7 +27,6 @@ class Process_HighContentImaging_screen_on_AWS:
     def __init__(self, yaml_path='parameters.yaml'):
         """
         Initializes the Screen_Compute object with parameters from a YAML file.
-
         Args:
             yaml_path (str): Path to the YAML file containing parameters. Default is 'parameters.yaml'.
         """
@@ -48,12 +47,20 @@ class Process_HighContentImaging_screen_on_AWS:
         pd.DataFrame(columns=['plate','well','site','subset','file_path',
                     'total_count','computed_count','on_edge_count','fail_count','computed_ids',
                     'on_edge_ids','fail_ids']).to_csv(self.sites_computed_file,index=False)
-        
-        ffc_file = os.path.join(self.vec_dir, self.parameters['experiment_name'] + '_FFC.p')
+    
         self.flat_field_correction = {}
 
-        if self.parameters['FFC'] is True and os.path.exists(ffc_file):
-            print(ffc_file + ' Found')
+        if self.parameters['FFC'] is True :
+            ffc_file = os.path.join(self.vec_dir, self.parameters['experiment_name'] + '_FFC.p')
+            if os.path.exists(ffc_file):
+
+                print(f"✅ FFC file exists: {ffc_file}")
+                print(ffc_file + ' Found, loading FFC')
+                self.flat_field_correction = pickle.load(open(ffc_file, "rb"))
+
+            else :
+                print(f"❌ FFC file not found {ffc_file}")
+                raise FileNotFoundError(f"FFC file not found: {ffc_file}")
         else:
             for channel in self.parameters['channel']:
                 self.flat_field_correction[channel] = 1
@@ -181,6 +188,11 @@ class Process_HighContentImaging_screen_on_AWS:
                                                                                'computed_ids':str,'on_edge_ids':str,'fail_ids':str})
 
         if self.parameters['csv_coordinates'] is not None and os.path.exists(self.parameters['csv_coordinates']):
+            if os.path.isfile(self.parameters['csv_coordinates']):
+                print(f"✅ CSV file exists: {self.parameters['csv_coordinates']}")
+            else:
+                print(f"❌ CSV file path does not exist: {self.parameters['csv_coordinates']}")
+                raise FileNotFoundError(f"CSV file")
             self.locations = pd.read_csv(self.parameters['csv_coordinates'])
             self.locations = self.locations.astype(str)  # Ensure all columns are strings
             self.locations['plate'] = self.locations['plate'].astype(str)

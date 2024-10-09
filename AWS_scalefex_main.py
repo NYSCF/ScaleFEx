@@ -30,6 +30,7 @@ class Screen_Init:
     def __init__(self, yaml_path='parameters.yaml'):
         """
         Initializes the Screen_Compute object with parameters from a YAML file.
+        You can edit the name of the parameter file to be used here.
 
         Args:
             yaml_path (str): Path to the YAML file containing parameters. Default is 'parameters.yaml'.
@@ -38,7 +39,6 @@ class Screen_Init:
             # Read the yaml file
             with open(yaml_path, 'rb') as f:
                 self.parameters = yaml.load(f.read(), Loader=yaml.CLoader)
-            exp_name = self.parameters['experiment_name']
             
             logging.info(f"YAML file loaded successfully with parameters: {self.parameters}.")
             # Query data
@@ -70,7 +70,6 @@ class Screen_Init:
                         f"{self.parameters['FFC']}.")
                 
                 ffc_file = os.path.join(self.parameters['experiment_name'] + '_FFC.p')
-                
                 if not dq.check_s3_file_exists_with_prefix( 
                     self.parameters['s3_bucket'], 
                     self.parameters['saving_folder'],
@@ -91,12 +90,13 @@ class Screen_Init:
                     logging.info("Uploading FFC to S3 with bucket: "
                          f"{self.parameters['s3_bucket']} and experiment name: "
                          f"{self.parameters['experiment_name']}.")
-                    dq.upload_ffc_to_s3(self.parameters['s3_bucket'],self.parameters['saving_folder'], 'parameters.yaml')
                     logging.info("FFC upload completed.")
                 else :
                     logging.info(f"✅ FFC file found: {ffc_file}")
-            
-            if len(files) != 0:
+
+
+            if len(files) != 0: 
+                
                 logging.info("Files found, launching EC2 instances with the following parameters: "
                              f"experiment_name={self.parameters['experiment_name']}, "
                              f"region={self.parameters['region']}, "
@@ -128,6 +128,7 @@ class Screen_Init:
                 logging.info(f"EC2 instances launched successfully with instance IDs: {instance_ids}.")
 
                 logging.info("Starting periodic check scheduler with interval of 300 seconds.")
+                dq.upload_params(self.parameters['s3_bucket'],self.parameters['saving_folder'], yaml_path)
                 dq.push_log_file(self.parameters['s3_bucket'],self.parameters['saving_folder'],self.parameters['experiment_name'])
                 scheduler = sched.scheduler(time.time, time.sleep)
                 scheduler.enter(300, 1, dq.periodic_check, (
