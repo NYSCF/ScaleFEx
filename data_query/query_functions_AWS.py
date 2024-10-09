@@ -196,7 +196,7 @@ def push_log_file(bucket, saving_folder, experiment_name):
     renamed_file = f'{experiment_name}_init.log'
     new_file_path = os.path.join('outputs', renamed_file)
     shutil.copyfile(file, new_file_path)
-    s3_path = f'{saving_folder}/{experiment_name}/{renamed_file}'
+    s3_path = f'{saving_folder}/{renamed_file}'
     s3.upload_file(new_file_path, bucket, s3_path)
     os.remove(new_file_path)
     print(f"Uploaded {new_file_path} to s3://{bucket}/{s3_path}")
@@ -403,6 +403,12 @@ def upload_ffc_to_s3(bucket_name,saving_folder,file):
     s3 = boto3.client('s3')
     s3.upload_file(file,bucket_name,f'{saving_folder}/'+ str(file).replace("/","_").replace("_home_ec2-user_project_",""))
     print(file + ' uploaded')
+
+def upload_params(bucket_name,saving_folder,file):
+    s3 = boto3.client('s3')
+    s3.upload_file(file,bucket_name,f'{saving_folder}/'+ 'parameters.yaml')
+    print(file + ' uploaded')
+
 
 def push_all_files(bucket, saving_folder, experiment_name, plate, index_subset, folder_path):
     files = [os.path.join(folder_path, file) for file in os.listdir(folder_path) if file.endswith('.csv')]
