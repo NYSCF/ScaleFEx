@@ -536,7 +536,7 @@ def launch_ec2_instances(experiment_name, region, s3_bucket,saving_folder, linux
             cd ScaleFEx
             git submodule update --init --recursive
             aws s3 sync s3://{s3_bucket}/{saving_folder}/ . --exclude '*' --include='{csv_coordinates}'
-            aws s3 sync s3://{s3_bucket}/{saving_folder}/. --exclude '*' --include='{experiment_name}_FFC.p'
+            aws s3 sync s3://{s3_bucket}/{saving_folder}/ . --exclude '*' --include='{experiment_name}_FFC.p'
             aws s3 sync s3://{s3_bucket}/{saving_folder}/ . --exclude '*' --include='parameters.yaml'
             pip install -r AWS_requirements.txt
             sed -i "s|^plates:.*|plates: ['{plate}']|" parameters.yaml

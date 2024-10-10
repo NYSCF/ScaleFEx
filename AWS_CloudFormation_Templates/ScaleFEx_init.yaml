@@ -197,15 +197,11 @@ Resources:
           MAIN_REPO_URL="https://github.com/NYSCF/ScaleFEx.git"
           git clone $MAIN_REPO_URL
           cd ScaleFEx
-          echo "OK" > a.txt
           git submodule update --init --recursive
-          mv ../ScaleFEx project
-          echo "OK" > B.txt
           python3 -m pip install --user virtualenv
           python3 -m virtualenv venv
           source venv/bin/activate
           sudo yum install libglvnd-glx -y
-          cd project
           pip install -r AWS_requirements.txt
           sudo sed -i "s|^experiment_name:.*|experiment_name: ${ExperimentName}|" parameters.yaml
           sudo sed -i "s|^exp_folder:.*|exp_folder: ${ExperimentFolder}|" parameters.yaml
