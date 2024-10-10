@@ -51,7 +51,7 @@ class Process_HighContentImaging_screen_on_AWS:
         self.flat_field_correction = {}
 
         if self.parameters['FFC'] is True :
-            ffc_file = os.path.join(self.vec_dir, self.parameters['experiment_name'] + '_FFC.p')
+            ffc_file = os.path.join(self.parameters['experiment_name'] + '_FFC.p')
             if os.path.exists(ffc_file):
 
                 print(f"✅ FFC file exists: {ffc_file}")
@@ -188,11 +188,6 @@ class Process_HighContentImaging_screen_on_AWS:
                                                                                'computed_ids':str,'on_edge_ids':str,'fail_ids':str})
 
         if self.parameters['csv_coordinates'] is not None and os.path.exists(self.parameters['csv_coordinates']):
-            if os.path.isfile(self.parameters['csv_coordinates']):
-                print(f"✅ CSV file exists: {self.parameters['csv_coordinates']}")
-            else:
-                print(f"❌ CSV file path does not exist: {self.parameters['csv_coordinates']}")
-                raise FileNotFoundError(f"CSV file")
             self.locations = pd.read_csv(self.parameters['csv_coordinates'])
             self.locations = self.locations.astype(str)  # Ensure all columns are strings
             self.locations['plate'] = self.locations['plate'].astype(str)
