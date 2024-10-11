@@ -24,7 +24,9 @@ MASK_FILES = sorted([f for f in os.listdir(TEST_MASK_DIR) if f.endswith('.npy')]
 IMG_ID =3
 
 def test_batch_compute_embeddings():
+    print('in') 
     assert Path(os.path.join(TEST_IMG_DIR,IMG_FILES[IMG_ID])).exists()
+    print('assertsexists') 
     test_img = np.load(os.path.join(TEST_IMG_DIR,IMG_FILES[IMG_ID]),allow_pickle=True).item()
     test_img_stack = np.stack([test_img['w1'],test_img['w2'],test_img['w3'],
                                test_img['w4'],test_img['w5'],test_img['w6']],axis=0)
@@ -34,7 +36,7 @@ def test_batch_compute_embeddings():
     assert test_img['w4'].max() == 49
     assert test_img['w5'].max() == 10
     assert test_img['w6'].max() == 41
-             
+    print('asserts img values  done')         
     PARAMS = {'cell_crop':test_img_stack,
               'channel':['w1','w2','w3','w4','w5','w6'],
               'mito_ch':'w5',
