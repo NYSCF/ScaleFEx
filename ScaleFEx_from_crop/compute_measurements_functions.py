@@ -370,15 +370,17 @@ def mitochondria_measurement(segmented_labels, simg, viz=False):
     sigma = 1
     ksize = int(6*sigma + 1)  # Ensure ksize is odd
     mito = cv2.GaussianBlur(simg, (ksize, ksize), sigmaX=sigma, sigmaY=sigma)
+    mito = skimage.filters.sobel(mito) #cv2.GaussianBlur(simg, (ksize, ksize), sigmaX=sigma, sigmaY=sigma)
 
     sigma = 3
-    ksize = int(6*sigma + 1)  # Ensure ksize is odd
+    ksize = int(31)#6*sigma + 1)  # Ensure ksize is odd
     filter_mito = cv2.GaussianBlur(mito, (ksize, ksize), sigmaX=sigma, sigmaY=sigma)
-    alpha = 40
-    mito = mito + alpha * (mito - filter_mito)
+    alpha = 10
+    mito = mito + alpha  - filter_mito
 
     mito_segmented = mito > skimage.filters.threshold_multiotsu(mito)[-1]
     mito_segmented = mito_segmented*segmented_labels
+    mito_segmented = ndi.binary_fill_holes(mito_segmented)
     skel = skimage.morphology.skeletonize(mito_segmented)
     labeled_skeleton = skimage.morphology.label(skel)
     for u in range(1, np.max(labeled_skeleton)):
@@ -411,7 +413,7 @@ def mitochondria_measurement(segmented_labels, simg, viz=False):
         for ii in range(1, np.max(labeled_skeleton)):
             SS = labeled_skeleton == ii
             SS = SS.astype(np.uint8)
-            print(ii,np.mean(SS), np.std(SS))
+            # print(ii,np.mean(SS), np.std(SS))
             reg = skimage.measure.regionprops(SS * 1)
             if reg[0].minor_axis_length > 0:
                 aspect_ratio.append(
@@ -420,14 +422,14 @@ def mitochondria_measurement(segmented_labels, simg, viz=False):
                 aspect_ratio.append(reg[0].major_axis_length / 1)
             a_orthog = SS.copy()
             B = cv2.filter2D(SS, -1, k_diag_upslope, borderType=cv2.BORDER_CONSTANT)
-            print('\t filter:2d',np.mean(B), np.std(B))
+            # print('\t filter:2d',np.mean(B), np.std(B))
             a_orthog[B == 2] = 1
             B = cv2.filter2D(SS, -1, K_diag_downslope, borderType=cv2.BORDER_CONSTANT)
-            print('\t\t filter:2d',np.mean(B), np.std(B))
+            # print('\t\t filter:2d',np.mean(B), np.std(B))
             a_orthog[B == 2] = 1
-            print('\t\t filter:2d-before',np.mean(a_orthog), np.std(a_orthog))
+            # print('\t\t filter:2d-before',np.mean(a_orthog), np.std(a_orthog))
             B = cv2.filter2D(a_orthog, -1, structure1, borderType=cv2.BORDER_CONSTANT)
-            print('\t\t filter:2d',np.mean(B), np.std(B))
+            # print('\t\t filter:2d',np.mean(B), np.std(B))
             image_of_branch_points = B >= 4
             
             branch.append(skimage.morphology.label(
@@ -440,7 +442,7 @@ def mitochondria_measurement(segmented_labels, simg, viz=False):
                 B = B + cv2.filter2D(SS.astype(np.float32), -1, K.reshape(3, 3).astype(np.float32), borderType=cv2.BORDER_CONSTANT)
                 
             end_points.append(np.count_nonzero(B == 10))
-    print(branch)
+    # print(branch)
     if branch:
         df['MitoMeanBranch'] = np.nanmean(branch)
         df['MitoStdBranchN'] = np.nanstd(branch)
@@ -497,8 +499,8 @@ def RNA_measurement(segmented_labels, simg, viz=False):
     filter_Rn = cv2.GaussianBlur(Rn,(ksize, ksize), sigmaX=sigma, sigmaY=sigma)
     alpha = 30
     Rn = Rn + alpha * (Rn - filter_Rn)
-    Rn = Rn*cv2.erode((segmented_labels * 1).astype(np.uint8), cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (10,10)), iterations=1)
-    Rn = Rn > skimage.filters.threshold_otsu(Rn[Rn > 1]) * 1.1
+    Rn = Rn*cv2.erode((segmented_labels * 1).astype(np.uint8), cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5,5)), iterations=1)
+    Rn = Rn > skimage.filters.threshold_otsu(Rn[Rn > 1]) * 1.15
     Rn = ndi.binary_opening(Rn, skimage.morphology.disk(1))
     Rn = ndi.binary_closing(Rn)
     for u in range(1, np.max(Rn)):

@@ -27,7 +27,6 @@ class Process_HighContentImaging_screen_on_AWS:
     def __init__(self, yaml_path='parameters.yaml'):
         """
         Initializes the Screen_Compute object with parameters from a YAML file.
-
         Args:
             yaml_path (str): Path to the YAML file containing parameters. Default is 'parameters.yaml'.
         """
@@ -48,24 +47,31 @@ class Process_HighContentImaging_screen_on_AWS:
         pd.DataFrame(columns=['plate','well','site','subset','file_path',
                     'total_count','computed_count','on_edge_count','fail_count','computed_ids',
                     'on_edge_ids','fail_ids']).to_csv(self.sites_computed_file,index=False)
-        
-        ffc_file = os.path.join(self.vec_dir, self.parameters['experiment_name'] + '_FFC.p')
+    
         self.flat_field_correction = {}
 
-        if self.parameters['FFC'] is True and os.path.exists(ffc_file):
-            print(ffc_file + ' Found')
+        if self.parameters['FFC'] is True :
+            ffc_file = os.path.join(self.parameters['experiment_name'] + '_FFC.p')
+            if os.path.exists(ffc_file):
+
+                print(f"✅ FFC file exists: {ffc_file}")
+                print(ffc_file + ' Found, loading FFC')
+                self.flat_field_correction = pickle.load(open(ffc_file, "rb"))
+
+            else :
+                print(f"❌ FFC file not found {ffc_file}")
+                raise FileNotFoundError(f"FFC file not found: {ffc_file}")
         else:
             for channel in self.parameters['channel']:
                 self.flat_field_correction[channel] = 1
-            image_size = cv.imread(self.files.iloc[0]['file_path'],cv.IMREAD_GRAYSCALE).shape
-            self.parameters['image_size'] = image_size
 
-        self.parameters['image_size'] = self.flat_field_correction[self.parameters['channel'][0]].shape
+        self.parameters['image_size'] = dq.check_img_size(self.files,s3_bucket=self.parameters['s3_bucket'])
         
         if self.parameters['QC'] == True:
 
             self.csv_fileQC = os.path.join(self.vec_dir, 'QC_' + self.parameters['experiment_name'] + '_' + str(self.plate) + '_' 
                                            + str(self.parameters['subset_index']) + '.csv')
+            
         self.start_computation(self.plate, self.files)
 
     def compute_vector(self, well):
@@ -78,7 +84,7 @@ class Process_HighContentImaging_screen_on_AWS:
         sites.sort()
 
         for site in sites:
-            np_images, original_images, current_file = dq.load_and_preprocess(self.task_files, self.parameters['channel'], well, site, 
+            np_images, original_images, current_file , ffc_corrected_original= dq.load_and_preprocess(self.task_files, self.parameters['channel'], well, site, 
                                                                             self.parameters['zstack'], self.parameters['image_size'], 
                                                                             self.flat_field_correction, self.parameters['downsampling'], 
                                                                             return_original=self.parameters['QC'], 
@@ -86,7 +92,8 @@ class Process_HighContentImaging_screen_on_AWS:
             
             if np_images is not None:
                 if self.parameters['csv_coordinates'] == '' or self.parameters['csv_coordinates'] is None:
-                    center_of_mass = self.segment_crop_images(np_images[0, :, :, 0])
+                    center_of_mass = self.segment_crop_images(ffc_corrected_original[ :, :])
+                    del ffc_corrected_original
                     center_of_mass = [list(row) + [n] for n, row in enumerate(center_of_mass)]
                 else:
                     locations = self.locations

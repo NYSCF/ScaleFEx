@@ -117,7 +117,7 @@ def query_data(exp_folder,pattern,plate_identifiers=('_CCU384_','_'),exts=('tiff
     if plates != 'all' and isinstance(plates,list):
         plates = list(np.asarray(plates).astype(str))
         plate_subdirs = [str(plate_subdir) for plate_subdir in plate_subdirs if re.search('|'.join([plate_identifiers[0]+p+plate_identifiers[1] for p in plates]),plate_subdir) is not None]
-        plate_substr = [tuple(p for p in plates if re.search(p,plate_subdir)) for plate_subdir in plate_subdirs]
+        plate_substr = [tuple(p for p in plates if re.search(re.compile(f'{plate_identifiers[0]}{p}{plate_identifiers[1]}'),plate_subdir)) for plate_subdir in plate_subdirs]
     else:
         plate_substr = [(p,) for p in plate_subdirs]
         
@@ -267,19 +267,23 @@ def load_and_preprocess(task_files,channels,well,site,zstack,img_size,flat_field
 
             img = img/(flat_field_correction[ch] * 1e-8)
             if downsampling!=1:
-                img,img_size=scale_images(downsampling, img, img_size)
+                if ch ==channels[0]:
+                    ffc_corrected_original = ((img/(np.max(img))) * 255).astype('uint8')
+                img,_= scale_images(downsampling, img, img_size)
+ 
 
             img = (img/(np.max(img))) * 255
             np_images.append(img.astype('uint8'))
             
         else:
             print('Img corrupted at: ',image_fnames[0])
-            return None, None, image_fnames[0]
-        
+            return None, None, image_fnames[0], None
+    if downsampling == 1:  
+        ffc_corrected_original = np_images[0]
     np_images = np.array(np_images)
     np_images = np.expand_dims(np_images, axis=3)
-
-    return np_images, np.array(original_images), image_fnames[0]
+    
+    return np_images, np.array(original_images), image_fnames[0], ffc_corrected_original
 
 
 def scale_images(downsampling,img, img_size):

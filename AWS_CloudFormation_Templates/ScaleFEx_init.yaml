@@ -194,25 +194,14 @@ Resources:
           sudo yum install python3 python3-pip -y
           sudo yum install -y awscli jq
           sudo yum install git -y
-          SECRET_NAME="Gab_Github"
-          REGION="${AWSRegion}"
-          SECRET=$(aws secretsmanager get-secret-value --secret-id $SECRET_NAME --region $REGION --query SecretString --output text)
-          USERNAME=$(echo "$SECRET" | jq -r 'keys[]')
-          TOKEN=$(echo "$SECRET" | jq -r '.[keys[]]')
-          echo -e "machine github.com\nlogin $USERNAME\npassword $TOKEN" > ~/.netrc 
-          chmod 600 ~/.netrc
           MAIN_REPO_URL="https://github.com/NYSCF/ScaleFEx.git"
           git clone $MAIN_REPO_URL
           cd ScaleFEx
-          echo "OK" > a.txt
           git submodule update --init --recursive
-          mv ../ScaleFEx project
-          echo "OK" > B.txt
           python3 -m pip install --user virtualenv
           python3 -m virtualenv venv
           source venv/bin/activate
           sudo yum install libglvnd-glx -y
-          cd project
           pip install -r AWS_requirements.txt
           sudo sed -i "s|^experiment_name:.*|experiment_name: ${ExperimentName}|" parameters.yaml
           sudo sed -i "s|^exp_folder:.*|exp_folder: ${ExperimentFolder}|" parameters.yaml
@@ -221,7 +210,6 @@ Resources:
           sudo sed -i "s|^plate_identifiers:.*|plate_identifiers: ${PlateIdentifier}|" parameters.yaml
           sudo sed -i "s|^fname_pattern:.*|fname_pattern: ${FnamePattern}|" parameters.yaml
           sudo sed -i "s|^file_extensions:.*|file_extensions: ${FileExtensions}|" parameters.yaml
-          sudo sed -i "s|^image_size:.*|image_size: ${ImageSize}|" parameters.yaml
           sudo sed -i "s|^channel:.*|channel: ${Channel}|" parameters.yaml
           sudo sed -i "s|^ROI:.*|ROI: ${ROI}|" parameters.yaml
           sudo sed -i "s|^RNA_channel:.*|RNA_channel: ${RNAChannel}|" parameters.yaml

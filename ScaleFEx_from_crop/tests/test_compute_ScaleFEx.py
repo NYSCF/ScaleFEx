@@ -47,8 +47,7 @@ def test_batch_compute_embeddings():
     scalefx = ScaleFEx(**PARAMS)
     sc_vector = scalefx.single_cell_vector
     
-    # sc_vector.to_csv(os.path.join(TEST_CSV_DIR,'batch_compute_empeddings_expected_output.csv'),index=False)
-    expected_sc_vector = pd.read_csv(os.path.join(TEST_CSV_DIR,'batch_compute_empeddings_expected_output.csv'))
+    expected_sc_vector = pd.read_csv(os.path.join(TEST_CSV_DIR,'batch_compute_embeddings_expected_output.csv'))
     expected_sc_vector = expected_sc_vector.astype(sc_vector.dtypes.to_dict())
     
     assert sc_vector.iloc[:, 1782].dtype == 'float64',sc_vector.iloc[:, 1782].dtype 

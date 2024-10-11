@@ -56,75 +56,76 @@ python3 scalefex_main.py
 ```
 You should be able to visualize the detected single cells cells from the data provided with the code
 
-## Usage
+### 4. Parameters setup
+Navigate to the folder where the repository was cloned and open the `parameters.yaml` file to edit it. Once the code is run, a copy of the used parameters will be saved for your records. 
 
-
-1. **Set Parameters**: Configure `parameters.yaml` with your dataset paths and processing preferences.
-    - **vector_type**: Write 'scalefex' for the feature vector, '' if you want only the preprocessing part (specified below)
-    - **resource**: 'local' for local computation, 'AWS' for cloud computing
-    - **n_of_workers**: 60 ;int, n of workers to use in parallel. If computing on AWS, this parameter will be ignored, as it is fixed in the AWS framework
-      
-   [ example:    ![image](https://github.com/user-attachments/assets/b10603d7-4162-4851-b444-9596dece8126) ]
-    - 🟦 **exp_folder**: '/path/to/images/' ;
-    - **experiment_name**: 'exp001' ;this name will be appended to the saved files
-    - **saving_folder**: '/path/to/saving/folder/' ;path to the saving folder
-    - 🟩 **plates**: ['1','2'] ;if you want to process a subset of plates, 'all' for all of the ones found in the folder
-    - 🟥 **plate_identifiers**: ['Plate',''] ;identifier for finding the plate number; should directly precede and follow the plate identifier (eg for the default values the plate name extracted would be 1: exp_folder/<u>Plate</u>1/*.tiffs)
-
-      NOTE: The plate identifiers do not need to contain all the strings within the folder, but just the strings that are constant and can identify the plate. The identifiers are used to identify the plate even when the folder patterns are not the same. Eg sometimes folders include time stamps and it would be hard to query the plate wothout imputing all of the folders.
-      (example: exp_folder/some_strings < identifier1 > Plate < identifier2 > some_other_string/*.tiffs)
-    - 🟧 **pattern**: 'Images/<Well\>f<Site\>p<Plane(2)>-<Channel(3)>.<ext>' # pattern of the image file: specify all the characters that make up the filepath indicating the location ([more details in the wiki](https://github.com/NYSCF/ScaleFEx/wiki/Querying-Data)) 
-    - 🟪 **file_extensions**: ['tiff',] ; specify the extensions of the image files 
-    - **image_size**: [2160,2160] ;size of the image
-    - **channel**: ['ch4','ch1', 'ch5',  'ch3', 'ch2'] ;channels to be processed. NOTE: the nuclear channel should be first
-    - **zstack**: False ;Set to True if you have multi-plane images
-    - **ROI**: 150 ;Radius of the crop to be cut around the cell
-    - **neurite_tracing**: '' ;channel where to compute tracing (if any) 
-    - **RNA_channel**: 'ch5' ;RNA channel (if any) #set only if you want to compute ScaleFex
-    - **Mito_channel**: 'ch2' ;Mitochpndria channel (if any) #set only if you want to compute ScaleFex
-    - **downsampling**: 1 ;Downsampling ratio
-    - **QC**: True ;True if the user wants to compute a tile-level Quality Control step
-    - **FFC**: True ;True to compute the Flat Field Correction
-    - **FFC_n_images**: 500 ; n of images to be used to produce the background trend image for the Flat Field Correction
-    - **csv_coordinates**: '' ; '' if you don't want to use a pre-computed coordinates file, otherwise, path to the coordinate file. The columns and format of the csv file needs to be as follows, which is the output of the pipeline: <img width="496" alt="image" src="https://github.com/NYSCF/NYSCF_HCI_image_processing/assets/23292813/e25a6268-60e6-4297-9532-a20d4c373e21">
+NOTE: if you leave the parameters as they are, the code will compute ScaleFEx on the sample dataset provided
     
+- **vector_type**: Write 'scalefex' for the feature vector, '' if you want only the preprocessing part (specified below)
+- **resource**: 'local' for local computation, 'AWS' for cloud computing
+- **n_of_workers**: 60 ;int, n of workers to use in parallel. If computing on AWS, this parameter will be ignored, as it is fixed in the AWS framework
+      
+   
+- 🟦 **exp_folder**: '/path/to/images/' ;
+- **experiment_name**: 'exp001' ;this name will be appended to the saved files
+- **saving_folder**: '/path/to/saving/folder/' ;path to the saving folder
+- 🟩 **plates**: ['1','2'] ;if you want to process a subset of plates, 'all' for all of the ones found in the folder
+- 🟥 **plate_identifiers**: ['Plate',''] ;identifier for finding the plate number; should directly precede and follow the plate identifier (eg for the default values the plate name extracted would be 1: exp_folder/<u>Plate</u>1/*.tiffs)
+
+  - **NOTE**: The plate identifiers do not need to contain all the strings within the folder, but just the strings that are constant and can identify the plate. The identifiers are used to identify the plate even when the folder patterns are not the same. Eg sometimes folders include time stamps and it would be hard to query the plate wothout imputing all of the folders.
+  
+    (example: exp_folder/some_strings < identifier1 > Plate < identifier2 > some_other_string/*.tiffs)
+- 🟧 **pattern**: 'Images/<Well\>f<Site\>p<Plane(2)>-<Channel(3)>.<ext>' # pattern of the image file: specify all the characters that make up the filepath indicating the location ([more details in the wiki](https://github.com/NYSCF/ScaleFEx/wiki/Querying-Data)) 
+- 🟪 **file_extensions**: ['tiff',] ; specify the extensions of the image files 
+- **channel**: ['ch4','ch1', 'ch5',  'ch3', 'ch2'] ;channels to be processed. NOTE: the nuclear channel should be first
+- **zstack**: False ;Set to True if you have multi-plane images
+- **ROI**: 150 ;Radius of the crop to be cut around the cell
+- **neurite_tracing**: '' ;channel where to compute tracing (if any) 
+- **RNA_channel**: 'ch5' ;RNA channel (if any) #set only if you want to compute ScaleFex
+- **Mito_channel**: 'ch2' ;Mitochpndria channel (if any) #set only if you want to compute ScaleFex
+- **downsampling**: 1 ;Downsampling ratio
+- **QC**: True ;True if the user wants to compute a tile-level Quality Control step
+- **FFC**: True ;True to compute the Flat Field Correction
+- **FFC_n_images**: 500 ; n of images to be used to produce the background trend image for the Flat Field Correction
+- **csv_coordinates**: '' ; '' if you don't want to use a pre-computed coordinates file, otherwise, path to the coordinate file. The columns and format of the csv file needs to be as follows, which is the output of the pipeline: <img width="496" alt="image" src="https://github.com/NYSCF/NYSCF_HCI_image_processing/assets/23292813/e25a6268-60e6-4297-9532-a20d4c373e21">
+
     If another code is used to extract the coordinates and the information about the distance is missing, make an empty column called distance
-    - **segmenting_function**: 'Nuclei_segmentation.nuclei_location_extraction' for threholding method
-    - **save_coordinates**: True ; save a csv file with the coordinates for each plate
-    - **min_cell_size**: 200 ;min area of the cell, all the object with smaller area will be removed
-    - **max_cell_size**: 100000 ;max area of the cell, all the object with bigger area will be removed
-    - **visualization**: False ; if true, the segmentation masks of the entire field will be visualizaed (using matplotlib). NOTE: we suggest to visualize the masks for testing, but to turn it off during the processing of large screens
+- **segmenting_function**: 'Nuclei_segmentation.nuclei_location_extraction' for threholding method
+- **save_coordinates**: True ; save a csv file with the coordinates for each plate
+- **min_cell_size**: 200 ;min area of the cell, all the object with smaller area will be removed
+- **max_cell_size**: 100000 ;max area of the cell, all the object with bigger area will be removed
+- **visualization**: False ; if true, the segmentation masks of the entire field will be visualizaed (using matplotlib). NOTE: we suggest to visualize the masks for testing, but to turn it off during the processing of large screens
 
-    - **visualize_masks**: False ; visualize the segmentation mask from each channel. NOTE: we suggest to visualize the masks for testing, but to turn it off during the processing of large screens
-    - **visualize_crops**: False ; visualizes the crop of the cell. This helps setting the best ROI size, but we suggest to visualize the crop for testing, but to turn it off during the processing of large screens
+- **visualize_masks**: False ; visualize the segmentation mask from each channel. NOTE: we suggest to visualize the masks for testing, but to turn it off during the processing of large screens
+- **visualize_crops**: False ; visualizes the crop of the cell. This helps setting the best ROI size, but we suggest to visualize the crop for testing, but to turn it off during the processing of large screens
 
-   #### 1.1 NOTE ON QUERYING DATA
+ #### 1.1 NOTE ON QUERYING DATA
 
-   The colored parameters described above are used in parsing data and are used together to search for files in the following way:
-   
-   ![image](https://github.com/user-attachments/assets/b10603d7-4162-4851-b444-9596dece8126)
-   
-   where each plate in **plates** and each extension in **file_extensions** is substituted to match all possible combinations.\
-   Please consult the [Querying Data wiki](https://github.com/NYSCF/ScaleFEx/wiki/Querying-Data) for more information.
+ The colored parameters described above are used in parsing data and are used together to search for files in the following way:
+ 
+ ![image](https://github.com/user-attachments/assets/b10603d7-4162-4851-b444-9596dece8126)
+ 
+ where each plate in **plates** and each extension in **file_extensions** is substituted to match all possible combinations.\
+ Please consult the [Querying Data wiki](https://github.com/NYSCF/ScaleFEx/wiki/Querying-Data) for more information.
 
-   **AWS specific parameters**
+ **AWS specific parameters**
 
 For a full description on how to run ScaleFEx on AWS, see the Wiki page [here](https://github.com/NYSCF/ScaleFEx/wiki/Running-ScaleFEx-on-AWS)
 
-   - **s3_bucket**: 'your-bucket'; name of the S3 Bucket storing your images
-   - **nb_subsets**: 6; how many machines per plate you want to deploy
-   - **subset_index**: 'all'; can use an int to compute a specific subset to compute (i.e:'2')
-   - **region**: 'us-east-1'; what region you want to deploy machines into
-   - **instance_type**: 'c5.12xlarge' ; Machine type/size
-   - **amazon_image_id**: 'ami-06c68f701d8090592' ; AMI linked to region
-   - **ScaleFExSubnetA**: 'subnet-XXXXXXXXXXXXXXXXX' ; ARN of the subnet you want to use for machines deployment, empty string if you want to use the default one
-   - **ScaleFExSubnetB**: 'subnet-XXXXXXXXXXXXXXXXX' ; second subnet you want to use, if only one use the same
-   - **ScaleFExSubnetC**: 'subnet-XXXXXXXXXXXXXXXXX' ; third subnet you want to use, if only one use the same
-   - **security_group_id**: 'sg-XXXXXXXXXXXXXXXXX' ; security group you want to use, empty string if you want to use the default one
-  
+ - **s3_bucket**: 'your-bucket'; name of the S3 Bucket storing your images
+ - **nb_subsets**: 6; how many machines per plate you want to deploy
+ - **subset_index**: 'all'; can use an int to compute a specific subset to compute (i.e:'2')
+ - **region**: 'us-east-1'; what region you want to deploy machines into
+ - **instance_type**: 'c5.12xlarge' ; Machine type/size
+ - **amazon_image_id**: 'ami-06c68f701d8090592' ; AMI linked to region
+ - **ScaleFExSubnetA**: 'subnet-XXXXXXXXXXXXXXXXX' ; ARN of the subnet you want to use for machines deployment, empty string if you want to use the default one
+ - **ScaleFExSubnetB**: 'subnet-XXXXXXXXXXXXXXXXX' ; second subnet you want to use, if only one use the same
+ - **ScaleFExSubnetC**: 'subnet-XXXXXXXXXXXXXXXXX' ; third subnet you want to use, if only one use the same
+ - **security_group_id**: 'sg-XXXXXXXXXXXXXXXXX' ; security group you want to use, empty string if you want to use the default one
+
   
       
-3. **Execute Analysis**:
+ **Execute Analysis**:
     
    If running the code locally:  
    From the terminal:
@@ -147,9 +148,9 @@ For a full description on how to run ScaleFEx on AWS, see the Wiki page [here](h
    
 ### Example
 
-To see the output of ScaleFEx, execute the Jupyter Notebook provided with the code: **test_sample_dataset.ipynb**
+A example notebook for running our pipeline on a single field is included here. To run it, make sure to have installed the correct library (on terminal input pip install notebook)
 
-If you leave the parameters.yaml file as it is, the notebook will automatically compute scalefex on the provided data. The notebook already displays that same output.
+An example of a possible analysis that can be performed on the ScaleFEx features is outlined in demos/demo_scalefex_analysis.ipynb`
 
 
 
