@@ -77,7 +77,6 @@ NOTE: if you leave the parameters as they are, the code will compute ScaleFEx on
     (example: exp_folder/some_strings < identifier1 > Plate < identifier2 > some_other_string/*.tiffs)
 - 🟧 **pattern**: 'Images/<Well\>f<Site\>p<Plane(2)>-<Channel(3)>.<ext>' # pattern of the image file: specify all the characters that make up the filepath indicating the location ([more details in the wiki](https://github.com/NYSCF/ScaleFEx/wiki/Querying-Data)) 
 - 🟪 **file_extensions**: ['tiff',] ; specify the extensions of the image files 
-- **image_size**: [2160,2160] ;size of the image
 - **channel**: ['ch4','ch1', 'ch5',  'ch3', 'ch2'] ;channels to be processed. NOTE: the nuclear channel should be first
 - **zstack**: False ;Set to True if you have multi-plane images
 - **ROI**: 150 ;Radius of the crop to be cut around the cell
