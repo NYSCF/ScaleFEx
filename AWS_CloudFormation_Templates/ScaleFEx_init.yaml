@@ -210,7 +210,6 @@ Resources:
           sudo sed -i "s|^plate_identifiers:.*|plate_identifiers: ${PlateIdentifier}|" parameters.yaml
           sudo sed -i "s|^fname_pattern:.*|fname_pattern: ${FnamePattern}|" parameters.yaml
           sudo sed -i "s|^file_extensions:.*|file_extensions: ${FileExtensions}|" parameters.yaml
-          sudo sed -i "s|^image_size:.*|image_size: ${ImageSize}|" parameters.yaml
           sudo sed -i "s|^channel:.*|channel: ${Channel}|" parameters.yaml
           sudo sed -i "s|^ROI:.*|ROI: ${ROI}|" parameters.yaml
           sudo sed -i "s|^RNA_channel:.*|RNA_channel: ${RNAChannel}|" parameters.yaml
