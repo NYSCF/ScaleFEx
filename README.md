@@ -1,6 +1,7 @@
 ![Ubuntu](https://github.com/NYSCF/ScaleFEx/actions/workflows/ubuntu-latest.yml/badge.svg)
 ![MacOS](https://github.com/NYSCF/ScaleFEx/actions/workflows/macos-latest.yml/badge.svg)
 ![Windows](https://github.com/NYSCF/ScaleFEx/actions/workflows/windows-latest.yml/badge.svg)
+[![DOI](https://zenodo.org/badge/796727880.svg)](https://doi.org/10.5281/zenodo.13928509)
 [![Python 3.12](https://img.shields.io/badge/python-3.10%2C3.11%2C3.12-lightgrey)](https://www.python.org/downloads/release/python-312/)
 
 
