@@ -162,3 +162,6 @@ def test_single_cell_feature_extraction():
     assert df.isna().values.any() == False
     assert np.isinf(df).values.sum() == 0
     pd.testing.assert_frame_equal(df.reset_index(drop=True),expected_df.reset_index(drop=True))
+
+# if __name__ == "__main__":
+#     test_single_cell_feature_extraction()

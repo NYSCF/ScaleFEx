@@ -72,11 +72,11 @@ def compute_shape(chan, regions, ROI, segmented_labels):
 
     df = pd.DataFrame([[]], dtype=np.float64)
     df['MinRadius_shape' + chan] = np.min(
-        [regions[0].bbox[2]-regions[0].bbox[0], regions[0].bbox[3]-regions[0].bbox[1]])
+        [regions[0].bbox[2]-regions[0].bbox[0], regions[0].bbox[3]-regions[0].bbox[1]]).astype(np.int64)
     df['MaxRadius_shape' + chan] = np.max(
-        [regions[0].bbox[2]-regions[0].bbox[0], regions[0].bbox[3]-regions[0].bbox[1]])
+        [regions[0].bbox[2]-regions[0].bbox[0], regions[0].bbox[3]-regions[0].bbox[1]]).astype(np.int64)
     df['MeanRadius_shape' + chan] = regions[0].equivalent_diameter
-    df['Area_shape' + chan] = np.nansum(segmented_labels)
+    df['Area_shape' + chan] = np.nansum(segmented_labels).astype(np.int64)
     df['Perimeter_shape' + chan] = regions[0].perimeter
     df['FormFactor_shape' + chan] = (
         4 * np.pi * np.nansum(segmented_labels)) / ((regions[0].perimeter) ** 2) + 1e-8
@@ -549,7 +549,11 @@ def RNA_measurement(segmented_labels, simg, viz=False):
 
 def correlation_measurements(simgi, simgj, chan, chanj, Labi, Labj):
     '''Measure correlation between channels'''
-   
+    simgi=simgi.astype(np.uint8)
+    simgj=simgj.astype(np.uint8)
+    Labi=Labi.astype(np.uint8)
+    Labj=Labj.astype(np.uint8)
+
     df = pd.DataFrame([[]])
     correlation_coefficient = np.nanmean(np.corrcoef(simgi, simgj))
     df['Correlation_' + chan + '_' + chanj] = correlation_coefficient
@@ -557,17 +561,17 @@ def correlation_measurements(simgi, simgj, chan, chanj, Labi, Labj):
     slope = sp.stats.linregress(simgi.reshape(-1, ), simgj.reshape(-1, ))
     df['Correlation_Slope_' + chan + '_' + chanj] = slope.slope
     overlap_coeff = np.nansum(
-        simgi * simgj) / np.sqrt(np.nansum(simgi * simgi) * np.nansum(simgj * simgj))
+        simgi * simgj) / np.sqrt(np.nansum(simgi * simgi) * np.nansum(simgj * simgj).astype(np.float64))
     df['Correlation_Overlap_' + chan + '_' + chanj] = overlap_coeff
-    M1 = np.nanmean(sum(simgi * Labj) / (sum(simgi)+ 1e-8))
-    M2 = np.nanmean(sum(simgj * Labi) / (sum(simgj)+ 1e-8))
+    M1 = np.nanmean(sum(simgi.astype('uint8') * Labj.astype('uint8')).astype('uint32') / (sum(simgi.astype('uint8')).astype('uint32') + 1e-8)).astype('float64')
+    M2 = np.nanmean(sum(simgj.astype('uint8') * Labi.astype('uint8')).astype('uint32') / (sum(simgj.astype('uint8')).astype('uint32')+ 1e-8)).astype('float64')
     df['Correlation_Mander1_' + chan + '_' + chanj] = M1
     df['Correlation_Mander2_' + chan + '_' + chanj] = M2
     Rmax = np.max([len(np.unique(simgi)), len(np.unique(simgj))])  # Aux
     Di = abs(len(np.unique(simgi)) - len(np.unique(simgj)))  # Aux
     Wi = (Rmax - Di) / Rmax+ 1e-8  # Aux
-    RWC1 = sum(sum(simgi * Labj * Wi) / (sum(simgi)+ 1e-8))
-    RWC2 = sum(sum(simgj * Labi * Wi) / (sum(simgj)+ 1e-8))
+    RWC1 = sum(sum(simgi * Labj.astype('int32') * Wi) / (sum(simgi)+ 1e-8))
+    RWC2 = sum(sum(simgj * Labi.astype('int32') * Wi) / (sum(simgj)+ 1e-8))
     df['Correlation_RWC1_' + chan + '_' + chanj] = RWC1
     df['Correlation_RWC2_' + chan + '_' + chanj] = RWC2
 
