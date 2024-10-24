@@ -7,7 +7,7 @@ n_of_workers: 1 # int, n of workers to use in parallel. Depends on the number of
                 # SHOULD BE 1 FOR TESTING AND DEBUGGING
 
 # Parameters for file retrieval and saving:
-exp_folder: 'sample_data/' Main folder with subfolders of plates (each with a subfolder of images)
+exp_folder: 'sample_data/' #Main folder with subfolders of plates (each with a subfolder of images)
 experiment_name: 'Dataset01' # Experiment name used to identify the experiment
 saving_folder: 'sample_data/output/' # folder to save results (e.g.,scalefex_results)
 plates: ['Plate1'] # list of plates to be processed (each should be in one plate subdirectory name)
