@@ -153,7 +153,22 @@ A example notebook for running our pipeline on a single field is included here. 
 
 An example of a possible analysis that can be performed on the ScaleFEx features is outlined in demos/demo_scalefex_analysis.ipynb`
 
+### Dataset Availability
 
+The dataset used to validate ScaleFEx in the publication is publicly available:
+- Raw imaging data (2.3TB): https://nyscfopensource.blob.core.windows.net/nyscfopensource/scalefex/ScaleFExDataset.zip![image](https://github.com/user-attachments/assets/205b42c4-a155-4a43-a3c0-304084015319)
+- Raw ScaleFEx features from the same dataset, with associated metadata: https://nyscfopensource.blob.core.windows.net/nyscfopensource/scalefex/scalefex_raw_features.parquet![image](https://github.com/user-attachments/assets/f69b3071-d3ba-4283-91aa-fce2d9ca7c71)
+- Processed features (normalized, corrected and uncorrelated fearures) with associated metadata: https://github.com/NYSCF/ScaleFEx/edit/main/README.md#:~:text=ScaleFEx_corrected_averaged_features
+To retrieve the metadata for the images, download either one file of the ScaleFEx features and merge it with the well and plate information encoded in the filename of each image
+The channels stains are:
+
+Channel name | Antibody target    | Cell target	
+------------ | ------------------ | ------------
+ch1	      | Concanavalin A     | ER	
+ch2	      | WGA and Phalloidin | GP
+ch3	      | MitoTracker	      | Mitochondria	
+ch4	      | Hoechst	      | Nuclei	
+ch5	      | SYTO14	      | Cytoplasmic RNA		
 
 ### License
 
