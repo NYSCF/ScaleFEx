@@ -7,9 +7,9 @@
 
 ## ScaleFEx℠: Feature Extraction for High-Content Imaging
 
-ScaleFEx℠ (Scalable Feature Extraction ) is an open-source Python pipeline designed to extract biologically meaningful features from large high-content imaging (HCI) datasets. 
+**ScaleFEx℠** (Scalable Feature Extraction ) is an open-source Python pipeline designed to extract biologically meaningful features from large high-content imaging (HCI) datasets. 
 
-Read more about it in the preprint: https://doi.org/10.1101/2023.07.06.547985 
+Read more about it in our paper published in _iScience_: https://doi.org/10.1016/j.isci.2024.111434
 
 ![Fig_1_v2 0](https://github.com/user-attachments/assets/9f4af03f-929a-494e-bac5-6610baf8d7e4)
 
